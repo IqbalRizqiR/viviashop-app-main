@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+
+class InstagramController extends Controller
+{
+    protected $accessToken;
+
+    public function __construct()
+    {
+        $this->accessToken = config('instagram.access_token');
+    }
+
+    public function postToInstagram(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'caption' => 'required|string|max:2200',
+        ]);
+
+        $imagePath = $request->file('image')->store('images', 'public');
+        $imageUrl = asset('storage/' . $imagePath);
+
+        $response = Http::withToken($this->accessToken)->post('https://graph.instagram.com/me/media', [
+            'image_url' => $imageUrl,
+            'caption' => $request->caption,
+            'access_token' => $this->accessToken,
+        ]);
+
+        return $response->successful() ? redirect()->back()->with('success', 'Post created successfully!') : redirect()->back()->with('error', 'Failed to create post.');
+    }
+
+    public function getInstagramData()
+    {
+        $response = Http::withToken($this->accessToken)->get('https://graph.instagram.com/me/media', [
+            'fields' => 'id,caption,media_type,media_url,thumbnail_url,timestamp',
+            'access_token' => $this->accessToken,
+        ]);
+
+        return $response->json();
+    }
+}

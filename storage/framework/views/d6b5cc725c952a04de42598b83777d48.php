@@ -86,6 +86,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="<?php echo e(route('admin.instagram.index')); ?>" class="nav-link">
+                            <i class="fa fa-plus nav-icon"></i>
+                            <p>Instagram</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="<?php echo e(route('admin.setting.index')); ?>" class="nav-link">
                             <i class="fa fa-plus nav-icon"></i>
                             <p>Setting</p>

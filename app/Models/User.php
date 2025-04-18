@@ -37,4 +37,10 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function updateInstagramToken(string $token): bool
+    {
+        $this->instagram_access_token = $token;
+        return $this->save();
+    }
 }

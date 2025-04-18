@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Frontend\HomepageController;
 use App\Http\Controllers\Frontend\OrderController;
+use App\Http\Controllers\InstagramController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PembelianDetailController;
 use App\Http\Controllers\SettingController;
@@ -47,6 +48,10 @@ Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderControl
     Route::get('payments/error', [App\Http\Controllers\Frontend\OrderController::class, 'errorRedirect'])
     ->name('payment.error');
 
+    Route::get('/instagram', [InstagramController::class, 'getInstagramData'])->name('admin.instagram.index');
+
+
+
 Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' => 'admin.'], function() {
     // admin
     Route::get('users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
@@ -77,6 +82,17 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
     Route::get('/laporan/export', [ReportController::class, 'exportExcel'])->name('laporan.exportExcel');
     // Route::get('/laporan/dataTotal/{awal}/{akhir}', [HomepageController::class, 'getReportsData'])->name('laporan.data');
     Route::get('/laporan/export/{awal}/{akhir}', [HomepageController::class, 'data'])->name('laporan.exportPDF');
+
+    Route::get('/instagram/create', [InstagramController::class, 'create'])->name('instagram.create');
+    Route::post('/instagram/post', [InstagramController::class, 'postToInstagram'])->name('instagram.store');
+    Route::get('/instagram/data', [InstagramController::class, 'getInstagramData'])->name('instagram.data');
+    Route::get('/instagram/redirect', [InstagramController::class, 'redirectToInstagram'])
+     ->name('instagram.redirect');
+    Route::get('/instagram/callback', [InstagramController::class, 'handleCallback'])
+        ->name('instagram.callback');
+    Route::match(['get','post'], '/instagram/webhook', [InstagramController::class, 'webhook'])
+        ->name('instagram.webhook');
+
 
     Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
