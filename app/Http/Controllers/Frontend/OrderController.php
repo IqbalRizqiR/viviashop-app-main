@@ -36,11 +36,11 @@ class OrderController extends Controller
         $this->isSanitized = config('midtrans.isSanitized');
         $this->is3ds = config('midtrans.is3ds');
 
-        Log::info('Midtrans Configuration', [
-            'server_key' => !empty($this->midtransServerKey) ? 'Set (hidden)' : 'Not set',
-            'client_key' => $this->midtransClientKey,
-            'is_production' => $this->isProduction
-        ]);
+        // Log::info('Midtrans Configuration', [
+        //     'server_key' => !empty($this->midtransServerKey) ? 'Set (hidden)' : 'Not set',
+        //     'client_key' => $this->midtransClientKey,
+        //     'is_production' => $this->isProduction
+        // ]);
     }
 
     // public function debug()

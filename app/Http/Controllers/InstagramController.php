@@ -44,7 +44,7 @@ class InstagramController extends Controller
 
         // 2. Handle incoming POST updates
         $data = $request->all();
-        Log::info('Instagram Webhook POST', $data);
+        // Log::info('Instagram Webhook POST', $data);
 
         // TODO: react to the update (e.g. new comment, mention, story, etc.)
         return response('OK', 200);
