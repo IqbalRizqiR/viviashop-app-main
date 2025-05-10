@@ -26,6 +26,8 @@ class HomepageController extends Controller
         $productActives = array($productActive);
         $products = ProductCategory::with('categories', 'products')->limit(8)->whereIn('product_id', $productActives[0])->get();
         $categories = ProductCategory::with('products', 'categories')->whereIn('product_id', $productActives[0])->get();
+        $categoriesCount = ProductCategory::with('products', 'categories')->whereIn('product_id', $productActives[0])->pluck('category_id');
+        $categoriesName = Category::whereIn('id', $categoriesCount)->get();
         $popular = Product::where('type', 'simple')->active()->limit(6)->get();
         $totalProduct = Product::where('type', 'simple')->count();
         $slides = Slide::active()->orderBy('position', 'ASC')->get();
@@ -33,7 +35,7 @@ class HomepageController extends Controller
         $setting = Setting::first();
         view()->share('setting', $setting);
         view()->share('countCart', $cart);
-        return view('frontend.homepage', compact('products', 'totalProduct', 'categories', 'popular', 'slides'));
+        return view('frontend.homepage', compact('products', 'totalProduct', 'categories', 'categoriesName', 'popular', 'slides'));
     }
 
     public function detail($id)
@@ -209,5 +211,6 @@ class HomepageController extends Controller
         view()->share('setting', $setting);
         view()->share('countCart', $cart);
         $categories = Category::all();
+        return view('frontend.shop.index', compact('products', 'categories', 'producteds'));
     }
 }

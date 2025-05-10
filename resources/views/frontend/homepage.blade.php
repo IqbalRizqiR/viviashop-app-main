@@ -103,15 +103,10 @@
                 </div>
                 <div class="col-lg-8 text-end">
                     <ul class="nav nav-pills d-inline-flex text-center mb-5">
-                        <li class="nav-item">
-                            <a class="d-flex m-2 py-2 bg-light rounded-pill active" data-bs-toggle="pill" href="#tab-1">
-                                <span class="text-dark" style="width: 130px;">All Products</span>
-                            </a>
-                        </li>
-                        @foreach ($categories as $row)
+                        @foreach ($categoriesName as $row)
                             <li class="nav-item">
                                 <a class="d-flex change-the-class py-2 m-2 bg-light rounded-pill" data-bs-toggle="pill" href="#tab-{{ $row->iteration+2 }}">
-                                    <span class="text-dark" style="width: 130px;">{{ $row->categories->name }}</span>
+                                    <span class="text-dark" style="width: 130px;">{{ $row->name }}</span>
                                 </a>
                             </li>
                         @endforeach
