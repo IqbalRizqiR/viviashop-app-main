@@ -273,8 +273,8 @@ class OrderController extends Controller
 
                 $orderItemParams = [
                     'order_id' => $order->id,
-                    'product_id' => $params['product_id'],
-                    'qty' => $params['qty'],
+                    'product_id' => $params['product_id'][0],
+                    'qty' => $params['qty'][0],
                     'base_price' => $products->price,
                     'base_total' => $itemBaseTotal,
                     'tax_amount' => $itemTaxAmount,
