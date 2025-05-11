@@ -158,7 +158,7 @@ class OrderController extends Controller
 	public function storeAdmin(Request $request)
 	{
 		$params = $request->all();
-		$params['attachments'] = $request->file('file');
+		$params['attachments'] = $request->file('attachments');
 		$params['unique_code'] = random_int('1', '999');
 
 		$order = DB::transaction(function () use ($params) {
