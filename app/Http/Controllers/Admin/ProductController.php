@@ -182,7 +182,7 @@ class ProductController extends Controller
     {
         // 1) Fetch all products into a collection
         $products = Product::select('id', 'sku', 'name', 'price')
-            ->get();
+            ->paginate(10);
 
         // 2) Build a simple array of rows
         $data = [];
