@@ -120,8 +120,9 @@
     let url = "{{ route('admin.products.data') }}";
 $(function(){
   table1 = $('.table-product').DataTable({
+    serverSide: true,
     processing: true,
-    bSort: false,
+    bSort: true,
     dom: 'Brt',
     columns: [
         {data: 'DT_RowIndex', searchable: false, sortable: false},
@@ -148,10 +149,12 @@ $('#product-table').on('click', '.select-product', function(){
     // append to your form (example)
     $('#order-items').append(`
       <div class="order-item">
-        <input type="hidden" name="products[][id]" value="${id}">
-        <span>${name} (${sku})</span>
-        <input type="number" name="products[][qty]" value="1" min="1">
-        <button type="button" class="remove-item">x</button>
+        <div class="form-group">
+            <input type="hidden" name="products[][id]" value="${id}">
+            <label>${name} (${sku})</label>
+            <input type="number" name="products[][qty]" class="form-control" value="1" min="1">
+            <button type="button" class="remove-item btn btn-danger">x</button>
+        </div>
       </div>
     `);
 
