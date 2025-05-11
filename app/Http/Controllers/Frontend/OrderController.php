@@ -661,15 +661,13 @@ view()->share('setting', $setting);
 			}
 
 			// Add unique code as an item if used
-			if (isset($order->unique_code) && $order->unique_code > 0) {
 				$items[] = [
 					'id' => 'UNIQUE-CODE',
-					'price' => $order->unique_code,
+					'price' => $order->grand_total - $order->base_total_price - $order->shipping_cost,
 					'quantity' => 1,
 					'name' => 'Unique Payment Code',
 					'category' => 'Fee'
 				];
-			}
 
 			// Define the transaction parameters
 			$params = [
