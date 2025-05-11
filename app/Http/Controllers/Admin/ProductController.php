@@ -183,6 +183,7 @@ class ProductController extends Controller
         // 1) Fetch all products into a collection
         $products = Product::all();
         dd($products);
+        return view('admin.products.index', compact('products'));
 
         // // 2) Build a simple array of rows
         // $data = [];
