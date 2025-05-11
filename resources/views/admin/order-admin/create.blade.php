@@ -117,16 +117,12 @@
 @push('scripts')
 <script>
     let table;
+    let url = "{{ route('admin.orders.data') }}";
 $(function(){
   table1 = $('.table-product').DataTable({
     processing: true,
     bSort: false,
     dom: 'Brt',
-    ajax: {
-        url: "{{ route('admin.products.data') }}",
-    }
-
-
     columns: [
         {data: 'DT_RowIndex', searchable: false, sortable: false},
         {data: 'name'},
@@ -140,6 +136,9 @@ $(function(){
 function addModal() {
     $('#modalProduct').modal('show');
     $('#modalProduct').addClass('show');
+
+    table1.ajax.url(url);
+    table1.ajax.reload();
 }
 </script>
 <script>
