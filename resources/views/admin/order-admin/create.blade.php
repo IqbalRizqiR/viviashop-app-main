@@ -147,47 +147,6 @@ $('#productModal').on('shown.bs.modal', function() {
   productTable.columns.adjust();
 });
 
-  // when user clicks Add
-  $('#product-table').on('click', '.select-product', function(){
-    var id   = $(this).data('id'),
-        sku  = $(this).data('sku'),
-        name = $(this).data('name'),
-        idx  = $('#order-items .order-item').length;
-
-    var html = `
-    <div class="order-item card mb-2 p-2">
-      <div class="form-row">
-        <div class="col-md-6">
-          <label>Product</label>
-          <input type="text"
-                 class="form-control"
-                 value="${name} (${sku})"
-                 readonly>
-          <input type="hidden"
-                 name="products[${idx}][id]"
-                 value="${id}">
-        </div>
-        <div class="col-md-3">
-          <label>Qty</label>
-          <input type="number"
-                 name="products[${idx}][qty]"
-                 class="form-control"
-                 value="1"
-                 min="1"
-                 required>
-        </div>
-        <div class="col-md-3 d-flex align-items-end">
-          <button type="button"
-                  class="btn btn-danger remove-item">
-            Remove
-          </button>
-        </div>
-      </div>
-    </div>`;
-    $('#order-items').append(html);
-    $('#productModal').modal('hide');
-  });
-
   // remove item
   $('#order-items').on('click', '.remove-item', function(){
     $(this).closest('.order-item').remove();
