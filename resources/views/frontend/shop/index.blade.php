@@ -39,7 +39,7 @@
                                             @foreach ($categories as $item)
                                                 <li>
                                                     <div class="d-flex justify-content-between fruite-name">
-                                                        <a href="{{ route('shop-detail', $item->slug) }}"><i class="fas fa-apple-alt me-2"></i>{{ $item->name }}</a>
+                                                        <a href="{{ route('shopCategory', $item->slug) }}"><i class="fas fa-apple-alt me-2"></i>{{ $item->name }}</a>
                                                     </div>
                                                 </li>
                                             @endforeach
@@ -116,7 +116,7 @@
                                             <h4>Data tidak ditemukan</h4>
                                         </div>
                                     </div>
-                                @endforeach
+                                @endforelse
                             </div>
                         </div>
                     </div>
