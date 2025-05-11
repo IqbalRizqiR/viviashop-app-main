@@ -140,6 +140,28 @@ function addModal() {
     table1.ajax.url(url);
     table1.ajax.reload();
 }
+$('#product-table').on('click', '.select-product', function(){
+    const id   = $(this).data('id'),
+          sku  = $(this).data('sku'),
+          name = $(this).data('name');
+
+    // append to your form (example)
+    $('#order-items').append(`
+      <div class="order-item">
+        <input type="hidden" name="products[][id]" value="${id}">
+        <span>${name} (${sku})</span>
+        <input type="number" name="products[][qty]" value="1" min="1">
+        <button type="button" class="remove-item">x</button>
+      </div>
+    `);
+
+    $('#productModal').modal('hide');
+  });
+
+  // remove item
+  $('#order-items').on('click','.remove-item', function(){
+    $(this).closest('.order-item').remove();
+  });
 </script>
 <script>
 
