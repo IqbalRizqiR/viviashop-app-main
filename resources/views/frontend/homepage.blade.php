@@ -165,14 +165,14 @@
                         <div class="row g-4">
                             @foreach(($products->where('category_id', $category->id)) as $row)
                             <div class="col-md-6 col-lg-4 col-xl-3">
-                                {{ $category->id }}
+                                {{-- {{ $category->id }} --}}
                                 {{-- product card --}}
                                 <div class="rounded position-relative fruite-item">
                                 {{-- …same markup you have… --}}
                                 <a href="{{ route('shop-detail', $row->id) }}">
-                                    <h4>{{ $row->name }}</h4>
+                                    <h4>{{ $row->products->name }}</h4>
                                 </a>
-                                <p>Rp. {{ number_format($row->price) }}</p>
+                                <p>Rp. {{ number_format($row->products->price) }}</p>
                                 </div>
                             </div>
                             @endforeach
