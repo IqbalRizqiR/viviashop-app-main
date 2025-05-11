@@ -124,6 +124,9 @@ $(function(){
     responsive: true,
     serverSide: true,
     autoWidth: false,
+    ajax : {
+        url: "{{ route('admin.products.data') }}",
+    }
     columns: [
         {data: 'DT_RowIndex', searchable: false, sortable: false},
         {data: 'name'},
@@ -137,9 +140,6 @@ $(function(){
 function addModal() {
     $('#modalProduct').modal('show');
     $('#modalProduct').addClass('show');
-
-    table1.ajax.url(url);
-    table1.ajax.reload();
 }
 $('#product-table').on('click', '.select-product', function(){
     const id   = $(this).data('id'),
