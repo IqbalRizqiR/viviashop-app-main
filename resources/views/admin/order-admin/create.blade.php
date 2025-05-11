@@ -62,8 +62,7 @@
                             <div>
                                 <button type="button"
                                         class="btn btn-primary mb-3"
-                                        data-toggle="modal"
-                                        data-target="#productModal">
+                                        onclick="addModal()">
                                 <i class="fas fa-search"></i> Search & Add Product
                                 </button>
                             </div>
@@ -82,7 +81,7 @@
                     </div>
 
                     {{-- Modal --}}
-                    <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel">
+                    <div class="modal fade" id="modalProduct" tabindex="-1" aria-labelledby="productModalLabel">
                         <div class="modal-dialog modal-lg">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -90,17 +89,16 @@
                                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                                 </div>
                                 <div class="modal-body">
-                                    <table id="product-table" class="table table-bordered table-hover">
+                                    <table id="product-table" class="table table-product table-bordered table-hover">
                                         <thead>
                                             <tr>
                                             <th>ID</th>
-                                            <th>SKU</th>
                                             <th>Name</th>
+                                            <th>SKU</th>
                                             <th>Price</th>
                                             <th width="80">Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody></tbody>
                                     </table>
                                 </div>
                             </div>
@@ -118,28 +116,26 @@
 
 @push('scripts')
 <script>
+    let table;
 $(function(){
-  let productTable;
-  $('#productModal').on('shown.bs.modal', function(){
-    if (!productTable) {
-      productTable = $('#product-table').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: "{{ route('admin.products.data') }}",
-        columns: [
-          { data: 'DT_RowIndex', orderable:false, searchable:false },
-          { data: 'sku' },
-          { data: 'name' },
-          { data: 'price' },
-          { data: 'action', orderable:false, searchable:false },
-        ]
-      });
-    } else {
-      productTable.ajax.reload(null,false);
-    }
-    productTable.columns.adjust();
-  });
+  table1 = $('.table-product').DataTable({
+    processing: true,
+    bSort: false,
+    dom: 'Brt',
+    columns: [
+        {data: 'DT_RowIndex', searchable: false, sortable: false},
+        {data: 'name'},
+        {data: 'sku'},
+        {data: 'price'},
+        {data: 'action', searchable: false, sortable: false},
+    ]
+})
 });
+
+function addModal() {
+    $('#modalProduct').modal('show');
+    $('#modalProduct').addClass('show');
+}
 </script>
 <script>
 
