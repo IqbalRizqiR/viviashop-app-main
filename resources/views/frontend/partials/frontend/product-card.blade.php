@@ -1,6 +1,6 @@
 @php
     // get first image or placeholder
-    if ($product->productImages->count() >= 1) {
+    if (!empty($product->productImages)) {
         $imgPath = $product->productImages->first()->path;
     } else {
         $imgPath = '/images/placeholder.jpg';
