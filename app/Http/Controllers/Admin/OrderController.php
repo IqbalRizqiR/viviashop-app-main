@@ -258,7 +258,79 @@ class OrderController extends Controller
 	private function _saveOrderItems($order, $params)
 	{
 		if ($order) {
-			dd($params['qty'][0]);
+			// if (count($params['product_id']) == 1) {
+            //     $products = Product::where('id', $params['product_id'])->first();
+            //     $itemTaxAmount = 0;
+            //     $itemTaxPercent = 0;
+            //     $itemDiscountAmount = 0;
+            //     $itemDiscountPercent = 0;
+            //     $itemBaseTotal = $params['qty'] * $products->price;
+            //     $itemSubTotal = $itemBaseTotal + $itemTaxAmount - $itemDiscountAmount;
+
+            //     $product = isset($products->model->parent) ? $products->model->parent : $products->model;
+
+            //     $orderItemParams = [
+            //         'order_id' => $order->id,
+            //         'product_id' => $params['product_id'],
+            //         'qty' => $params['qty'],
+            //         'base_price' => $products->price,
+            //         'base_total' => $itemBaseTotal,
+            //         'tax_amount' => $itemTaxAmount,
+            //         'tax_percent' => $itemTaxPercent,
+            //         'discount_amount' => $itemDiscountAmount,
+            //         // 'attachments' => $order->
+            //         'discount_percent' => $itemDiscountPercent,
+            //         'sub_total' => $itemSubTotal,
+            //         'sku' => $products->sku,
+            //         'type' => $products->type,
+            //         'name' => $products->name,
+            //         'weight' => $products->weight,
+            //         'attributes' => json_encode($products->options),
+            //     ];
+
+            //     $orderItem = OrderItem::create($orderItemParams);
+
+            //     if ($orderItem) {
+            //         ProductInventory::reduceStock($orderItem->product_id, $orderItem->qty);
+            //     }
+            // } else {
+            //     foreach ($params['product_id'] as $productId) {
+            //         $products = Product::where('id', $productId)->first();
+            //         $itemTaxAmount = 0;
+            //         $itemTaxPercent = 0;
+            //         $itemDiscountAmount = 0;
+            //         $itemDiscountPercent = 0;
+            //         $itemBaseTotal = $params['qty'] * $products->price;
+            //         $itemSubTotal = $itemBaseTotal + $itemTaxAmount - $itemDiscountAmount;
+
+            //         $product = isset($products->model->parent) ? $products->model->parent : $products->model;
+
+            //         $orderItemParams = [
+            //             'order_id' => $order->id,
+            //             'product_id' => $productId,
+            //             'qty' => $params['qty'],
+            //             'base_price' => $products->price,
+            //             'base_total' => $itemBaseTotal,
+            //             'tax_amount' => $itemTaxAmount,
+            //             'tax_percent' => $itemTaxPercent,
+            //             'discount_amount' => $itemDiscountAmount,
+            //             // 'attachments' => $order->
+            //             'discount_percent' => $itemDiscountPercent,
+            //             'sub_total' => $itemSubTotal,
+            //             'sku' => $products->sku,
+            //             'type' => $products->type,
+            //             'name' => $products->name,
+            //             'weight' => $products->weight,
+            //             'attributes' => json_encode($products->options),
+            //         ];
+
+            //         OrderItem::create($orderItemParams);
+            //         ProductInventory::reduceStock($productId, $params['qty']);
+            //     }
+            // }
+
+        dd($params->count());
+
 		}
 	}
 
