@@ -149,9 +149,9 @@ $('#product-table').on('click', '.select-product', function(){
     $('#order-items').append(`
       <div class="order-item">
         <div class="form-group">
-            <input type="hidden" name="products[][id]" value="${id}">
+            <input type="hidden" name="product_id[]" value="${id}">
             <label>${name} (${sku})</label>
-            <input type="number" name="products[][qty]" class="form-control" value="1" min="1">
+            <input type="number" name="qty[]" class="form-control" value="1" min="1">
             <button type="button" class="remove-item btn btn-danger">x</button>
         </div>
       </div>
