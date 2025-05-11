@@ -120,12 +120,13 @@
 $(function(){
   table1 = $('.table-product').DataTable({
     processing: true,
+    bSort: false,
+    dom: 'Brt',
     ajax: {
         url: "{{ route('admin.products.data') }}",
     }
 
-    bSort: false,
-    dom: 'Brt',
+
     columns: [
         {data: 'DT_RowIndex', searchable: false, sortable: false},
         {data: 'name'},
