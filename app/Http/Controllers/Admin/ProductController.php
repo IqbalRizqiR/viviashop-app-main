@@ -190,13 +190,13 @@ class ProductController extends Controller
             ->of($products)                   // use the array of rows
             ->addIndexColumn()            // adds DT_RowIndex
             ->addColumn('name' , function ($product) {
-                return '<span class="label label-success">'. $product->name .'</span>';
+                return $product->name;
             })
             ->addColumn('sku' , function ($product) {
-                return '<span class="label label-success">'. $product->sku .'</span>';
+                return $product->sku;
             })
             ->addColumn('price' , function ($product) {
-                return '<span class="label label-success">'. format_uang($product->price) .'</span>';
+                return $product->price;
             })
             ->addColumn('action', function ($product) {
                 return'<button
