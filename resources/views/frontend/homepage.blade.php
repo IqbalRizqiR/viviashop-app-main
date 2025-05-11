@@ -163,7 +163,7 @@
                         id="tab-{{ $category->slug }}"
                         class="tab-pane fade {{ $loop->first ? 'show active' : '' }} p-0">
                         <div class="row g-4">
-                            @foreach(($products->where('category_id', $category->id)) as $row)
+                            @foreach(($products->categories->name === $category->slug) as $row)
                                 <div class="col-md-6 col-lg-4 col-xl-3">
                                     <div class="rounded position-relative fruite-item">
                                         <div class="fruite-img">
