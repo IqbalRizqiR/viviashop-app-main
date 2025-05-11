@@ -180,20 +180,32 @@ class ProductController extends Controller
 
     public function data()
     {
-        $products = Product::select(['id','sku','name','harga_jual'])->get();
+        // 1) Fetch all products into a collection
+        $products = Product::select(['id', 'sku', 'name', 'harga_jual'])->get();
 
-        // pass the collection (not the query builder) to DataTables
+        // 2) Build a simple array of rows
+        $data = [];
+        foreach ($products as $product) {
+            $data[] = [
+                'id'          => $product->id,
+                'sku'         => $product->sku,
+                'name'        => $product->name,
+                'harga_jual'  => 'Rp. ' . number_format($product->harga_jual, 0, ',', '.'),
+                'action'      => '<button '
+                            . 'class="btn btn-sm btn-success select-product" '
+                            . 'data-id="'. $product->id .'" '
+                            . 'data-sku="'. $product->sku .'" '
+                            . 'data-name="'. e($product->name) .'">'
+                            . 'Add'
+                            . '</button>',
+            ];
+        }
+
+        // 3) Return a valid DataTables JSON response
         return datatables()
-            ->of($products)
-            ->addIndexColumn()                // optional: adds a DT_RowIndex
-            ->addColumn('action', function($row){
-                return '<button class="btn btn-sm btn-success select-product" '
-                    . 'data-id="'.$row->id.'" '
-                    . 'data-sku="'.$row->sku.'" '
-                    . 'data-name="'.e($row->name).'">'
-                    . 'Add</button>';
-            })
-            ->rawColumns(['action'])          // allow HTML in `action`
+            ->of($data)                   // use the array of rows
+            ->addIndexColumn()            // adds DT_RowIndex
+            ->rawColumns(['action'])      // allow HTML in the action column
             ->make(true);
     }
 
