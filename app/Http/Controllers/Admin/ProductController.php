@@ -201,6 +201,8 @@ class ProductController extends Controller
             ];
         }
 
+        dd($data);
+
         // 3) Return a valid DataTables JSON response
         return datatables()
             ->of($data)                   // use the array of rows
