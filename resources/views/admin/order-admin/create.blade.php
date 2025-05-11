@@ -117,7 +117,7 @@
 @push('scripts')
 <script>
     let table;
-    let url = "{{ route('admin.orders.data') }}";
+    let url = "{{ route('admin.products.data') }}";
 $(function(){
   table1 = $('.table-product').DataTable({
     processing: true,
