@@ -129,7 +129,7 @@
                 class="tab-pane fade show active">
                 <div class="row g-4">
                 @foreach($products as $row)
-                    @include('frontend.partials.product-card', ['product'=>$row])
+                    @include('frontend.partials.frontend.product-card', ['product'=>$row])
                 @endforeach
                 </div>
             </div>
