@@ -24,7 +24,7 @@
                         <div class="footer-item">
                             <h4 class="text-light mb-3">Why People Like us!</h4>
                             <p class="mb-4">Harga yang bersaing, dengan kualitas yang terbaik. Telah dipercaya oleh beberapa instansi ternama.</p>
-                            <a href="" class="btn border-secondary py-2 px-4 rounded-pill text-primary">Read More</a>
+                            {{-- <a href="" class="btn border-secondary py-2 px-4 rounded-pill text-primary">Read More</a> --}}
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
@@ -49,8 +49,6 @@
                             <p>Address: {{ $setting->alamat }}</p>
                             <p>Email: Example@gmail.com</p>
                             <p>Phone: {{ $setting->telepon }}</p>
-                            <p>Payment Accepted</p>
-                            <img src="img/payment.png" class="img-fluid" alt="">
                         </div>
                     </div>
                 </div>
