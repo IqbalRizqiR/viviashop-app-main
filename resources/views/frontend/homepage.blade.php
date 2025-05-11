@@ -165,7 +165,7 @@
                         <div class="row g-4">
                             @foreach(($products->where('category_id', $category->id)) as $row)
                             <div class="col-md-6 col-lg-4 col-xl-3">
-                                {{ $category->name }}
+                                {{ $category->id }}
                                 {{-- product card --}}
                                 <div class="rounded position-relative fruite-item">
                                 {{-- …same markup you have… --}}
