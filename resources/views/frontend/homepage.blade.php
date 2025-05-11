@@ -103,14 +103,17 @@
                 </div>
                 <div class="col-lg-8 text-end">
                     <ul class="nav nav-pills d-inline-flex text-center mb-5">
-                        @foreach ($categoriesName as $row)
+                        @foreach($categoriesName as $category)
                             <li class="nav-item">
-                                <a class="d-flex change-the-class py-2 m-2 bg-light rounded-pill" data-bs-toggle="pill" href="#tab-{{ $row->iteration+2 }}">
-                                    <span class="text-dark" style="width: 130px;">{{ $row->name }}</span>
-                                </a>
+                            <a
+                                class="nav-link {{ $loop->first ? 'active' : '' }}"
+                                data-bs-toggle="pill"
+                                href="#tab-{{ $category->slug }}">
+                                {{ $category->name }}
+                            </a>
                             </li>
                         @endforeach
-                    </ul>
+                        </ul>
                 </div>
             </div>
             <div class="tab-content">
@@ -150,35 +153,28 @@
                     </div>
                 </div>
 
-                <div id="tab-2" class="tab-pane class-change fade show p-0">
-                    <div class="row g-4">
-                        <div class="col-lg-12">
-                            <div class="row g-4">
-                                @foreach ($products as $row)
-                                    <div class="col-md-6 col-lg-4 col-xl-3">
-                                        <div class="rounded position-relative fruite-item">
-                                            <div class="fruite-img">
-                                                <img src="" class="img-fluid w-100 rounded-top" alt="">
-                                            </div>
-                                            <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">{{ $row->categories->name }}</div>
-                                            <div class="p-3 border border-secondary border-top-0 rounded-bottom">
-                                                <a href="{{ route('shop-detail', $row->products->id) }}"><h4>{{ $row->products->name }}</h4></a>
-                                                <b>{{ $row->products->short_description }}</b>
-                                                @if ($row->products->productInventory != null)
-                                                    <p>Stok : {{ $row->products->productInventory->qty }}</p>
-                                                @endif
-                                                <div class="d-flex justify-content-center flex-lg-wrap">
-                                                    <p class="text-dark fs-5 fw-bold mb-2">Rp. {{ number_format($row->products->price) }}</p>
-                                                    <a class="btn border add-to-card border-secondary rounded-pill px-3 text-primary" href="" product-id="{{ $row->products->id }}" product-type="{{ $row->products->type }}" product-slug="{{ $row->products->slug }}"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
+                <div class="tab-content">
+                    @foreach($categoriesName as $category)
+                        <div
+                        id="tab-{{ $category->slug }}"
+                        class="tab-pane fade {{ $loop->first ? 'show active' : '' }} p-0">
+                        <div class="row g-4">
+                            @foreach($products->filter(fn($p) => $p->category_id == $category->id) as $row)
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                {{-- product card --}}
+                                <div class="rounded position-relative fruite-item">
+                                {{-- …same markup you have… --}}
+                                <a href="{{ route('shop-detail', $row->id) }}">
+                                    <h4>{{ $row->name }}</h4>
+                                </a>
+                                <p>Rp. {{ number_format($row->price) }}</p>
+                                </div>
                             </div>
+                            @endforeach
                         </div>
+                        </div>
+                    @endforeach
                     </div>
-                </div>
             </div>
         </div>
     </div>
