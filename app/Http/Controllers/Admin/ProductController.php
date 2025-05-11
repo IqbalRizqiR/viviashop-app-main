@@ -184,8 +184,7 @@ class ProductController extends Controller
 
         // pass the collection (not the query builder) to DataTables
         return datatables()
-            ->of($products)
-            ->toJson();
+            ->of($products);
         }
 
     public function imports()
