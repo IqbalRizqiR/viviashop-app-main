@@ -184,8 +184,18 @@ class ProductController extends Controller
 
         // pass the collection (not the query builder) to DataTables
         return datatables()
-            ->of($products);
-        }
+            ->of($products)
+            ->addIndexColumn()                // optional: adds a DT_RowIndex
+            ->addColumn('action', function($row){
+                return '<button class="btn btn-sm btn-success select-product" '
+                    . 'data-id="'.$row->id.'" '
+                    . 'data-sku="'.$row->sku.'" '
+                    . 'data-name="'.e($row->name).'">'
+                    . 'Add</button>';
+            })
+            ->rawColumns(['action'])          // allow HTML in `action`
+            ->make(true);
+    }
 
     public function imports()
     {
