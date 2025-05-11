@@ -42,7 +42,7 @@
                                             @foreach ($categories as $item)
                                                 <li>
                                                     <div class="d-flex justify-content-between fruite-name">
-                                                        <a href="{{ route('shopCategory', $item->slug) }}"><i class="fas fa-apple-alt me-2"></i>{{ $item->name }}</a>
+                                                        <a href="{{ route('shopCategory', $item->slug) }}" class="font-bold">{{ $item->name }}</a>
                                                     </div>
                                                 </li>
                                             @endforeach
