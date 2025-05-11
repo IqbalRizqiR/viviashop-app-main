@@ -106,7 +106,7 @@
                         <li class="nav-item">
                             <a class="nav-link active"
                             data-bs-toggle="pill"
-                            href="#tab-all">
+                            href="#tab-1">
                             All
                             </a>
                         </li>
@@ -163,7 +163,7 @@
                         id="tab-{{ $category->slug }}"
                         class="tab-pane fade {{ $loop->first ? 'show active' : '' }} p-0">
                         <div class="row g-4">
-                            @foreach($products->filter(fn($p) => $p->category_id == $category->id) as $row)
+                            @foreach({{ App\Models\ProductCategory::with(['products', 'categories'])->where('category_id', $category->id)->get() }} as $row)
                             <div class="col-md-6 col-lg-4 col-xl-3">
                                 {{-- product card --}}
                                 <div class="rounded position-relative fruite-item">
