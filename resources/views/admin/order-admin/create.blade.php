@@ -120,7 +120,6 @@
     let url = "{{ route('admin.products.data') }}";
 $(function(){
   table1 = $('.table-product').DataTable({
-    serverSide: true,
     processing: true,
     bSort: true,
     dom: 'Brt',
