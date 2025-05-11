@@ -200,6 +200,7 @@ class ProductController extends Controller
             })
             ->addColumn('action', function ($product) {
                 return'<button
+                                type="button"
                              class="btn btn-sm btn-success select-product"
                              data-id="'. $product->id .'"
                              data-sku="'. $product->sku .'"
