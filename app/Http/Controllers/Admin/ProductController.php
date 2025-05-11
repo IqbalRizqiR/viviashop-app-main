@@ -191,7 +191,7 @@ class ProductController extends Controller
                 'id'          => $product->id,
                 'sku'         => $product->sku,
                 'name'        => $product->name,
-                'harga_jual'  => 'Rp. ' . number_format($product->harga_jual, 0, ',', '.'),
+                'price'  => 'Rp. ' . number_format($product->price, 0, ',', '.'),
                 'action'      => '<button '
                             . 'class="btn btn-sm btn-success select-product" '
                             . 'data-id="'. $product->id .'" '
