@@ -210,7 +210,7 @@
                 <div class="py-4">
                     <h1 class="display-3 text-white">Follow Sosial Media Kami</h1>
                     <p class="fw-normal display-3 text-dark mb-4">in Our Store</p>
-                    <p class="mb-4 text-dark">The generated Lorem Ipsum is therefore always free from repetition injected humour, or non-characteristic words etc.</p>
+                    <p class="mb-4 text-dark">Kunjungi Instagram kami untuk mendapatkan penawaran serta harga potongan khusus.</p>
                     <a href="#" class="banner-btn btn border-2 border-white rounded-pill text-dark py-3 px-5">BUY</a>
                 </div>
             </div>
@@ -246,7 +246,7 @@
     <div class="container py-5">
         <div class="text-center mx-auto mb-5" style="max-width: 700px;">
             <h1 class="display-4">Bestseller Products</h1>
-            <p>Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable.</p>
+            <p>Produk yang paling sering dibeli oleh pelanggan setia kami.</p>
         </div>
         <div class="owl-carousel vegetable-carousel justify-content-center">
             @foreach ($popular as $row)
