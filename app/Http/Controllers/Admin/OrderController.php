@@ -210,7 +210,7 @@ class OrderController extends Controller
 				'status' => Order::CREATED,
 				'order_date' => $orderDate,
 				'payment_due' => $paymentDue,
-				'payment_status' => Order::PAID,
+				'payment_status' => Order::UNPAID,
 				'attachments' => $params['attachments']->store('assets/slides', 'public'),
 				'base_total_price' => $baseTotalPrice,
 				'tax_amount' => $taxAmount,
