@@ -59,29 +59,48 @@
                             <h3 class="box-title">Order Items</h3>
                         </div>
                         <div class="box-body">
-                            <div id="order-items">
-                                <div class="form-group">
-                                    <label for="products">Product</label>
-                                    <select name="product_id" class="form-control product-select" required>
-                                        <option value="">Select Product</option>
-                                        @foreach($products as $product)
-                                            <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->sku }})</option>
-                                        @endforeach
-                                    </select>
+                            <div>
+                                <button type="button"
+                                        class="btn btn-primary mb-3"
+                                        data-toggle="modal"
+                                        data-target="#productModal">
+                                <i class="fas fa-search"></i> Search & Add Product
+                                </button>
+                            </div>
+                            <div id="order-items"></div>
+                            <div class="form-group">
+                                <input type="text" name="note" class="form-control" placeholder="Notes if exist">
+                            </div>
+                            <div class="form-group">
+                                <input type="file" name="attachments" id="image" class="form-control">
+                            </div>
+                            <div class="form-group mt-4 d-none image-item">
+                                <label for="">Preview Image : </label>
+                                <img src="" alt="" class="img-preview img-fluid">
+                            </div>
+                        </div>
+                    </div>
 
+                    {{-- Modal --}}
+                    <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Select Product</h5>
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
                                 </div>
-                                <div class="form-group">
-                                    <input type="number" name="qty" class="form-control" placeholder="Quantity" required>
-                                </div>
-                                <div class="form-group">
-                                    <input type="text" name="note" class="form-control" placeholder="Notes if exist">
-                                </div>
-                                <div class="form-group">
-                                    <input type="file" name="attachments" id="image" class="form-control">
-                                </div>
-                                <div class="form-group mt-4 d-none image-item">
-                                    <label for="">Preview Image : </label>
-                                    <img src="" alt="" class="img-preview img-fluid">
+                                <div class="modal-body">
+                                    <table id="product-table" class="table table-bordered table-hover">
+                                        <thead>
+                                            <tr>
+                                            <th>ID</th>
+                                            <th>SKU</th>
+                                            <th>Name</th>
+                                            <th>Price</th>
+                                            <th width="80">Action</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -98,7 +117,83 @@
 
 @push('script-alt')
 <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"></script>
+
 <script>
+$(function() {
+  // initialise DataTable
+  var table = $('#product-table').DataTable({
+    processing: true,
+    serverSide: true,
+    ajax: '{{ route("admin.products.data") }}', // define this route
+    columns: [
+      { data: 'id' },
+      { data: 'sku' },
+      { data: 'name' },
+      { data: 'harga_jual', render: $.fn.dataTable.render.number(',', '.', 0, 'Rp ') },
+      { data: null, orderable: false, searchable: false,
+        render: function(row) {
+          return `<button class="btn btn-sm btn-success select-product"
+                          data-id="${row.id}"
+                          data-sku="${row.sku}"
+                          data-name="${row.name}">
+                    Add
+                  </button>`;
+        }
+      }
+    ]
+  });
+
+  // when user clicks Add
+  $('#product-table').on('click', '.select-product', function(){
+    var id   = $(this).data('id'),
+        sku  = $(this).data('sku'),
+        name = $(this).data('name'),
+        idx  = $('#order-items .order-item').length;
+
+    var html = `
+    <div class="order-item card mb-2 p-2">
+      <div class="form-row">
+        <div class="col-md-6">
+          <label>Product</label>
+          <input type="text"
+                 class="form-control"
+                 value="${name} (${sku})"
+                 readonly>
+          <input type="hidden"
+                 name="products[${idx}][id]"
+                 value="${id}">
+        </div>
+        <div class="col-md-3">
+          <label>Qty</label>
+          <input type="number"
+                 name="products[${idx}][qty]"
+                 class="form-control"
+                 value="1"
+                 min="1"
+                 required>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="button"
+                  class="btn btn-danger remove-item">
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>`;
+    $('#order-items').append(html);
+    $('#productModal').modal('hide');
+  });
+
+  // remove item
+  $('#order-items').on('click', '.remove-item', function(){
+    $(this).closest('.order-item').remove();
+  });
+});
+</script>
+<script>
+
 
 $("#image").on("change", function () {
     const item = $(".image-item").removeClass("d-none");

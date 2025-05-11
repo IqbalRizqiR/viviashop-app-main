@@ -7,6 +7,7 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <!-- Font Awesome -->

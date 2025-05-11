@@ -178,6 +178,13 @@ class ProductController extends Controller
         ]);
     }
 
+    public function data()
+    {
+        return datatables()
+        ->eloquent(\App\Models\Product::select(['id','sku','name','harga_jual']))
+        ->toJson();
+    }
+
     public function imports()
     {
         Excel::import(new ProdukImport, request()->file('excelFile'));

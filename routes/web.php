@@ -108,6 +108,8 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
     Route::get('orders/trashed', [\App\Http\Controllers\Admin\OrderController::class , 'trashed'])->name('orders.trashed');
     Route::get('orders/restore/{order:id}', [\App\Http\Controllers\Admin\OrderController::class , 'restore'])->name('orders.restore');
     Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class);
+    Route::get('products/data', [App\Http\Controllers\Admin\ProductController::class, 'data'])
+     ->name('admin.products.data');
     Route::post('ordersAdmin', [\App\Http\Controllers\Admin\OrderController::class , 'storeAdmin'])->name('orders.storeAdmin');
     Route::get('ordersAdmin', [\App\Http\Controllers\Admin\OrderController::class , 'checkPage'])->name('orders.checkPage');
     Route::post('orders/complete/{order}', [\App\Http\Controllers\Admin\OrderController::class , 'doComplete'])->name('orders.complete');
