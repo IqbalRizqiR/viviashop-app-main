@@ -258,7 +258,7 @@ class OrderController extends Controller
 	private function _saveOrderItems($order, $params)
 	{
 		if ($order) {
-			dd($params->count());
+			dd(count($params));
 		}
 	}
 
