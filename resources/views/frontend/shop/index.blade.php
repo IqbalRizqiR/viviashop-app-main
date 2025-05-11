@@ -27,6 +27,9 @@
                             @if (request()->has('search'))
                                 <a href="{{ route('shop') }}" class="btn btn-primary">Search Reset</a>
                             @endif
+                            @if (Request::is('shopCetak*'))
+                                <a href="{{ route('shop') }}" class="btn btn-primary">Semua Produk</a>
+                            @endif
                         </div>
                     </div>
                     <div class="row g-4 mt-5">
