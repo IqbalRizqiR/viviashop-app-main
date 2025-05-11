@@ -26,7 +26,7 @@ class Category extends Model
             ]
         ];
     }
-    
+
     public function childs() {
         return $this->hasMany(Category::class, 'parent_id');
     }
@@ -45,9 +45,14 @@ class Category extends Model
 
 		return $childIds;
 	}
-    
+
     public function parent(){
         return $this->belongsTo(Category::class, 'parent_id');
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 
 
