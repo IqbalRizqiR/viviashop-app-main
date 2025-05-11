@@ -329,7 +329,7 @@ class OrderController extends Controller
             //     }
             // }
 
-        foreach ($params as $param) {
+        foreach ($params['product_id'] as $param) {
             dd($param);
         }
 
