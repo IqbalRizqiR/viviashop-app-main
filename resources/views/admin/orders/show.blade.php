@@ -11,7 +11,7 @@
               <div class="card-header">
                 <h2 class="text-dark font-weight-medium">Order ID #{{ $order->code }}</h2>
                 @if ($order->attachments != null)
-							<a href="{{ asset('/storage/' . $order->attachments) }}" class="btn btn-primary">See attachments</a>
+							<a href="{{ asset('/' . $order->attachments) }}" class="btn btn-primary">See attachments</a>
 						@endif
                 <div class="btn-group float-right">
                 </div>
