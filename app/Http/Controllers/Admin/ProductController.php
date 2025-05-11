@@ -205,11 +205,11 @@ class ProductController extends Controller
 
 
         // 3) Return a valid DataTables JSON response
-        return datatables()
-            ->of($data)                   // use the array of rows
-            ->addIndexColumn()            // adds DT_RowIndex
-            ->rawColumns(['action'])      // allow HTML in the action column
-            ->make(true);
+        // return datatables()
+        //     ->of($data)                   // use the array of rows
+        //     ->addIndexColumn()            // adds DT_RowIndex
+        //     ->rawColumns(['action'])      // allow HTML in the action column
+        //     ->make(true);
     }
 
     public function imports()
