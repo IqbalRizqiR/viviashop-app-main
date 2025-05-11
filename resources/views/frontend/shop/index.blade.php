@@ -23,7 +23,7 @@
                                 </div>
                             </form>
                         </div>
-                        <div class="col-6">
+                        <div class="col-xl-9 justify-content-end">
                             @if (request()->has('search'))
                                 <a href="{{ route('shop') }}" class="btn btn-primary">Search Reset</a>
                             @endif
