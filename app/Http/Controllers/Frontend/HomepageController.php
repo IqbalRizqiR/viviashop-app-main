@@ -213,4 +213,17 @@ class HomepageController extends Controller
         $categories = Category::all();
         return view('frontend.shop.index', compact('products', 'categories', 'producteds'));
     }
+    public function shopCategory(Request $request, $slug)
+    {
+        $cat = Category::where('slug', 'like', '%' . $slug . '%')->get()->pluck('id');
+        $cats = array($cat);
+        $products = ProductCategory::with(['products', 'categories'])->whereIn('category_id', $cats[0])->get();
+        $producteds = ProductCategory::with(['products', 'categories'])->whereIn('category_id', $cats[0])->get();
+        $cart = Cart::content()->count();
+        $setting = Setting::first();
+        view()->share('setting', $setting);
+        view()->share('countCart', $cart);
+        $categories = Category::all();
+        return view('frontend.shop.index', compact('products', 'categories', 'producteds'));
+    }
 }

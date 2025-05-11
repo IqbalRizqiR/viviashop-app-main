@@ -23,7 +23,11 @@
                                 </div>
                             </form>
                         </div>
-                        <div class="col-6"></div>
+                        <div class="col-6">
+                            @if (request()->has('search'))
+                                <a href="{{ route('shop') }}" class="btn btn-primary">Search Reset</a>
+                            @endif
+                        </div>
                     </div>
                     <div class="row g-4 mt-5">
                         <div class="col-lg-3">
@@ -35,7 +39,7 @@
                                             @foreach ($categories as $item)
                                                 <li>
                                                     <div class="d-flex justify-content-between fruite-name">
-                                                        <a href="#"><i class="fas fa-apple-alt me-2"></i>{{ $item->name }}</a>
+                                                        <a href="{{ route('shop-detail', $item->slug) }}"><i class="fas fa-apple-alt me-2"></i>{{ $item->name }}</a>
                                                     </div>
                                                 </li>
                                             @endforeach

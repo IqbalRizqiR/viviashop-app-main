@@ -129,6 +129,8 @@ Route::get('products', [\App\Http\Controllers\Frontend\ProductController::class,
 Route::get('product/{product:slug}', [\App\Http\Controllers\Frontend\ProductController::class, 'show'])->name('product.detail');
 Route::get('products/quick-view/{product:slug}', [\App\Http\Controllers\Frontend\ProductController::class, 'quickView']);
 Route::get('/shop', [HomepageController::class, 'shop'])->name('shop');
+Route::get('/shopCetak', [HomepageController::class, 'shopCetak'])->name('shopCetak');
+Route::get('/shopCategory/{slug}', [HomepageController::class, 'shopCategory'])->name('shopCategory');
 Route::get('/shop/detail/{id}', [HomepageController::class, 'detail'])->name('shop-detail');
 
 Route::group(['middleware' => 'auth'], function() {
@@ -137,7 +139,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('carts/update', [\App\Http\Controllers\Frontend\CartController::class, 'update']);
     Route::get('carts/remove/{cartId}', [\App\Http\Controllers\Frontend\CartController::class, 'destroy']);
 
-Route::get('/shopCetak', [HomepageController::class, 'shopCetak'])->name('shopCetak');
+
 
 Route::get('/download-file/{id}', [OrderController::class, 'downloadFile'])->name('download-file');
     Route::get('orders/confirmPayment/{id}', [\App\Http\Controllers\Frontend\OrderController::class, 'confirmPaymentManual'])->name('orders.confirmation_payment');
