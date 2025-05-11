@@ -119,33 +119,66 @@
                             </a>
                             </li>
                         @endforeach
-                    </ul>
+                        </ul>
                 </div>
             </div>
-            {{-- Single tab‐wrapper --}}
             <div class="tab-content">
-            {{-- ALL PRODUCTS --}}
-            <div id="tab-all"
-                class="tab-pane fade show active">
-                <div class="row g-4">
-                @foreach($products as $row)
-                    @include('frontend.partials.frontend.product-card', ['product' => $row])
+                <div id="tab-1" class="tab-pane fade show p-0 active">
+                    <div class="row g-4">
+                        <div class="col-lg-12">
+                            <div class="row g-4">
+                                @foreach ($products as $row)
+                                    <div class="col-md-6 col-lg-4 col-xl-3">
+                                        <div class="rounded position-relative fruite-item">
+                                            <div class="fruite-img">
+                                                @php
+                                                $image = !empty($row->products->productImages->first()) ? asset('storage/'.$row->products->productImages->first()->path) : asset('images/placeholder.jpg');
+                                                @endphp
+                                                <img src="{{ $image }}" class="img-fluid w-100 rounded-top" alt="">
+                                            </div>
+                                            <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">{{ $row->categories->name }}</div>
+                                            <div class="p-3 border border-secondary border-top-0 rounded-bottom">
+                                                <a href="{{ route('shop-detail', $row->id) }}"><h4>{{ $row->products->name }}</h4></a>
+                                                <b>{{ $row->products->short_description }}</b>
+                                                @if ($row->products->productInventory != null)
+                                                    <p>Stok : {{ $row->products->productInventory->qty }}</p>
+                                                @endif
+                                                <div class="d-flex justify-content-center flex-lg-wrap">
+                                                    <p class="text-dark fs-5 fw-bold mb-2">Rp. {{ number_format($row->products->price) }}</p>
+                                                    <a class="btn border add-to-card border-secondary rounded-pill px-3 text-primary" href="" product-id="{{ $row->products->id }}" product-type="{{ $row->products->type }}" product-slug="{{ $row->products->slug }}">
+                                                        <i class="fa fa-shopping-bag me-2 text-primary"></i>
+                                                        Add to cart
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @foreach($categoriesName as $category)
+                    <div
+                        id="tab-{{ $category->slug }}"
+                        class="tab-pane fade {{ $loop->first ? 'show active' : '' }} p-0">
+                        <div class="row g-4">
+                            @foreach($products->filter(fn($p) => $p->category_id == $category->id) as $row)
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                {{-- product card --}}
+                                <div class="rounded position-relative fruite-item">
+                                {{-- …same markup you have… --}}
+                                <a href="{{ route('shop-detail', $row->id) }}">
+                                    <h4>{{ $row->name }}</h4>
+                                </a>
+                                <p>Rp. {{ number_format($row->price) }}</p>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
                 @endforeach
                 </div>
-            </div>
-
-            {{-- ONE PANE PER CATEGORY --}}
-            @foreach($categoriesName as $category)
-                <div id="tab-{{ $category->slug }}"
-                    class="tab-pane fade">
-                <div class="row g-4">
-                    @foreach($products->where('category_id',$category->id) as $row)
-                        @include('frontend.partials.frontend.product-card', ['product'=>$row])
-                    @endforeach
-                </div>
-                </div>
-            @endforeach
-            </div>
         </div>
     </div>
 </div>
