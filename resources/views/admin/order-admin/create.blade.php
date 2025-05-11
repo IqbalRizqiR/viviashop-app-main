@@ -119,6 +119,9 @@
     let table;
 $(function(){
   table1 = $('.table-product').DataTable({
+    ajax: {
+        url: "{{ route('admin.products.data') }}",
+    }
     processing: true,
     bSort: false,
     dom: 'Brt',
