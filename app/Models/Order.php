@@ -59,7 +59,7 @@ class Order extends Model
 
         $lastOrderCode = !empty($lastOrder) ? $lastOrder['last_code'] : null;
 
-		$orderCode = $dateCode . '00002';
+		$orderCode = $dateCode . '00001';
 		if ($lastOrderCode) {
             $lastOrderNumber = str_replace($dateCode, '', $lastOrderCode);
 

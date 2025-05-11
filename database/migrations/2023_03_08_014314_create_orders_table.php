@@ -29,6 +29,7 @@ return new class extends Migration
             $table->decimal('shipping_cost', 16, 2)->default(0);
             $table->decimal('grand_total', 16, 2)->default(0);
             $table->text('note')->nullable();
+            $table->string('notes')->nullable();
             $table->string('customer_first_name');
             $table->string('customer_last_name');
             // $table->string('attachments')->nullable();
