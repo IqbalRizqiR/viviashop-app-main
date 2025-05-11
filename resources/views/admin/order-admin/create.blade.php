@@ -130,7 +130,7 @@ $(function(){
     autoWidth: false,
     ajax : {
         url: "{{ route('admin.products.data') }}",
-    }
+    },
     columns: [
         {data: 'DT_RowIndex', searchable: false, sortable: false},
         {data: 'name'},
