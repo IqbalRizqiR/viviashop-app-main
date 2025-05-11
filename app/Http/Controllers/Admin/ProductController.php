@@ -181,9 +181,8 @@ class ProductController extends Controller
     public function data()
     {
         // 1) Fetch all products into a collection
-        $products = Product::select(['id', 'sku', 'name', 'price'])
-            ->get();
-            dd($products);
+        $products = Product::all();
+        dd($products);
 
         // // 2) Build a simple array of rows
         // $data = [];
