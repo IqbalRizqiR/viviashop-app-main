@@ -140,7 +140,7 @@
                     class="tab-pane fade">
                 <div class="row g-4">
                     @foreach($products->where('category_id',$category->id) as $row)
-                    @include('frontend.partials.product-card', ['product'=>$row])
+                    @include('frontend.partials.frontend.product-card', ['product'=>$row])
                     @endforeach
                 </div>
                 </div>
