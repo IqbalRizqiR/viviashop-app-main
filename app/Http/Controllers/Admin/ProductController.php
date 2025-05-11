@@ -16,7 +16,6 @@ use App\Http\Requests\Admin\ProductRequest;
 use App\Imports\ProdukImport;
 use RealRashid\SweetAlert\Facades\Alert;
 use Maatwebsite\Excel\Facades\Excel;
-use Yajra\DataTables\Facades\DataTables;
 
 class ProductController extends Controller
 {
@@ -181,25 +180,35 @@ class ProductController extends Controller
 
     public function data()
     {
-        // 1) Let DataTables page/filter itself by passing the query
-        $query = Product::query();
+        // 1) Fetch all products into a collection
+        $products = Product::select(['id', 'sku', 'name', 'price'])
+            ->get();
 
-        return DataTables::of($query)
-            ->addIndexColumn()  // adds DT_RowIndex
-            ->editColumn('harga_jual', function($row){
-                return 'Rp '.number_format($row->harga_jual,0,',','.');
-            })
-            ->addColumn('action', function($row){
-                return '<button
-                            class="btn btn-sm btn-success select-product"
-                            data-id="'. $row->id .'"
-                            data-sku="'. e($row->sku) .'"
-                            data-name="'. e($row->name) .'">
-                            Add
-                        </button>';
-            })
-            ->rawColumns(['action'])
-            ->make(true);        // builds & returns draw/recordsTotal/etc + data
+        // 2) Build a simple array of rows
+        $data = [];
+        foreach ($products as $product) {
+            $data[] = [
+                'id'          => $product->id,
+                'sku'         => $product->sku,
+                'name'        => $product->name,
+                'price'  => 'Rp. ' . number_format($product->price, 0, ',', '.'),
+                'action'      => '<button '
+                            . 'class="btn btn-sm btn-success select-product" '
+                            . 'data-id="'. $product->id .'" '
+                            . 'data-sku="'. $product->sku .'" '
+                            . 'data-name="'. e($product->name) .'">'
+                            . 'Add'
+                            . '</button>',
+            ];
+        }
+
+
+        // 3) Return a valid DataTables JSON response
+        return datatables()
+            ->of($data)                   // use the array of rows
+            ->addIndexColumn()            // adds DT_RowIndex
+            ->rawColumns(['action'])      // allow HTML in the action column
+            ->make(true);
     }
 
     public function imports()
