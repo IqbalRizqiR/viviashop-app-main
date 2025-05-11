@@ -126,24 +126,15 @@ $(function() {
   var table = $('#product-table').DataTable({
     processing: true,
     serverSide: true,
-    ajax: '{{ route("admin.products.data") }}', // define this route
+    ajax: '{{ route("admin.products.data") }}',
     columns: [
-      { data: 'id' },
-      { data: 'sku' },
-      { data: 'name' },
-      { data: 'harga_jual', render: $.fn.dataTable.render.number(',', '.', 0, 'Rp ') },
-      { data: null, orderable: false, searchable: false,
-        render: function(row) {
-          return `<button class="btn btn-sm btn-success select-product"
-                          data-id="${row.id}"
-                          data-sku="${row.sku}"
-                          data-name="${row.name}">
-                    Add
-                  </button>`;
-        }
-      }
+        { data: 'DT_RowIndex', title: '#' },
+        { data: 'sku',        title: 'SKU' },
+        { data: 'name',       title: 'Name' },
+        { data: 'harga_jual', title: 'Price', render: $.fn.dataTable.render.number(',', '.', 0, 'Rp ') },
+        { data: 'action',     title: 'Action', orderable:false, searchable:false },
     ]
-  });
+    });
 
   // when user clicks Add
   $('#product-table').on('click', '.select-product', function(){
