@@ -259,8 +259,8 @@ class OrderController extends Controller
 	{
 		if ($order) {
             $data = [];
-            $data['product_id'] = $params['product_id'];
-            $data['qty'] = $params['qty'];
+            $data['product_id'] = $params['product_id'][0];
+            $data['qty'] = $params['qty'][0];
 			// if (count($params['product_id']) == 1) {
             //     $products = Product::where('id', $params['product_id'])->first();
             //     $itemTaxAmount = 0;
