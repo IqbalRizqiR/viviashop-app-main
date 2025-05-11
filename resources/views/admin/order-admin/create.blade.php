@@ -133,7 +133,7 @@ $(function() {
         { data: 'DT_RowIndex', searchable: false, sortable: false},
         { data: 'sku',},
         { data: 'name',},
-        { data: 'harga_jual',},
+        { data: 'price',},
         { data: 'action', searchable: false, sortable: false},
     ]
     });
