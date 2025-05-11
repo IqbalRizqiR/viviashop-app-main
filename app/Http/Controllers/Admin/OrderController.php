@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\ProductInventory;
 use App\Http\Controllers\Controller;
 use App\Exceptions\OutOfStockException;
+use App\Models\Payment;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -119,6 +120,7 @@ class OrderController extends Controller
 			$canDestroy = DB::transaction(
 				function () use ($order) {
 					OrderItem::where('order_id', $order->id)->delete();
+                    Payment::where('order_id', $order->id)->delete();
 					$order->shipment->delete();
 					$order->forceDelete();
 
