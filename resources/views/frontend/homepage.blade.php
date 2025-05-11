@@ -104,7 +104,7 @@
                 <div class="col-lg-8 text-end">
                     <ul class="nav nav-pills mb-4">
                         <li class="nav-item">
-                            <a class="nav-link active"
+                            <a class="nav-link bg-success active"
                             data-bs-toggle="pill"
                             href="{{ route('shop') }}">
                             See all products
