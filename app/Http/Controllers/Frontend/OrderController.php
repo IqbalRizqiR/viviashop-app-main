@@ -103,7 +103,7 @@ view()->share('setting', $setting);
 		$items = Cart::content();
 
 		foreach ($items as $item) {
-			$totalWeight += ($item->qty * $item->model->weight);
+			$totalWeight += ($item->qty * ($item->model->weight / 1000));
 		}
 
 		return $totalWeight;
@@ -562,7 +562,7 @@ view()->share('setting', $setting);
 					'sku' => $item->model->sku,
 					'type' => $product->type,
 					'name' => $item->name,
-					'weight' => $item->model->weight,
+					'weight' => $item->model->weight / 1000,
 					'attributes' => json_encode($item->options),
 				];
 

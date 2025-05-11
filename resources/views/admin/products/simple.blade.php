@@ -14,7 +14,7 @@
     <div class="col-md-2">
         <div class="form-group border-bottom pb-4">
             <label for="weight" class="form-label">Berat Produk</label>
-            <input type="number" class="form-control" name="weight" value="{{ old('weight', $product->weight) }}" id="weight">
+            <input type="number" class="form-control" name="weight" value="{{ old('weight', $product->weight) }}" placeholder="gram" id="weight">
         </div>
     </div>
     <div class="col-md-2">
@@ -26,19 +26,19 @@
     <div class="col-md-2">
         <div class="form-group border-bottom pb-4">
             <label for="length" class="form-label">Panjang</label>
-            <input type="number" class="form-control" name="length" value="{{ old('length', $product->length) }}" id="length">
+            <input type="number" class="form-control" placeholder="cm" name="length" value="{{ old('length', $product->length) }}" id="length">
         </div>
     </div>
     <div class="col-md-2">
         <div class="form-group border-bottom pb-4">
             <label for="width" class="form-label">Lebar</label>
-            <input type="number" class="form-control" name="width" value="{{ old('width', $product->width) }}" id="width">
+            <input type="number" class="form-control" placeholder="cm" name="width" value="{{ old('width', $product->width) }}" id="width">
         </div>
     </div>
     <div class="col-md-2">
         <div class="form-group border-bottom pb-4">
             <label for="height" class="form-label">Tinggi</label>
-            <input type="number" class="form-control" name="height" value="{{ old('height', $product->height) }}" id="height">
+            <input type="number" class="form-control" placeholder="cm" name="height" value="{{ old('height', $product->height) }}" id="height">
         </div>
     </div>
 </div>
