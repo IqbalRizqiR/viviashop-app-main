@@ -180,10 +180,13 @@ class ProductController extends Controller
 
     public function data()
     {
+        $products = Product::select(['id','sku','name','harga_jual'])->get();
+
+        // pass the collection (not the query builder) to DataTables
         return datatables()
-        ->eloquent(\App\Models\Product::select(['id','sku','name','harga_jual']))
-        ->toJson();
-    }
+            ->of($products)
+            ->toJson();
+        }
 
     public function imports()
     {
