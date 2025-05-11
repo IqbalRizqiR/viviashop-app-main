@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\File;
 use App\Models\ProductAttributeValue;
 use App\Http\Requests\Admin\ProductRequest;
 use App\Imports\ProdukImport;
+use Illuminate\Support\Facades\Log;
 use RealRashid\SweetAlert\Facades\Alert;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -178,38 +179,60 @@ class ProductController extends Controller
         ]);
     }
 
+    // public function data()
+    // {
+    //     // 1) Fetch all products into a collection
+    //     $products = Product::all();
+    //     dd($products);
+    //     return view('admin.products.index', compact('products'));
+
+    //     // // 2) Build a simple array of rows
+    //     // $data = [];
+    //     // foreach ($products as $product) {
+    //     //     $data[] = [
+    //     //         'id'          => $product->id,
+    //     //         'sku'         => $product->sku,
+    //     //         'name'        => $product->name,
+    //     //         'price'  => 'Rp. ' . number_format($product->price, 0, ',', '.'),
+    //     //         'action'      => '<button '
+    //     //                     . 'class="btn btn-sm btn-success select-product" '
+    //     //                     . 'data-id="'. $product->id .'" '
+    //     //                     . 'data-sku="'. $product->sku .'" '
+    //     //                     . 'data-name="'. e($product->name) .'">'
+    //     //                     . 'Add'
+    //     //                     . '</button>',
+    //     //     ];
+    //     // }
+
+
+    //     // 3) Return a valid DataTables JSON response
+    //     // return datatables()
+    //     //     ->of($data)                   // use the array of rows
+    //     //     ->addIndexColumn()            // adds DT_RowIndex
+    //     //     ->rawColumns(['action'])      // allow HTML in the action column
+    //     //     ->make(true);
+    // }
+
     public function data()
     {
-        // 1) Fetch all products into a collection
-        $products = Product::all();
-        dd($products);
-        return view('admin.products.index', compact('products'));
+        Log::info('Controller diakses'); // Periksa di storage/logs/laravel.log
 
-        // // 2) Build a simple array of rows
-        // $data = [];
-        // foreach ($products as $product) {
-        //     $data[] = [
-        //         'id'          => $product->id,
-        //         'sku'         => $product->sku,
-        //         'name'        => $product->name,
-        //         'price'  => 'Rp. ' . number_format($product->price, 0, ',', '.'),
-        //         'action'      => '<button '
-        //                     . 'class="btn btn-sm btn-success select-product" '
-        //                     . 'data-id="'. $product->id .'" '
-        //                     . 'data-sku="'. $product->sku .'" '
-        //                     . 'data-name="'. e($product->name) .'">'
-        //                     . 'Add'
-        //                     . '</button>',
-        //     ];
-        // }
+        $products = Product::query();
+        Log::info('Query produk:', ['data' => $products->get()]); // Log hasil query
 
-
-        // 3) Return a valid DataTables JSON response
-        // return datatables()
-        //     ->of($data)                   // use the array of rows
-        //     ->addIndexColumn()            // adds DT_RowIndex
-        //     ->rawColumns(['action'])      // allow HTML in the action column
-        //     ->make(true);
+        return datatables()
+            ->of($products)
+            ->addColumn('harga_jual', function ($product) {
+                return 'Rp. ' . number_format($product->harga_jual, 0, ',', '.');
+            })
+            ->addColumn('action', function ($product) {
+                return '<button class="btn btn-sm btn-success select-product"
+                        data-id="' . $product->id . '"
+                        data-sku="' . $product->sku . '"
+                        data-name="' . e($product->name) . '">Add</button>';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
 
     public function imports()
