@@ -261,12 +261,12 @@ class OrderController extends Controller
             $data = [];
 
 			if (count($params['product_id']) == 1) {
-                $products = Product::where('id', $params['product_id'])->first();
+                $products = Product::where('id', $params[0]['product_id'])->first();
                 $itemTaxAmount = 0;
                 $itemTaxPercent = 0;
                 $itemDiscountAmount = 0;
                 $itemDiscountPercent = 0;
-                $itemBaseTotal = $params['qty'] * $products->price;
+                $itemBaseTotal = $params[0]['qty'] * $products->price;
                 $itemSubTotal = $itemBaseTotal + $itemTaxAmount - $itemDiscountAmount;
 
                 $product = isset($products->model->parent) ? $products->model->parent : $products->model;
