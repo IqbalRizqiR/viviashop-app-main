@@ -30,12 +30,13 @@ class HomepageController extends Controller
         $categoriesName = Category::whereIn('id', $categoriesCount)->get();
         $popular = Product::where('type', 'simple')->active()->limit(6)->get();
         $totalProduct = Product::where('type', 'simple')->count();
+        $totalOrder = Order::where('payment_status', 'paid')->count();
         $slides = Slide::active()->orderBy('position', 'ASC')->get();
         $cart = Cart::content()->count();
         $setting = Setting::first();
         view()->share('setting', $setting);
         view()->share('countCart', $cart);
-        return view('frontend.homepage', compact('products', 'totalProduct', 'categories', 'categoriesName', 'popular', 'slides'));
+        return view('frontend.homepage', compact('products', 'totalOrder', 'totalProduct', 'categories', 'categoriesName', 'popular', 'slides'));
     }
 
     public function detail($id)
