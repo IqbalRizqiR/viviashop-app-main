@@ -184,29 +184,29 @@ class ProductController extends Controller
         $products = Product::select('id', 'sku', 'name', 'price')
             ->get();
 
-        // 2) Build a simple array of rows
-        $data = [];
-        foreach ($products as $product) {
-            $data[] = [
-                'id'          => $product->id,
-                'sku'         => $product->sku,
-                'name'        => $product->name,
-                'price'  => 'Rp. ' . number_format($product->price, 0, ',', '.'),
-                'action'      => '<button '
-                            . 'class="btn btn-sm btn-success select-product" '
-                            . 'data-id="'. $product->id .'" '
-                            . 'data-sku="'. $product->sku .'" '
-                            . 'data-name="'. e($product->name) .'">'
-                            . 'Add'
-                            . '</button>',
-            ];
-        }
-
 
         // 3) Return a valid DataTables JSON response
         return datatables()
-            ->of($data)                   // use the array of rows
+            ->of($products)                   // use the array of rows
             ->addIndexColumn()            // adds DT_RowIndex
+            ->addColumn('name' , function ($product) {
+                return '<span class="label label-success">'. $product->name .'</span>';
+            })
+            ->addColumn('sku' , function ($product) {
+                return '<span class="label label-success">'. $product->sku .'</span>';
+            })
+            ->addColumn('price' , function ($product) {
+                return '<span class="label label-success">'. format_uang($product->price) .'</span>';
+            })
+            ->addColumn('action', function ($product) {
+                return'<button
+                             class="btn btn-sm btn-success select-product"
+                             data-id="'. $product->id .'"
+                             data-sku="'. $product->sku .'"
+                            data-name="'. e($product->name) .'">
+                             Add
+                            </button>';
+            })
             ->rawColumns(['action'])      // allow HTML in the action column
             ->make(true);
     }

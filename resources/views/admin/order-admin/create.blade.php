@@ -121,8 +121,9 @@
 $(function(){
   table1 = $('.table-product').DataTable({
     processing: true,
-    bSort: true,
-    dom: 'Brt',
+    responsive: true,
+    serverSide: true,
+    autoWidth: false,
     columns: [
         {data: 'DT_RowIndex', searchable: false, sortable: false},
         {data: 'name'},
