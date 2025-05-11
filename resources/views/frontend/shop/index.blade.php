@@ -50,7 +50,7 @@
                         </div>
                         <div class="col-lg-9">
                             <div class="row g-4 justify-content-center">
-                                @foreach ($products as $row)
+                                @forelse ($products as $row)
                                 <div class="col-md-6 col-lg-4 col-xl-3">
                                     <div class="rounded position-relative fruite-item">
                                         @if (request()->has('search'))
@@ -110,6 +110,12 @@
                                         </div>
                                     </div>
                                 </div>
+                                @empty
+                                    <div class="col-md-12">
+                                        <div class="alert alert-danger text-center">
+                                            <h4>Data tidak ditemukan</h4>
+                                        </div>
+                                    </div>
                                 @endforeach
                             </div>
                         </div>
