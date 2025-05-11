@@ -105,7 +105,6 @@
                     <ul class="nav nav-pills mb-4">
                         <li class="nav-item">
                             <a class="nav-link bg-success text-white"
-                            data-bs-toggle="pill"
                             href="{{ route('shop') }}">
                             Lihat Semua
                             </a>
