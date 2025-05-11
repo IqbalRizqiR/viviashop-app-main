@@ -298,7 +298,7 @@ class OrderController extends Controller
             } else {
                 $i = 0;
                 foreach ($params['product_id'] as $productId) {
-                    $idProduct = $params[$i]['product_id'][$i];
+                    $idProduct = $params['product_id'][$i];
                     $qty = $params['qty'][$i];
                     $products = Product::where('id', $productId)->first();
                     $itemTaxAmount = 0;
