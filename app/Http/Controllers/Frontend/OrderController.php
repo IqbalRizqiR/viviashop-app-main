@@ -103,7 +103,7 @@ view()->share('setting', $setting);
 		$items = Cart::content();
 
 		foreach ($items as $item) {
-			$totalWeight += ($item->qty * ($item->model->weight / 1000));
+			$totalWeight += ($item->qty * ($item->model->weight));
 		}
 
 		return $totalWeight;
@@ -315,7 +315,7 @@ view()->share('setting', $setting);
 		$unique_code = random_int('1', '999');
 		// dd($unique_code);
 
-		$totalWeight = $this->_getTotalWeight() / 1000;
+		$totalWeight = $this->_getTotalWeight();
 
 		$provinces = $this->getProvinces();
 

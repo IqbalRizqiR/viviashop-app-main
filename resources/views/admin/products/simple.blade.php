@@ -14,7 +14,7 @@
     <div class="col-md-2">
         <div class="form-group border-bottom pb-4">
             <label for="weight" class="form-label">Berat Produk</label>
-            <input type="number" class="form-control" name="weight" value="{{ old('weight', $product->weight) }}" placeholder="gram" id="weight">
+            <input type="number" class="form-control" name="weight" value="{{ old('weight', $product->weight) }}" placeholder="kg" id="weight">
         </div>
     </div>
     <div class="col-md-2">
