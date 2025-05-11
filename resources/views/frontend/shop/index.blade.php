@@ -25,10 +25,10 @@
                         </div>
                         <div class="col-xl-9 d-flex justify-content-end">
                             @if (request()->has('search'))
-                                <a href="{{ route('shop') }}" class="btn btn-danger text-center">Search Reset</a>
+                                <a href="{{ route('shop') }}" class="btn btn-info text-white text-center">Search Reset</a>
                             @endif
                             @if (Request::is('shopCategory*'))
-                                <a href="{{ route('shop') }}" class="btn btn-danger text-center">Semua Produk</a>
+                                <a href="{{ route('shop') }}" class="btn btn-info text-white text-center">Semua Produk</a>
                             @endif
                         </div>
                     </div>
