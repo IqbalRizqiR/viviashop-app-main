@@ -1,8 +1,14 @@
 @php
     // get first image or placeholder
     $imgPath = optional($product->productImages->first())->path;
+    if ($product->productImages->count() >= 1) {
+        $imgPath = $product->productImages->first()->path;
+    } else {
+        $imgPath = '/images/placeholder.jpg';
+    }
+
     $imageUrl = $imgPath
-        ? asset('storage/'.$imgPath)
+        ? asset('/storage/'.$imgPath)
         : asset('images/placeholder.jpg');
 @endphp
 
