@@ -116,6 +116,10 @@
 
 @push('scripts')
 <script>
+    function addModal() {
+        $('#modalProduct').modal('show');
+        $('#modalProduct').addClass('show');
+    }
     let table;
     let url = "{{ route('admin.products.data') }}";
 $(function(){
@@ -136,11 +140,6 @@ $(function(){
     ]
 })
 });
-
-function addModal() {
-    $('#modalProduct').modal('show');
-    $('#modalProduct').addClass('show');
-}
 $('#product-table').on('click', '.select-product', function(){
     const id   = $(this).data('id'),
           sku  = $(this).data('sku'),
