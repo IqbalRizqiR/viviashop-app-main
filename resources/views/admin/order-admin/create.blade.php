@@ -126,13 +126,15 @@ $(function() {
   var table = $('#product-table').DataTable({
     processing: true,
     serverSide: true,
-    ajax: '{{ route("admin.products.data") }}',
+    ajax: {
+        url: '{{ route('admin.products.data') }}',
+    },
     columns: [
-        { data: 'DT_RowIndex', title: '#' },
-        { data: 'sku',        title: 'SKU' },
-        { data: 'name',       title: 'Name' },
-        { data: 'harga_jual', title: 'Price', render: $.fn.dataTable.render.number(',', '.', 0, 'Rp ') },
-        { data: 'action',     title: 'Action', orderable:false, searchable:false },
+        { data: 'DT_RowIndex', searchable: false, sortable: false},
+        { data: 'sku',},
+        { data: 'name',},
+        { data: 'harga_jual',},
+        { data: 'action', searchable: false, sortable: false},
     ]
     });
 
