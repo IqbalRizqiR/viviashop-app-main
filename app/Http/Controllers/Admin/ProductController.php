@@ -185,23 +185,23 @@ class ProductController extends Controller
             ->get();
             dd($products);
 
-        // 2) Build a simple array of rows
-        $data = [];
-        foreach ($products as $product) {
-            $data[] = [
-                'id'          => $product->id,
-                'sku'         => $product->sku,
-                'name'        => $product->name,
-                'price'  => 'Rp. ' . number_format($product->price, 0, ',', '.'),
-                'action'      => '<button '
-                            . 'class="btn btn-sm btn-success select-product" '
-                            . 'data-id="'. $product->id .'" '
-                            . 'data-sku="'. $product->sku .'" '
-                            . 'data-name="'. e($product->name) .'">'
-                            . 'Add'
-                            . '</button>',
-            ];
-        }
+        // // 2) Build a simple array of rows
+        // $data = [];
+        // foreach ($products as $product) {
+        //     $data[] = [
+        //         'id'          => $product->id,
+        //         'sku'         => $product->sku,
+        //         'name'        => $product->name,
+        //         'price'  => 'Rp. ' . number_format($product->price, 0, ',', '.'),
+        //         'action'      => '<button '
+        //                     . 'class="btn btn-sm btn-success select-product" '
+        //                     . 'data-id="'. $product->id .'" '
+        //                     . 'data-sku="'. $product->sku .'" '
+        //                     . 'data-name="'. e($product->name) .'">'
+        //                     . 'Add'
+        //                     . '</button>',
+        //     ];
+        // }
 
 
         // 3) Return a valid DataTables JSON response
