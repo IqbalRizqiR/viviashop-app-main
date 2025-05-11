@@ -202,7 +202,7 @@ class OrderController extends Controller
 
 		auth()->user()->update($user_profile);
 
-        dd($params);
+        // dd($params);
 		if ($params['attachments'] != null) {
 			$orderParams = [
 				'user_id' => auth()->id(),
