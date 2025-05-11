@@ -258,6 +258,9 @@ class OrderController extends Controller
 	private function _saveOrderItems($order, $params)
 	{
 		if ($order) {
+            $data = [];
+            $data['product_id'] = $params['product_id'];
+            $data['qty'] = $params['qty'];
 			// if (count($params['product_id']) == 1) {
             //     $products = Product::where('id', $params['product_id'])->first();
             //     $itemTaxAmount = 0;
@@ -329,7 +332,7 @@ class OrderController extends Controller
             //     }
             // }
 
-        foreach ($params['product_id'] as $param) {
+        foreach ($data as $param) {
             dd($param);
         }
 
