@@ -36,10 +36,10 @@ class Order extends Model
 	{
 		$integer = intval($integer);
 		$result = '';
-		
+
 		// Create a lookup array that contains all of the Roman numerals.
 		$lookup = ['M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400, 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40, 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1];
- 
+
 		foreach ($lookup as $roman => $value) {
 			$matches = intval($integer/$value);
 			$result .= str_repeat($roman, $matches);
@@ -59,12 +59,12 @@ class Order extends Model
 
         $lastOrderCode = !empty($lastOrder) ? $lastOrder['last_code'] : null;
 
-		$orderCode = $dateCode . '00001';
+		$orderCode = $dateCode . '00002';
 		if ($lastOrderCode) {
             $lastOrderNumber = str_replace($dateCode, '', $lastOrderCode);
-            
+
 			$nextOrderNumber = sprintf('%05d', (int)$lastOrderNumber + 1);
-			
+
 			$orderCode = $dateCode . $nextOrderNumber;
         }
 
@@ -74,7 +74,7 @@ class Order extends Model
 
 		return $orderCode;
     }
-    
+
     private static function _isOrderCodeExists($orderCode)
 	{
 		return Order::where('code', '=', $orderCode)->exists();
@@ -109,7 +109,7 @@ class Order extends Model
 	{
 		return $this->status == self::DELIVERED;
 	}
-	
+
 
 	public function getCustomerFullNameAttribute()
 	{
