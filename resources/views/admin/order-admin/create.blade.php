@@ -122,34 +122,26 @@
 <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
-$(function() {
+$(function(){
   let productTable;
-
-$('#productModal').on('shown.bs.modal', function() {
-  if (!productTable) {
-    productTable = $('#product-table').DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: "{{ route('admin.products.data') }}",
-      columns: [
-        { data: 'DT_RowIndex', orderable:false, searchable:false },
-        { data: 'sku' },
-        { data: 'name' },
-        { data: 'price' },
-        { data: 'action', orderable:false, searchable:false },
-      ]
-    });
-  } else {
-    // if it already exists, just reload the data and re‐draw
-    productTable.ajax.reload(null, false);
-  }
-  // recalc column widths now that it's visible
-  productTable.columns.adjust();
-});
-
-  // remove item
-  $('#order-items').on('click', '.remove-item', function(){
-    $(this).closest('.order-item').remove();
+  $('#productModal').on('shown.bs.modal', function(){
+    if (!productTable) {
+      productTable = $('#product-table').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('admin.products.data') }}",
+        columns: [
+          { data: 'DT_RowIndex', orderable:false, searchable:false },
+          { data: 'sku' },
+          { data: 'name' },
+          { data: 'price' },
+          { data: 'action', orderable:false, searchable:false },
+        ]
+      });
+    } else {
+      productTable.ajax.reload(null,false);
+    }
+    productTable.columns.adjust();
   });
 });
 </script>
