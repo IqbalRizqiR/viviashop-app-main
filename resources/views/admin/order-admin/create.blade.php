@@ -13,15 +13,15 @@
                         <div class="box-body">
                             <div class="form-group">
                                 <label for="first_name">First Name</label>
-                                <input type="text" name="first_name" class="form-control" value="{{ old('first_name') }}" required>
+                                <input type="text" name="first_name" value="Admin" class="form-control" value="{{ old('first_name') }}" required>
                             </div>
                             <div class="form-group">
                                 <label for="last_name">Last Name</label>
-                                <input type="text" name="last_name" class="form-control" value="{{ old('last_name') }}" required>
+                                <input type="text" name="last_name" value="Toko" class="form-control" value="{{ old('last_name') }}" required>
                             </div>
                             <div class="form-group">
                                 <label for="address1">Address Line 1</label>
-                                <input type="text" name="address1" class="form-control" value="{{ old('address1') }}" required>
+                                <input type="text" name="address1" value="CitraNegara" class="form-control" value="{{ old('address1') }}" required>
                             </div>
                             {{--  <div class="form-group">
                                 <label for="province_id">Province</label>
@@ -41,15 +41,15 @@
                             </div>  --}}
                             <div class="form-group">
                                 <label for="postcode">Postcode</label>
-                                <input type="text" name="postcode" class="form-control" value="{{ old('postcode') }}" required>
+                                <input type="text" name="postcode" value="102112" class="form-control" value="{{ old('postcode') }}" required>
                             </div>
                             <div class="form-group">
                                 <label for="phone">Phone</label>
-                                <input type="text" name="phone" class="form-control" value="{{ old('phone') }}" required>
+                                <input type="text" name="phone" value="9121240210" class="form-control" value="{{ old('phone') }}" required>
                             </div>
                             <div class="form-group">
                                 <label for="email">Email</label>
-                                <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                                <input type="email" name="email" value="admin@gmail.com" class="form-control" value="{{ old('email') }}" required>
                             </div>
                         </div>
                     </div>
