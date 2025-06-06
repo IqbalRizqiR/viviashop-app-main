@@ -191,16 +191,16 @@ class OrderController extends Controller
 		$orderDate = date('Y-m-d H:i:s');
 		$paymentDue = (new \DateTime($orderDate))->modify('+7 day')->format('Y-m-d H:i:s');
 
-		$user_profile = [
-			'first_name' => $params['first_name'],
-			'last_name' => $params['last_name'],
-			'address1' => $params['address1'],
-			'postcode' => $params['postcode'],
-			'phone' => $params['phone'],
-			'email' => $params['email'],
-		];
+		// $user_profile = [
+		// 	'first_name' => $params['first_name'],
+		// 	'last_name' => $params['last_name'],
+		// 	'address1' => $params['address1'],
+		// 	'postcode' => $params['postcode'],
+		// 	'phone' => $params['phone'],
+		// 	'email' => $params['email'],
+		// ];
 
-		auth()->user()->update($user_profile);
+		// auth()->user()->update($user_profile);
 
         // dd($params);
 		if ($params['attachments'] != null) {

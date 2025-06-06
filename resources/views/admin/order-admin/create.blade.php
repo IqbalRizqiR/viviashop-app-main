@@ -21,7 +21,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="address1">Address Line 1</label>
-                                <input type="text" readonly name="address1" value="CitraNegara" class="form-control" value="{{ old('address1') }}" required>
+                                <input type="text" readonly name="address1" value="Cukir, Jombang" class="form-control" value="{{ old('address1') }}" required>
                             </div>
                             {{--  <div class="form-group">
                                 <label for="province_id">Province</label>
