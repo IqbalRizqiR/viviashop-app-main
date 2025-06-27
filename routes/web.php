@@ -56,7 +56,7 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
     // admin
     Route::post('/products/find-barcode', [ProductController::class, 'findByBarcode'])
      ->name('products.find-barcode');
-    Route::get('/orders/invoices/{id}', [\App\Http\Controllers\Admin\ProductController::class, 'invoices'])
+    Route::get('/orders/invoices/{id}', [\App\Http\Controllers\Admin\OrderController::class, 'invoices'])
      ->name('orders.invoices');
     Route::get('users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
     Route::resource('setting', SettingController::class);
