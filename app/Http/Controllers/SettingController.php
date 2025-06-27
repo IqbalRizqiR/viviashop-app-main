@@ -54,7 +54,7 @@ class SettingController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $setting = Setting::where('id')->first();
+        $setting = Setting::where('id', 1)->first();
         $update = $setting->update([
             'nama_toko' => $request->nama_toko,
             'alamat' => $request->alamat,
