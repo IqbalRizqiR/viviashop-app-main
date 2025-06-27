@@ -12,6 +12,7 @@
               <div class="card-header">
                 <h3 class="card-title">Data Produk</h3>
                 <a href="{{ route('admin.products.create')}}" class="btn btn-info shadow-sm float-right"> <i class="fa fa-plus"></i> Tambah </a>
+                <a href="{{ route('admin.products.generateAll')}}" class="btn btn-info shadow-sm float-right"> <i class="fa fa-plus"></i> Generate Barcode Semua Produk </a>
                 <button onclick="addForm();" class="btn btn-success shadow-sm float-right"> <i class="fa fa-plus"></i> Excel </button>
               </div>
               <!-- /.card-header -->

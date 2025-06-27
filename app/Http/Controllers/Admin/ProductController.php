@@ -71,6 +71,19 @@ class ProductController extends Controller
 		return $result;
     }
 
+    public function generateBarcodeAll()
+    {
+        $products = Product::whereNull('barcode')->get();
+        foreach ($products as $product) {
+            $barcode = rand(1000000000, 9999999999);
+            $product->barcode = $barcode;
+            $product->save();
+        }
+
+        Alert::success('Berhasil', 'Barcode untuk semua produk telah dibuat.');
+        return redirect()->route('admin.products.index');
+    }
+
     private function _convertVariantAsName($variant)
 	{
 		$variantName = '';
@@ -158,6 +171,7 @@ class ProductController extends Controller
                         $this->_generateProductVariants($product, $request);
                     }
                 } else {
+                    $request['barcode'] = rand(1000000000, 9999999999);
                     $product = Product::create($request->validated() + ['user_id' => auth()->id()]);
 
                     $product->categories()->sync($categoryIds);
