@@ -221,7 +221,7 @@
                                             @method('delete')
                                         </form>
                                 @endif
-                                <a href="{{ route('admin.orders.invoices', $order->id) }}" class="btn btn-primary">Cetak Invoice</a>
+                                <a href="{{ route('admin.orders.invoices', $order->id) }}" class="btn btn-primary mt-3">Cetak Invoice</a>
                             </div>
                         </div>
                         <div class="row">
