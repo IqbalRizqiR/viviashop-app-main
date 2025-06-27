@@ -96,6 +96,14 @@
                                     <i class="fas fa-barcode"></i> Scan Barcode
                                 </button>
                             </div>
+                            <div class="d-flex column-gap-2">
+                                <div class="form-group">
+                                    <input type="text" id="barcode" class="form-control" placeholder="Barcode">
+                                    <button type="button" class="btn btn-primary mb-3" onclick="searchBarcodeId()">
+                                        <i class="fas fa-barcode"></i> Scan Barcode
+                                    </button>
+                                </div>
+                            </div>
                             <div id="order-items"></div>
                             <div class="form-group">
                                 <input type="text" name="note" class="form-control" placeholder="Notes if exist">
@@ -272,6 +280,15 @@ Quagga.onDetected(function(result) {
     // Find and add product
     findAndAddProduct(code);
 });
+
+function searchBarcodeId() {
+    const barcode = document.getElementById('barcode').value;
+    if (barcode) {
+        findAndAddProduct(barcode);
+    } else {
+        document.getElementById('result').innerHTML = '<div class="alert alert-warning">Please enter a barcode</div>';
+    }
+}
 
 function findAndAddProduct(barcode) {
     fetch('/admin/products/find-barcode', {
