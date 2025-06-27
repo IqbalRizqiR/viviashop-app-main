@@ -235,16 +235,16 @@ body {
                         </tr>
                     @endforeach
                 @else
-                        <tr>
-                            <td class="">
-                                <div class="item-description">
-                                    {{ $order->orderItems[0]->product_name }}
-                                </div>
-                            </td>
-                            <td class="text-right">{{ $order->orderItems[0]->qty }}</td>
-                            <td class="text-right">Rp {{ number_format($order->orderItems[0]->price, 0, ',', '.') }}</td>
-                            <td class="text-right">Rp {{ number_format($order->orderItems[0]->total, 0, ',', '.') }}</td>
-                        </tr>
+                    <tr>
+                        <td class="">
+                            <div class="item-description">
+                                {{ $order->orderItems[0]->name }}
+                            </div>
+                        </td>
+                        <td class="text-right">{{ $order->orderItems[0]->qty }}</td>
+                        <td class="text-right">Rp {{ number_format($order->orderItems[0]->base_price, 0, ',', '.') }}</td>
+                        <td class="text-right">Rp {{ number_format($order->orderItems[0]->sub_total, 0, ',', '.') }}</td>
+                    </tr>
                 @endif
             </tbody>
         </table>
