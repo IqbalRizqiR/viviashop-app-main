@@ -54,7 +54,7 @@ Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderControl
 
 Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' => 'admin.'], function() {
     // admin
-    Route::post('/admin/products/find-barcode', [ProductController::class, 'findByBarcode'])
+    Route::post('/products/find-barcode', [ProductController::class, 'findByBarcode'])
      ->name('products.find-barcode');
     Route::get('users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
     Route::resource('setting', SettingController::class);
