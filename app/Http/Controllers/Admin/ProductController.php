@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\File;
 use App\Models\ProductAttributeValue;
 use App\Http\Requests\Admin\ProductRequest;
 use App\Imports\ProdukImport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use RealRashid\SweetAlert\Facades\Alert;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -69,6 +70,15 @@ class ProductController extends Controller
             $result = $tmp;
         }
 		return $result;
+    }
+
+    public function downloadBarcode()
+    {
+        $data = Product::all();
+        $pdf  = Pdf::loadView('admin.barcode', compact('data'));
+        $pdf->setPaper('a4', 'potrait');
+
+        return $pdf->stream('All Barcode');
     }
 
     public function generateBarcodeAll()
