@@ -92,7 +92,7 @@
                             </div>
                             <!-- Button to open modal -->
                             <div class="">
-                                <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#barcodeModal">
+                                <button type="button" class="btn btn-primary mb-3" onclick="showBarcodeModal()">
                                     <i class="fas fa-barcode"></i> Scan Barcode
                                 </button>
                             </div>
@@ -171,6 +171,10 @@
 
 <script>
 let isScanning = false;
+function showBarcodeModal() {
+    $('#barcodeModal').modal('show');
+    $('#barcodeModal').addClass('show');
+}
 
 // Initialize when modal is shown
 $('#barcodeModal').on('shown.bs.modal', function() {
