@@ -251,8 +251,6 @@ class ProductController extends Controller
         $barcode = $request->input('barcode');
 
         $product = Product::where('barcode', $barcode)
-                        ->orWhere('sku', $barcode)
-                        ->orWhere('kode_produk', $barcode)
                         ->first();
 
         if ($product) {
@@ -260,9 +258,9 @@ class ProductController extends Controller
                 'success' => true,
                 'product' => [
                     'id' => $product->id,
-                    'name' => $product->name ?? $product->nama_produk,
-                    'sku' => $product->sku ?? $product->kode_produk,
-                    'price' => $product->price ?? $product->harga_jual
+                    'name' => $product->name,
+                    'sku' => $product->sku,
+                    'price' => $product->price,
                 ]
             ]);
         }
