@@ -85,7 +85,7 @@ class HomepageController extends Controller
             $total_pengeluaran = Pengeluaran::where('created_at', 'LIKE', "%$tanggal%")->sum('nominal');
             $total_shipping = Order::where('payment_status', 'paid')->where('order_date', 'LIKE', "$tanggal%")->sum('shipping_cost');
             $total_base_price = 0;
-            dd($order);
+            dd($order->count());
 
             if ($order->count() > 1) {
                 foreach ($order as $orders) {
