@@ -96,12 +96,12 @@
                                     <i class="fas fa-barcode"></i> Scan Barcode
                                 </button>
                             </div>
-                            <div class="d-flex" style="gap: 10px;">
-                                <h1>Scan Infrared</h1>
+                            <div class="d-flex" style="gap: 10px; align-items: center;">
+                                <h4>Scan Infrared</h4>
                                 <div class="form-group">
                                     <input type="text" id="barcode" class="form-control" placeholder="Barcode">
                                 </div>
-                                <button type="button" class="btn btn-primary mb-3" onclick="searchBarcodeId()">
+                                <button type="button" class="btn btn-danger mb-3" onclick="searchBarcodeId()">
                                     <i class="fas fa-barcode"></i> Search Barcode
                                 </button>
                             </div>
