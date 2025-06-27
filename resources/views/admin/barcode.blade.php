@@ -68,7 +68,7 @@
     </style>
 
     <div class="barcode-container">
-        @foreach ($dataproduk as $produk)
+        @foreach ($data as $produk)
             <div class="barcode-item">
                 {{-- Generate barcode using a barcode library --}}
                 <div style="margin: 2mm 0;">
