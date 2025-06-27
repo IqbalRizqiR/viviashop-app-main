@@ -30,6 +30,7 @@
                         <th>Status</th>
                         <th>Quantity</th>
                         <th>Barcode</th>
+                        <th>Barcode Angka</th>
                         <th>Action</th>
                     </tr>
                     </thead>
@@ -49,7 +50,7 @@
                                   <td>No quantity</td>
                                 @endif
                                 <td>{!! DNS1D::getBarcodeHTML($product->barcode, 'C39') !!}</td>
-                                {{-- <td>{{ $product->barcode }}</td> --}}
+                                <td>{{ $product->barcode }}</td>
                                 <td>
                                 <div class="btn-group btn-group-sm">
                                     <a href="{{ route('admin.products.edit', $product) }}" class="btn btn-sm btn-primary">
