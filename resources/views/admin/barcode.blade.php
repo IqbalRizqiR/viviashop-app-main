@@ -68,14 +68,23 @@
     </style>
 
     <div class="barcode-container">
-        @foreach ($data as $produk)
+        @if ($data->count() > 1)
+            @foreach ($data as $produk)
+                <div class="barcode-item">
+                    {{-- Generate barcode using a barcode library --}}
+                    <div style="margin: 2mm 0;">
+                        {!! DNS1D::getBarcodeHTML($produk->barcode, 'C128', 1.5, 20) !!}
+                    </div>
+                </div>
+            @endforeach
+        @else
             <div class="barcode-item">
                 {{-- Generate barcode using a barcode library --}}
                 <div style="margin: 2mm 0;">
-                    {!! DNS1D::getBarcodeHTML($produk->barcode, 'C128', 1.5, 20) !!}
+                    {!! DNS1D::getBarcodeHTML($data->barcode, 'C128', 1.5, 20) !!}
                 </div>
             </div>
-        @endforeach
+        @endif
     </div>
 </body>
 </html>

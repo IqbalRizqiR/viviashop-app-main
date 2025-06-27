@@ -79,6 +79,7 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
         // dd(public_path('/file'));
     })->name('downloadTemplate');
     Route::get('/barcode/download' , [ProductController::class, 'downloadBarcode'])->name('barcode.download');
+    Route::get('/barcode/download/{id}' , [ProductController::class, 'downloadSingleBarcode'])->name('barcode.downloadSingle');
     Route::get('/laporan/export', [ReportController::class, 'exportExcel'])->name('laporan.exportExcel');
     // Route::get('/laporan/dataTotal/{awal}/{akhir}', [HomepageController::class, 'getReportsData'])->name('laporan.data');
     Route::get('/laporan/export/{awal}/{akhir}', [HomepageController::class, 'data'])->name('laporan.exportPDF');

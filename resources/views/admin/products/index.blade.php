@@ -51,12 +51,15 @@
                                 @else
                                   <td>No quantity</td>
                                 @endif
-                                <td>{!! DNS1D::getBarcodeHTML($product->barcode, 'C39') !!}</td>
+                                <td>{!! DNS1D::getBarcodeHTML($product->barcode, 'C128', 1.5, 20) !!}</td>
                                 <td>{{ $product->barcode }}</td>
                                 <td>
                                 <div class="btn-group btn-group-sm">
                                     <a href="{{ route('admin.products.edit', $product) }}" class="btn btn-sm btn-primary">
                                         <i class="fa fa-edit"></i>
+                                    </a>
+                                    <a href="{{ route('admin.barcode.downloadSingle', $product->id) }}" class="btn btn-sm btn-primary">
+                                        <i class="fa fa-download"></i>
                                     </a>
                                     <form onclick="return confirm('are you sure !')" action="{{ route('admin.products.destroy', $product) }}"
                                         method="POST">
