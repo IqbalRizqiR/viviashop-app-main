@@ -72,7 +72,7 @@
             <div class="barcode-item">
                 {{-- Generate barcode using a barcode library --}}
                 <div style="margin: 2mm 0;">
-                    {!! DNS1D::getBarcodeHTML($produk->kode_produk, 'C128', 1.5, 20) !!}
+                    {!! DNS1D::getBarcodeHTML($produk->barcode, 'C128', 1.5, 20) !!}
                 </div>
             </div>
         @endforeach
