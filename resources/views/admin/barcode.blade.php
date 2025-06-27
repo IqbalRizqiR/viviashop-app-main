@@ -16,6 +16,8 @@
     <div class="barcode">
         @foreach($data as $product)
                 {!! DNS1D::getBarcodeHTML($product->barcode, 'C39') !!}
+
+        @endforeach
     </div>
 </body>
 </html>
