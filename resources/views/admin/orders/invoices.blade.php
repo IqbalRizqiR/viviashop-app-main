@@ -221,7 +221,7 @@ body {
                 </tr>
             </thead>
             <tbody>
-                @if ($order->orderItems>count() > 1)
+                @if ($order->orderItems->count() > 1)
                     @foreach ($order->orderItems as $item)
                         <tr>
                             <td class="">
