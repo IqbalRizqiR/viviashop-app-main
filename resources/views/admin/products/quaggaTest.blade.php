@@ -17,69 +17,61 @@
 </head>
 
 <body>
-    <!-- Div to show the scanner -->
-    <div id="scanner-container"></div>
-    <input type="button" id="btn" value="Start/Stop the scanner" />
-
-    <!-- Include the image-diff library -->
-    <script src="quagga.min.js"></script>
+    <div class="scanner-container">
+        <input type="file" id="barcode-file" accept="image/*" capture="environment" class="form-control mb-2">
+        <input type="text" id="barcode-manual" class="form-control" placeholder="Or type barcode manually">
+        <button onclick="processBarcode()" class="btn btn-primary mt-2">Submit</button>
+    </div>
+    // Include QuaggaJS
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
     <script>
-        var _scannerIsRunning = false;
-
-        function startScanner() {
-            Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: document.querySelector('#scanner-container'),
-                    constraints: {
-                        width: 480,
-                        height: 320,
-                        facingMode: "environment"
-                    },
-                },
-                decoder: {
-                    readers: [
-                        "code_128_reader",
-                        "ean_reader",
-                        "ean_8_reader",
-                        "code_39_reader",
-                        "code_39_vin_reader",
-                        "codabar_reader",
-                        "upc_reader",
-                        "upc_e_reader",
-                        "i2of5_reader"
-                    ],
-                },
-
-            }, function (err) {
-                if (err) {
-                    console.log(err);
-                    return
+    // Handle file input
+    document.getElementById('barcode-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            Quagga.decodeSingle({
+                src: URL.createObjectURL(file),
+                numOfWorkers: 0,
+                inputStream: { size: 800 },
+                decoder: { readers: ["code_128_reader", "ean_reader"] }
+            }, function(result) {
+                if (result && result.codeResult) {
+                    document.getElementById('barcode-manual').value = result.codeResult.code;
+                    processBarcode();
+                } else {
+                    alert('No barcode detected. Please type manually.');
                 }
-
-                console.log("Initialization finished. Ready to start");
-                Quagga.start();
-
-                // Set flag to is running
-                _scannerIsRunning = true;
-            });
-
-            Quagga.onDetected(function (result) {
-                console.log("Barcode detected and processed : [" + result.codeResult.code + "]", result);
             });
         }
+    });
 
+    function processBarcode() {
+        const barcode = document.getElementById('barcode-manual').value;
+        if (!barcode) {
+            alert('Please scan or enter a barcode');
+            return;
+        }
 
-        // Start/stop scanner
-        document.getElementById("btn").addEventListener("click", function () {
-            if (_scannerIsRunning) {
-                Quagga.stop();
+        // Send to your Laravel route
+        fetch('/admin/products/find-barcode', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ barcode: barcode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Product found: ' + data.product.name);
+                // Do something with the product
             } else {
-                startScanner();
+                alert('Product not found');
             }
-        }, false);
+        });
+    }
     </script>
 </body>
 
