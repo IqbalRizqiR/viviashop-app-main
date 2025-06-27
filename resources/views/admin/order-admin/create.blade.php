@@ -109,6 +109,32 @@
                     <div class="box-footer">
                         <button type="submit" class="btn btn-success">Create Order</button>
                     </div>
+                    <!-- Barcode Scanner Modal -->
+                    <div class="modal fade" id="barcodeModal" tabindex="-1" aria-labelledby="barcodeModalLabel">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="barcodeModalLabel">Scan Barcode</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    <div id="scanner" style="width: 100%; max-width: 400px; height: 300px; border: 1px solid #ccc; margin: 0 auto;"></div>
+                                    <div id="result" class="mt-3"></div>
+                                    <div class="mt-3">
+                                        <button id="start-scan" class="btn btn-success">Start Scanner</button>
+                                        <button id="stop-scan" class="btn btn-danger">Stop Scanner</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Button to open modal -->
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#barcodeModal">
+                        <i class="fas fa-barcode"></i> Scan Barcode
+                    </button>
                 </form>
             </div>
         </div>
@@ -116,6 +142,157 @@
 @stop
 
 @push('scripts')
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+
+<script>
+let isScanning = false;
+
+// Auto-start scanner when modal opens
+$('#barcodeModal').on('shown.bs.modal', function() {
+    startBarcodeScanner();
+});
+
+// Stop scanner when modal closes
+$('#barcodeModal').on('hidden.bs.modal', function() {
+    stopBarcodeScanner();
+});
+
+document.getElementById('start-scan').addEventListener('click', startBarcodeScanner);
+document.getElementById('stop-scan').addEventListener('click', stopBarcodeScanner);
+
+function startBarcodeScanner() {
+    if (isScanning) return;
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Camera not supported in this browser');
+        return;
+    }
+
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#scanner'),
+            constraints: {
+                width: 400,
+                height: 300,
+                facingMode: "environment"
+            }
+        },
+        decoder: {
+            readers: ["code_128_reader", "ean_reader", "code_39_reader"]
+        }
+    }, function(err) {
+        if (err) {
+            console.error(err);
+            alert('Camera error: ' + err.message);
+            return;
+        }
+        console.log('Scanner started');
+        isScanning = true;
+        Quagga.start();
+    });
+}
+
+function stopBarcodeScanner() {
+    if (isScanning) {
+        Quagga.stop();
+        isScanning = false;
+        console.log('Scanner stopped');
+    }
+}
+
+// When barcode is detected
+Quagga.onDetected(function(result) {
+    const code = result.codeResult.code;
+
+    console.log('Barcode detected:', code);
+
+    // Stop scanning
+    stopBarcodeScanner();
+
+    // Find and add product
+    findAndAddProduct(code);
+});
+
+function findAndAddProduct(barcode) {
+    // Show loading
+    document.getElementById('result').innerHTML = '<strong>Looking up product...</strong>';
+
+    // Send to Laravel to find product
+    fetch('{{ route("admin.products.find-barcode") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ barcode: barcode })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Product found - add to order
+            addProductToOrder(data.product);
+            document.getElementById('result').innerHTML = '<strong style="color: green;">Product added: ' + data.product.name + '</strong>';
+
+            // Close modal after 2 seconds
+            setTimeout(function() {
+                $('#barcodeModal').modal('hide');
+            }, 2000);
+        } else {
+            // Product not found
+            document.getElementById('result').innerHTML = '<strong style="color: red;">Product not found: ' + barcode + '</strong>';
+
+            // Restart scanner after 2 seconds
+            setTimeout(function() {
+                startBarcodeScanner();
+            }, 2000);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('result').innerHTML = '<strong style="color: red;">Error occurred</strong>';
+        setTimeout(function() {
+            startBarcodeScanner();
+        }, 2000);
+    });
+}
+
+function addProductToOrder(product) {
+    // Add product to your order form (same as your existing select-product logic)
+    const orderItems = document.getElementById('order-items');
+    const itemIndex = orderItems.children.length;
+
+    const productHtml = `
+        <div class="order-item card mb-2 p-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <label>Product</label>
+                    <input type="text" class="form-control" value="${product.name} (${product.sku})" readonly>
+                    <input type="hidden" name="products[${itemIndex}][id]" value="${product.id}">
+                </div>
+                <div class="col-md-3">
+                    <label>Qty</label>
+                    <input type="number" name="products[${itemIndex}][qty]" class="form-control" value="1" min="1" required>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger remove-item">Remove</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    orderItems.insertAdjacentHTML('beforeend', productHtml);
+}
+
+// Remove item functionality (if not already exists)
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('remove-item')) {
+        e.target.closest('.order-item').remove();
+    }
+});
+</script>
 <script>
     function addModal() {
         $('#modalProduct').modal('show');

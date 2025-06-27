@@ -246,6 +246,33 @@ class ProductController extends Controller
             ->make(true);
     }
 
+    public function findByBarcode(Request $request)
+    {
+        $barcode = $request->input('barcode');
+
+        $product = Product::where('barcode', $barcode)
+                        ->orWhere('sku', $barcode)
+                        ->orWhere('kode_produk', $barcode)
+                        ->first();
+
+        if ($product) {
+            return response()->json([
+                'success' => true,
+                'product' => [
+                    'id' => $product->id,
+                    'name' => $product->name ?? $product->nama_produk,
+                    'sku' => $product->sku ?? $product->kode_produk,
+                    'price' => $product->price ?? $product->harga_jual
+                ]
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Product not found'
+        ]);
+    }
+
     public function imports()
     {
         Excel::import(new ProdukImport, request()->file('excelFile'));
