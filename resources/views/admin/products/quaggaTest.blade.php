@@ -76,6 +76,8 @@
         const code = result.codeResult.code;
         document.getElementById('result').innerHTML = '<strong>Found: ' + code + '</strong>';
 
+        alert(code);
+
         console.log('Barcode detected:', code);
 
         // Stop scanning after detection
