@@ -78,7 +78,7 @@ class ProductController extends Controller
         $pdf  = Pdf::loadView('admin.barcode', compact('data'));
         $pdf->setPaper('a4', 'potrait');
 
-        return $pdf->stream('All Barcode');
+        return view('admin.barcode', compact('data'));
     }
 
     public function generateBarcodeAll()
