@@ -1,6 +1,29 @@
 @extends('layouts.app')
 @section('title', 'Create Order')
 @section('content')
+    <style>
+    #scanner {
+        position: relative;
+        overflow: hidden;
+    }
+
+    #scanner video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+    }
+
+    #scanner canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    /* Ensure modal is properly sized */
+    .modal-lg {
+        max-width: 600px;
+    }
+    </style>
     <div class="container">
         <div class="row">
             <div class="col-md-12">
@@ -116,17 +139,15 @@
                         <button type="submit" class="btn btn-success">Create Order</button>
                     </div>
                     <!-- Barcode Scanner Modal -->
-                    <div class="modal fade" id="barcodeModal" tabindex="-1" aria-labelledby="barcodeModalLabel">
+                    <div class="modal fade" id="barcodeModal" tabindex="-1">
                         <div class="modal-dialog modal-lg">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="barcodeModalLabel">Scan Barcode</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
+                                    <h5 class="modal-title">Scan Barcode</h5>
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
                                 </div>
                                 <div class="modal-body text-center">
-                                    <div id="scanner" style="width: 100%; max-width: 400px; height: 300px; border: 1px solid #ccc; margin: 0 auto;"></div>
+                                    <div id="scanner" style="width: 100%; height: 300px; border: 1px solid #ccc; position: relative;"></div>
                                     <div id="result" class="mt-3"></div>
                                     <div class="mt-3">
                                         <button id="start-scan" class="btn btn-success">Start Scanner</button>
@@ -151,34 +172,36 @@
 <script>
 let isScanning = false;
 
-// Start scanner AFTER modal is fully shown
+// Initialize when modal is shown
 $('#barcodeModal').on('shown.bs.modal', function() {
+    console.log('Modal shown, waiting before starting scanner...');
+    // Wait for modal animation to complete
     setTimeout(function() {
-        startBarcodeScanner();
-    }, 300); // Small delay to ensure modal is rendered
+        initializeScanner();
+    }, 500);
 });
 
-// Stop scanner when modal closes
+// Clean up when modal is hidden
 $('#barcodeModal').on('hidden.bs.modal', function() {
-    stopBarcodeScanner();
-    // Clear the scanner div
-    document.getElementById('scanner').innerHTML = '';
+    console.log('Modal hidden, stopping scanner...');
+    stopScanner();
+    clearScanner();
 });
 
-document.getElementById('start-scan').addEventListener('click', startBarcodeScanner);
-document.getElementById('stop-scan').addEventListener('click', stopBarcodeScanner);
+document.getElementById('start-scan').addEventListener('click', initializeScanner);
+document.getElementById('stop-scan').addEventListener('click', stopScanner);
 
-function startBarcodeScanner() {
-    if (isScanning) return;
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('Camera not supported in this browser');
+function initializeScanner() {
+    if (isScanning) {
+        console.log('Already scanning');
         return;
     }
 
-    // Clear any existing content
-    document.getElementById('scanner').innerHTML = '';
-    document.getElementById('result').innerHTML = 'Initializing camera...';
+    console.log('Initializing scanner...');
+    document.getElementById('result').innerHTML = 'Starting camera...';
+
+    // Clear previous content
+    clearScanner();
 
     Quagga.init({
         inputStream: {
@@ -186,8 +209,8 @@ function startBarcodeScanner() {
             type: "LiveStream",
             target: document.querySelector('#scanner'),
             constraints: {
-                width: { min: 400 },
-                height: { min: 300 },
+                width: 640,
+                height: 480,
                 facingMode: "environment"
             }
         },
@@ -195,49 +218,59 @@ function startBarcodeScanner() {
             patchSize: "medium",
             halfSample: true
         },
+        numOfWorkers: 2,
         decoder: {
             readers: ["code_128_reader", "ean_reader", "code_39_reader"]
         },
         locate: true
     }, function(err) {
         if (err) {
-            console.error('Quagga init error:', err);
-            document.getElementById('result').innerHTML = '<span style="color: red;">Camera error: ' + err.message + '</span>';
+            console.error('Quagga initialization error:', err);
+            document.getElementById('result').innerHTML = '<div class="alert alert-danger">Camera error: ' + err.message + '</div>';
             return;
         }
 
-        console.log('Scanner initialized successfully');
-        document.getElementById('result').innerHTML = 'Camera ready - point at barcode';
+        console.log('Quagga initialized successfully');
+        document.getElementById('result').innerHTML = '<div class="alert alert-success">Camera ready! Point at barcode</div>';
+
         isScanning = true;
         Quagga.start();
     });
 }
 
-function stopBarcodeScanner() {
+function stopScanner() {
     if (isScanning) {
+        console.log('Stopping scanner...');
         Quagga.stop();
         isScanning = false;
-        document.getElementById('scanner').innerHTML = '';
-        console.log('Scanner stopped');
+        document.getElementById('result').innerHTML = 'Scanner stopped';
     }
 }
 
-// When barcode is detected
+function clearScanner() {
+    const scannerDiv = document.getElementById('scanner');
+    if (scannerDiv) {
+        scannerDiv.innerHTML = '';
+    }
+}
+
+// Handle barcode detection
 Quagga.onDetected(function(result) {
     const code = result.codeResult.code;
     console.log('Barcode detected:', code);
 
-    // Stop scanning immediately to prevent multiple detections
-    stopBarcodeScanner();
+    // Stop scanning to prevent multiple detections
+    stopScanner();
+
+    // Show detected code
+    document.getElementById('result').innerHTML = '<div class="alert alert-info">Found: <strong>' + code + '</strong><br>Looking up product...</div>';
 
     // Find and add product
     findAndAddProduct(code);
 });
 
 function findAndAddProduct(barcode) {
-    document.getElementById('result').innerHTML = '<strong>Looking up product: ' + barcode + '</strong>';
-
-    fetch('{{ route("admin.products.find-barcode") }}', {
+    fetch('/admin/products/find-barcode', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -248,27 +281,23 @@ function findAndAddProduct(barcode) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Product found
             addProductToOrder(data.product);
-            document.getElementById('result').innerHTML = '<strong style="color: green;">✓ Product added: ' + data.product.name + '</strong>';
+            document.getElementById('result').innerHTML = '<div class="alert alert-success">✓ Product added: <strong>' + data.product.name + '</strong></div>';
 
+            // Close modal after success
             setTimeout(function() {
                 $('#barcodeModal').modal('hide');
-            }, 1500);
-        } else {
-            document.getElementById('result').innerHTML = '<strong style="color: red;">✗ Product not found: ' + barcode + '</strong>';
-
-            // Restart scanner after 2 seconds
-            setTimeout(function() {
-                startBarcodeScanner();
             }, 2000);
+
+        } else {
+            // Product not found
+            document.getElementById('result').innerHTML = '<div class="alert alert-warning">✗ Product not found: <strong>' + barcode + '</strong><br><button onclick="initializeScanner()" class="btn btn-primary btn-sm mt-2">Scan Again</button></div>';
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        document.getElementById('result').innerHTML = '<strong style="color: red;">Error occurred</strong>';
-        setTimeout(function() {
-            startBarcodeScanner();
-        }, 2000);
+        document.getElementById('result').innerHTML = '<div class="alert alert-danger">Error occurred<br><button onclick="initializeScanner()" class="btn btn-primary btn-sm mt-2">Try Again</button></div>';
     });
 }
 
@@ -289,7 +318,7 @@ function addProductToOrder(product) {
                     <input type="number" name="products[${itemIndex}][qty]" class="form-control" value="1" min="1" required>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <button type="button" class="btn btn-danger remove-item">Remove</button>
+                    <button type="button" class="btn btn-danger btn-sm remove-item">Remove</button>
                 </div>
             </div>
         </div>
