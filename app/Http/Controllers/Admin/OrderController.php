@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Exceptions\OutOfStockException;
 use App\Models\Payment;
 use App\Models\Product;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
@@ -89,6 +90,15 @@ class OrderController extends Controller
 
 		return view('admin.orders.show', compact('order'));
 	}
+
+    public function invoices($id)
+    {
+        $order = Order::where('id', $id)->first();
+
+        $pdf  = Pdf::loadView('admin.orders.invoices', compact('order'));
+        $pdf->setPaper('a4', 'landscape');
+        return $pdf->stream('invoice.pdf');
+    }
 
 
 

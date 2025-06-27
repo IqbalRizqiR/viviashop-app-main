@@ -222,6 +222,7 @@
                                         </form>
                                 @endif
                             </div>
+                            <a href="{{ route('admin.orders.invoices', $order->id) }}" class="btn btn-primary">Cetak Invoice</a>
                         </div>
                         <div class="row">
                             @if ($order->attachments != null)
