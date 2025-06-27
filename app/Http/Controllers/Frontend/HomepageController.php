@@ -99,7 +99,7 @@ class HomepageController extends Controller
             } elseif($order->count() < 1 || $order->count() == 0) {
                 $total_base_price = 0;
             } else {
-                dd($order);
+                dd($order[0]->id);
                 $order_items = OrderItem::where('order_id', $order->id)->get();
 
                 foreach($order_items as $order) {
