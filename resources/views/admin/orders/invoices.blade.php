@@ -340,10 +340,10 @@
         <div class="bill-info">
             <div class="bill-from">
                 <h3>From</h3>
-                <p><strong>{{ $order->shipment->first_name }} {{ $order->shipment->last_name }}</strong></p>
-                <p>{{ $order->shipment->address1 }}</p>
-                <p>Phone: {{ $order->shipment->phone }}</p>
-                <p>Email: {{ $order->shipment->email }}</p>
+                <p><strong>{{ $order->customer_full_name }}</strong></p>
+                <p>{{ $order->customer_address1 }}</p>
+                <p>Phone: {{ $order->customer_phone }}</p>
+                <p>Email: {{ $order->customer_email }}</p>
             </div>
 
             {{-- <div class="bill-to">
