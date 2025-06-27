@@ -74,6 +74,9 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
     Route::get('/laporan', [HomepageController::class, 'reports'])->name('laporan');
     Route::get('/laporan/data/{awal}/{akhir}', [HomepageController::class, 'data'])->name('laporan.data');
     Route::post('/products/import', [ProductController::class, 'imports'])->name('products.imports');
+    Route::get('/quaggaTest', function () {
+        return view('admin.products.quaggaTest');
+    })->name('quaggaTest');
     Route::get('/downloadExcel', function () {
         return response()->download(public_path('template.xlsx'));
         // dd(public_path('/file'));
