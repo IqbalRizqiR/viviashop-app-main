@@ -16,7 +16,8 @@
                                 <input type="text" readonly name="first_name" value="Admin" class="form-control" value="{{ old('first_name') }}" required>
                             </div>
                             <div class="form-group">
-                                <label for="last_name">Last Name</label>
+
+                                 <label for="last_name">Last Name</label>
                                 <input type="text" readonly name="last_name" value="Toko" class="form-control" value="{{ old('last_name') }}" required>
                             </div>
                             <div class="form-group">
