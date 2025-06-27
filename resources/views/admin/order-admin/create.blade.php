@@ -96,7 +96,7 @@
                                     <i class="fas fa-barcode"></i> Scan Barcode
                                 </button>
                             </div>
-                            <div class="d-flex column-gap-2">
+                            <div class="d-flex" style="gap: 10px;">
                                 <div class="form-group">
                                     <input type="text" id="barcode" class="form-control" placeholder="Barcode">
                                 </div>
