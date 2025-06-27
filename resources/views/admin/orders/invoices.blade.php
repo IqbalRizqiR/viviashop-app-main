@@ -221,18 +221,31 @@ body {
                 </tr>
             </thead>
             <tbody>
-                @foreach ($order->orderItems as $item)
-                    <tr>
-                        <td class="">
-                            <div class="item-description">
-                                {{ $item->product_name }}
-                            </div>
-                        </td>
-                        <td class="text-right">{{ $item->qty }}</td>
-                        <td class="text-right">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
-                        <td class="text-right">Rp {{ number_format($item->total, 0, ',', '.') }}</td>
-                    </tr>
-                @endforeach
+                @if ($order->items->count() > 1)
+                    @foreach ($order->orderItems as $item)
+                        <tr>
+                            <td class="">
+                                <div class="item-description">
+                                    {{ $item->product_name }}
+                                </div>
+                            </td>
+                            <td class="text-right">{{ $item->qty }}</td>
+                            <td class="text-right">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                            <td class="text-right">Rp {{ number_format($item->total, 0, ',', '.') }}</td>
+                        </tr>
+                    @endforeach
+                @else
+                        <tr>
+                            <td class="">
+                                <div class="item-description">
+                                    {{ $order[0]->orderItems->product_name }}
+                                </div>
+                            </td>
+                            <td class="text-right">{{ $order[0]->orderItems->qty }}</td>
+                            <td class="text-right">Rp {{ number_format($order[0]->orderItems->price, 0, ',', '.') }}</td>
+                            <td class="text-right">Rp {{ number_format($order[0]->orderItems->total, 0, ',', '.') }}</td>
+                        </tr>
+                @endif
             </tbody>
         </table>
 
