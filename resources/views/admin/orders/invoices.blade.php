@@ -7,6 +7,7 @@
     <title>Document</title>
 </head>
 <body>
+<style>
     /* Optimal print style for A4 portrait, minimal margins and high-contrast text */
 
 @page {
