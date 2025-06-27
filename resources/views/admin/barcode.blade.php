@@ -10,13 +10,16 @@
     <style>
         .barcode {
             display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
         }
     </style>
 
     <div class="barcode">
         @foreach($data as $product)
-                {!! DNS1D::getBarcodeHTML($product->barcode, 'C39') !!}
-
+            {!! DNS1D::getBarcodeHTML($product->barcode, 'C39') !!}
         @endforeach
     </div>
 </body>
