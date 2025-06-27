@@ -9,11 +9,13 @@
           <div class="col-12">
 
             <div class="card">
-              <div class="card-header flex gap-2">
+              <div class="card-header">
                 <h3 class="card-title">Data Produk</h3>
-                <a href="{{ route('admin.products.create')}}" class="btn btn-info shadow-sm float-right"> <i class="fa fa-plus"></i> Tambah </a>
-                <a href="{{ route('admin.barcode.download')}}" class="btn btn-info shadow-sm float-right"> <i class="fa fa-plus"></i> Download Barcode </a>
-                <button onclick="addForm();" class="btn btn-success shadow-sm float-right"> <i class="fa fa-plus"></i> Excel </button>
+                <div class="d-flex ms-2">
+                    <a href="{{ route('admin.products.create')}}" class="btn btn-info shadow-sm float-right"> <i class="fa fa-plus"></i> Tambah </a>
+                    <a href="{{ route('admin.barcode.download')}}" class="btn btn-info shadow-sm float-right"> <i class="fa fa-plus"></i> Download Barcode </a>
+                    <button onclick="addForm();" class="btn btn-success shadow-sm float-right"> <i class="fa fa-plus"></i> Excel </button>
+                </div>
               </div>
               <!-- /.card-header -->
               <div class="card-body">
