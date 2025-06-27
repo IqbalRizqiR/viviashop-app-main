@@ -315,11 +315,11 @@ function addProductToOrder(product) {
                 <div class="col-md-6">
                     <label>Product</label>
                     <input type="text" class="form-control" value="${product.name} (${product.sku})" readonly>
-                    <input type="hidden" name="products[${itemIndex}][id]" value="${product.id}">
+                    <input type="hidden" name="product_id[]" value="${product.id}">
                 </div>
                 <div class="col-md-3">
                     <label>Qty</label>
-                    <input type="number" name="products[${itemIndex}][qty]" class="form-control" value="1" min="1" required>
+                    <input type="number" name="qty[]" class="form-control" value="1" min="1" required>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
                     <button type="button" class="btn btn-danger btn-sm remove-item">Remove</button>
@@ -369,18 +369,32 @@ $('#product-table').on('click', '.select-product', function(){
           name = $(this).data('name');
 
     // append to your form (example)
-    $('#order-items').append(`
-      <div class="order-item">
-        <div class="form-group">
-            <input type="hidden" name="product_id[]" value="${id}">
-            <label>${name} (${sku})</label>
-            <input type="number" name="qty[]" class="form-control" value="1" min="1">
-            <button type="button" class="remove-item btn btn-danger">x</button>
+    const orderItems = document.getElementById('order-items');
+    const itemIndex = orderItems.children.length;
+
+    const productHtml = `
+        <div class="order-item card mb-2 p-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <label>Product</label>
+                    <input type="text" class="form-control" value="${name} (${sku})" readonly>
+                    <input type="hidden" name="product_id[]" value="${id}">
+                </div>
+                <div class="col-md-3">
+                    <label>Qty</label>
+                    <input type="number" name="qty[]" class="form-control" value="1" min="1" required>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger btn-sm remove-item">Remove</button>
+                </div>
+            </div>
         </div>
-      </div>
-    `);
+    `;
+
+    orderItems.insertAdjacentHTML('beforeend', productHtml);
 
     $('#productModal').modal('hide');
+    $('#productModal').removeClass('show');
   });
 
   // remove item
