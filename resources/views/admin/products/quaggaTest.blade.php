@@ -18,61 +18,74 @@
 
 <body>
     <div class="scanner-container">
-        <input type="file" id="barcode-file" accept="image/*" capture="environment" class="form-control mb-2">
-        <input type="text" id="barcode-manual" class="form-control" placeholder="Or type barcode manually">
-        <button onclick="processBarcode()" class="btn btn-primary mt-2">Submit</button>
-    </div>
-    // Include QuaggaJS
+    <video id="video" width="300" height="200" autoplay></video>
+    <button id="start-scan" class="btn btn-primary">Start Scanner</button>
+    <button id="stop-scan" class="btn btn-danger">Stop Scanner</button>
+    <div id="result" class="mt-2"></div>
+</div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
-    <script>
-    // Handle file input
-    document.getElementById('barcode-file').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            Quagga.decodeSingle({
-                src: URL.createObjectURL(file),
-                numOfWorkers: 0,
-                inputStream: { size: 800 },
-                decoder: { readers: ["code_128_reader", "ean_reader"] }
-            }, function(result) {
-                if (result && result.codeResult) {
-                    document.getElementById('barcode-manual').value = result.codeResult.code;
-                    processBarcode();
-                } else {
-                    alert('No barcode detected. Please type manually.');
-                }
-            });
-        }
-    });
+<script>
+let isScanning = false;
 
-    function processBarcode() {
-        const barcode = document.getElementById('barcode-manual').value;
-        if (!barcode) {
-            alert('Please scan or enter a barcode');
+document.getElementById('start-scan').addEventListener('click', function() {
+    if (isScanning) return;
+
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#video'),
+            constraints: {
+                width: 640,
+                height: 480,
+                facingMode: "environment"
+            }
+        },
+        decoder: {
+            readers: ["code_128_reader", "ean_reader", "code_39_reader"]
+        }
+    }, function(err) {
+        if (err) {
+            alert('Camera not available: ' + err);
             return;
         }
+        isScanning = true;
+        Quagga.start();
+    });
+});
 
-        // Send to your Laravel route
-        fetch('/admin/products/find-barcode', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({ barcode: barcode })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Product found: ' + data.product.name);
-                // Do something with the product
-            } else {
-                alert('Product not found');
-            }
-        });
+document.getElementById('stop-scan').addEventListener('click', function() {
+    if (isScanning) {
+        Quagga.stop();
+        isScanning = false;
     }
-    </script>
+});
+
+// When barcode is detected
+Quagga.onDetected(function(result) {
+    const code = result.codeResult.code;
+    document.getElementById('result').innerHTML = 'Found: ' + code;
+
+    // Send to Laravel
+    fetch('/admin/products/find-barcode', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ barcode: code })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Product: ' + data.product.name);
+            Quagga.stop();
+            isScanning = false;
+        }
+    });
+});
+</script>
 </body>
 
 </html>
