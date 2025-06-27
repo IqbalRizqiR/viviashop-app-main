@@ -83,9 +83,9 @@ class ProductController extends Controller
 
     public function downloadSingleBarcode($id)
     {
-        $data = Product::where('id', $id)->first();
+        $dataSingle = Product::where('id', $id)->first();
         // dd($data->barcode);
-        $pdf  = Pdf::loadView('admin.barcode', compact('data'));
+        $pdf  = Pdf::loadView('admin.barcode', compact('dataSingle'));
         $pdf->setPaper('a4', 'landscape');
         return $pdf->stream('barcode.pdf');
         // return view('admin.barcode', compact('data'));

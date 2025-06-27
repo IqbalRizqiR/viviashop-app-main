@@ -77,7 +77,7 @@
                     </div>
                 </div>
             @endforeach
-        @elseif($data->count() == 1)
+        @elseif($data->count() == 1 && $dataSingle->count() == 1)
             <div class="barcode-item">
                 {{-- Generate barcode using a barcode library --}}
                 <div style="margin: 2mm 0;">
