@@ -67,6 +67,12 @@
                                 <i class="fas fa-search"></i> Search & Add Product
                                 </button>
                             </div>
+                            <!-- Button to open modal -->
+                            <div class="">
+                                <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#barcodeModal">
+                                    <i class="fas fa-barcode"></i> Scan Barcode
+                                </button>
+                            </div>
                             <div id="order-items"></div>
                             <div class="form-group">
                                 <input type="text" name="note" class="form-control" placeholder="Notes if exist">
@@ -131,10 +137,7 @@
                         </div>
                     </div>
 
-                    <!-- Button to open modal -->
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#barcodeModal">
-                        <i class="fas fa-barcode"></i> Scan Barcode
-                    </button>
+
                 </form>
             </div>
         </div>
@@ -148,14 +151,18 @@
 <script>
 let isScanning = false;
 
-// Auto-start scanner when modal opens
+// Start scanner AFTER modal is fully shown
 $('#barcodeModal').on('shown.bs.modal', function() {
-    startBarcodeScanner();
+    setTimeout(function() {
+        startBarcodeScanner();
+    }, 300); // Small delay to ensure modal is rendered
 });
 
 // Stop scanner when modal closes
 $('#barcodeModal').on('hidden.bs.modal', function() {
     stopBarcodeScanner();
+    // Clear the scanner div
+    document.getElementById('scanner').innerHTML = '';
 });
 
 document.getElementById('start-scan').addEventListener('click', startBarcodeScanner);
@@ -169,27 +176,38 @@ function startBarcodeScanner() {
         return;
     }
 
+    // Clear any existing content
+    document.getElementById('scanner').innerHTML = '';
+    document.getElementById('result').innerHTML = 'Initializing camera...';
+
     Quagga.init({
         inputStream: {
             name: "Live",
             type: "LiveStream",
             target: document.querySelector('#scanner'),
             constraints: {
-                width: 400,
-                height: 300,
+                width: { min: 400 },
+                height: { min: 300 },
                 facingMode: "environment"
             }
         },
+        locator: {
+            patchSize: "medium",
+            halfSample: true
+        },
         decoder: {
             readers: ["code_128_reader", "ean_reader", "code_39_reader"]
-        }
+        },
+        locate: true
     }, function(err) {
         if (err) {
-            console.error(err);
-            alert('Camera error: ' + err.message);
+            console.error('Quagga init error:', err);
+            document.getElementById('result').innerHTML = '<span style="color: red;">Camera error: ' + err.message + '</span>';
             return;
         }
-        console.log('Scanner started');
+
+        console.log('Scanner initialized successfully');
+        document.getElementById('result').innerHTML = 'Camera ready - point at barcode';
         isScanning = true;
         Quagga.start();
     });
@@ -199,6 +217,7 @@ function stopBarcodeScanner() {
     if (isScanning) {
         Quagga.stop();
         isScanning = false;
+        document.getElementById('scanner').innerHTML = '';
         console.log('Scanner stopped');
     }
 }
@@ -206,10 +225,9 @@ function stopBarcodeScanner() {
 // When barcode is detected
 Quagga.onDetected(function(result) {
     const code = result.codeResult.code;
-
     console.log('Barcode detected:', code);
 
-    // Stop scanning
+    // Stop scanning immediately to prevent multiple detections
     stopBarcodeScanner();
 
     // Find and add product
@@ -217,10 +235,8 @@ Quagga.onDetected(function(result) {
 });
 
 function findAndAddProduct(barcode) {
-    // Show loading
-    document.getElementById('result').innerHTML = '<strong>Looking up product...</strong>';
+    document.getElementById('result').innerHTML = '<strong>Looking up product: ' + barcode + '</strong>';
 
-    // Send to Laravel to find product
     fetch('{{ route("admin.products.find-barcode") }}', {
         method: 'POST',
         headers: {
@@ -232,17 +248,14 @@ function findAndAddProduct(barcode) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Product found - add to order
             addProductToOrder(data.product);
-            document.getElementById('result').innerHTML = '<strong style="color: green;">Product added: ' + data.product.name + '</strong>';
+            document.getElementById('result').innerHTML = '<strong style="color: green;">✓ Product added: ' + data.product.name + '</strong>';
 
-            // Close modal after 2 seconds
             setTimeout(function() {
                 $('#barcodeModal').modal('hide');
-            }, 2000);
+            }, 1500);
         } else {
-            // Product not found
-            document.getElementById('result').innerHTML = '<strong style="color: red;">Product not found: ' + barcode + '</strong>';
+            document.getElementById('result').innerHTML = '<strong style="color: red;">✗ Product not found: ' + barcode + '</strong>';
 
             // Restart scanner after 2 seconds
             setTimeout(function() {
@@ -260,7 +273,6 @@ function findAndAddProduct(barcode) {
 }
 
 function addProductToOrder(product) {
-    // Add product to your order form (same as your existing select-product logic)
     const orderItems = document.getElementById('order-items');
     const itemIndex = orderItems.children.length;
 
@@ -286,7 +298,7 @@ function addProductToOrder(product) {
     orderItems.insertAdjacentHTML('beforeend', productHtml);
 }
 
-// Remove item functionality (if not already exists)
+// Remove item functionality
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('remove-item')) {
         e.target.closest('.order-item').remove();
