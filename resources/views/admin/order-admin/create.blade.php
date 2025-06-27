@@ -97,6 +97,7 @@
                                 </button>
                             </div>
                             <div class="d-flex" style="gap: 10px;">
+                                <h1>Scan Infrared</h1>
                                 <div class="form-group">
                                     <input type="text" id="barcode" class="form-control" placeholder="Barcode">
                                 </div>
