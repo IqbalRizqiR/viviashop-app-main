@@ -221,7 +221,7 @@ body {
                 </tr>
             </thead>
             <tbody>
-                @if ($order->items->count() > 1)
+                @if ($order->orderItems>count() > 1)
                     @foreach ($order->orderItems as $item)
                         <tr>
                             <td class="">
@@ -238,12 +238,12 @@ body {
                         <tr>
                             <td class="">
                                 <div class="item-description">
-                                    {{ $order[0]->orderItems->product_name }}
+                                    {{ $order->orderItems[0]->product_name }}
                                 </div>
                             </td>
-                            <td class="text-right">{{ $order[0]->orderItems->qty }}</td>
-                            <td class="text-right">Rp {{ number_format($order[0]->orderItems->price, 0, ',', '.') }}</td>
-                            <td class="text-right">Rp {{ number_format($order[0]->orderItems->total, 0, ',', '.') }}</td>
+                            <td class="text-right">{{ $order->orderItems[0]->qty }}</td>
+                            <td class="text-right">Rp {{ number_format($order->orderItems[0]->price, 0, ',', '.') }}</td>
+                            <td class="text-right">Rp {{ number_format($order->orderItems[0]->total, 0, ',', '.') }}</td>
                         </tr>
                 @endif
             </tbody>
