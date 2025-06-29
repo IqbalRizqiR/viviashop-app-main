@@ -159,7 +159,7 @@ class InstagramController extends Controller
                 // dd();
                 $imageName = explode('/', $image->path);
                 $imageName = end($imageName);
-                // dd($imageName);
+                dd($imageName);
                 $result = CloudinaryController::upload(Storage::url($image->path), $image->getClientOriginalName());
                 $url = $result;
                 $resulted[] = $url;
