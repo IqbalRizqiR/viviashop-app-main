@@ -12,15 +12,15 @@ const data = {
 
 
 
-//  axios.post("https://api.instagram.com/oauth/access_token", querystring.stringify(data))
-// .then(function (response) {
-//       console.log("OK", response.data);
-//  })
-//  .catch(function (error) {
-//       console.log(error);
-//  });
+ axios.post("https://api.instagram.com/oauth/access_token", querystring.stringify(data))
+.then(function (response) {
+      console.log("OK", response.data);
+ })
+ .catch(function (error) {
+      console.log(error);
+ });
 
-axios.get("https://graph.instagram.com/v22.0/me?fields=user_id,username&access_token=IGAAIn1ZBIkLt9BZAFBnYzB4dHZA4VVlhQ3Y0b1JzQnQyQ2U2d2dNMVM5WjlWbFJXaUtDVlduV0FNYTByRXZAiUW9CM09zaklEeHhWMThETlZAzYmZAlZAm1SU1hqU0w1UlVqMFJ2ZAGpuaTJQQ2JvaEZACZA0FlOUtn")
+axios.get("https://graph.instagram.com/v23.0/me?fields=user_id,username&access_token=IGAAIn1ZBIkLt9BZAFBnYzB4dHZA4VVlhQ3Y0b1JzQnQyQ2U2d2dNMVM5WjlWbFJXaUtDVlduV0FNYTByRXZAiUW9CM09zaklEeHhWMThETlZAzYmZAlZAm1SU1hqU0w1UlVqMFJ2ZAGpuaTJQQ2JvaEZACZA0FlOUtn")
 .then(function (response) {
       console.log("OK", response.data);
 })
