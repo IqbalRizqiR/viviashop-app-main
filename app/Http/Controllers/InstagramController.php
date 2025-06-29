@@ -203,6 +203,7 @@ class InstagramController extends Controller
             }
         } else {
             $image  = $product->productImages->first();
+            dd($image);
             $result = CloudinaryController::upload($image->getRealPath(), $image->getClientOriginalName());
             $url = $result;
             $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
