@@ -16,3 +16,4 @@ laravel.log
 /.fleet
 /.idea
 /.vscode
+storage/logs/laravel.log
