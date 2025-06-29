@@ -49,7 +49,10 @@ Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderControl
     ->name('payment.error');
 
     Route::get('/instagram', [InstagramController::class, 'getInstagramData'])->name('admin.instagram.index');
-
+    Route::get('/instagram/callback', [InstagramController::class, 'handleCallback'])
+        ->name('instagram.callback');
+    Route::match(['get','post'], '/instagram/webhook', [InstagramController::class, 'webhook'])
+        ->name('instagram.webhook');
 
 
 Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' => 'admin.'], function() {
@@ -98,10 +101,6 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
     Route::get('/instagram/data', [InstagramController::class, 'getInstagramData'])->name('instagram.data');
     Route::get('/instagram/redirect', [InstagramController::class, 'redirectToInstagram'])
      ->name('instagram.redirect');
-    Route::get('/instagram/callback', [InstagramController::class, 'handleCallback'])
-        ->name('instagram.callback');
-    Route::match(['get','post'], '/instagram/webhook', [InstagramController::class, 'webhook'])
-        ->name('instagram.webhook');
     Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
     Route::resource('attributes', \App\Http\Controllers\Admin\AttributeController::class);
