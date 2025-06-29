@@ -93,6 +93,8 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
 
     Route::get('/instagram/create', [InstagramController::class, 'create'])->name('instagram.create');
     Route::post('/instagram/post', [InstagramController::class, 'postToInstagram'])->name('instagram.store');
+    Route::get('/instagram/postProduct/{id}', [InstagramController::class, 'postToInstagramFromProducts'])
+        ->name('instagram.postProduct');
     Route::get('/instagram/data', [InstagramController::class, 'getInstagramData'])->name('instagram.data');
     Route::get('/instagram/redirect', [InstagramController::class, 'redirectToInstagram'])
      ->name('instagram.redirect');

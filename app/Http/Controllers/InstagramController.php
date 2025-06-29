@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -99,13 +100,13 @@ class InstagramController extends Controller
         $image  = $request->file('image');
         $result = CloudinaryController::upload($image->getRealPath(), $image->getClientOriginalName());
         $url = $result;
-        $urlIG= 'https://graph.instagram.com/v22.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
+        $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
 
         // dd($this->accessToken);
 
 
         $igUserId    = env('INSTAGRAM_CLIENT_ID');
-        $createUrl   = "https://graph.instagram.com/v22.0/{$igUserId}/media";
+        $createUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media";
 
         $createResp = Http::withToken($this->accessToken)
                         ->asForm()
@@ -122,7 +123,7 @@ class InstagramController extends Controller
         $creationId = $createResp->json()['id'];
 
         // 3) Publish the container
-        $publishUrl   = "https://graph.instagram.com/v22.0/{$igUserId}/media_publish";
+        $publishUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media_publish";
         $publishResp  = Http::withToken($this->accessToken)
                         ->asForm()
                         ->post($publishUrl, [
@@ -133,6 +134,113 @@ class InstagramController extends Controller
         if (! $publishResp->successful()) {
             dd($publishResp->json());
         }
+        Alert::success('Success', 'Post published successfully!');
+        return redirect()->route('admin.instagram.index');
+    }
+
+    public function postToInstagramFromProducts(Request $request, $id)
+    {
+        $product = Product::where('id', $id)->first();
+        if (!$product) {
+            return redirect()->back()->with('error', 'Product not found.');
+        }
+
+        $childrenId = [];
+
+        if ($product->productImages->count() > 1) {
+            // $request->validate([
+            //     'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            //     'caption' => 'required|string|max:2200',
+            // ]);
+
+            foreach ($product->productImages as $image) {
+                dd($image);
+                $result = CloudinaryController::upload($image->getRealPath(), $image->getClientOriginalName());
+                $url = $result;
+                $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
+
+                // dd($this->accessToken);
+
+                $igUserId    = env('INSTAGRAM_CLIENT_ID');
+                $createUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media";
+
+                $createResp = Http::withToken($this->accessToken)
+                                ->asForm()
+                                ->post($createUrl, [
+                                    'image_url'    => $url,
+                                    'access_token' => $this->accessToken,
+                                ]);
+
+                if (! $createResp->successful()) {
+                    dd($createResp->json());  // you’ll now see the real error
+                }
+
+                $childrenId[] = $createResp->json()['id'];
+            }
+            // Create a carousel container
+            $carouselResp = Http::withToken($this->accessToken)
+                            ->asForm()
+                            ->post("https://graph.instagram.com/v23.0/{$igUserId}/media", [
+                                'children'     => implode(',', $childrenId),
+                                'caption'      => strtoupper($product->name) . ' | ' . $product->short_description,
+                                'access_token' => $this->accessToken,
+                            ]);
+            if (! $carouselResp->successful()) {
+                dd($carouselResp->json());
+            }
+            $creationId = $carouselResp->json()['id'];
+            // 3) Publish the container
+            $publishUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media_publish";
+            $publishResp  = Http::withToken($this->accessToken)
+                            ->asForm()
+                            ->post($publishUrl, [
+                                'creation_id' => $creationId,
+                                'access_token' => $this->accessToken,
+                            ]);
+
+            if (! $publishResp->successful()) {
+                dd($publishResp->json());
+            }
+        } else {
+            $image  = $product->productImages->first();
+            $result = CloudinaryController::upload($image->getRealPath(), $image->getClientOriginalName());
+            $url = $result;
+            $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
+
+            // dd($this->accessToken);
+
+            $igUserId    = env('INSTAGRAM_CLIENT_ID');
+            $createUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media";
+
+            $createResp = Http::withToken($this->accessToken)
+                            ->asForm()
+                            ->post($createUrl, [
+                                'image_url'    => $url,
+                                'caption'      => strtoupper($product->name) . ' | ' . $product->short_description,
+                                'access_token' => $this->accessToken,
+                            ]);
+
+            if (! $createResp->successful()) {
+                dd($createResp->json());  // you’ll now see the real error
+            }
+
+            $creationId = $createResp->json()['id'];
+            // 3) Publish the container
+            $publishUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media_publish";
+            $publishResp  = Http::withToken($this->accessToken)
+                            ->asForm()
+                            ->post($publishUrl, [
+                                'creation_id' => $creationId,
+                                'access_token' => $this->accessToken,
+                            ]);
+
+            if (! $publishResp->successful()) {
+                dd($publishResp->json());
+            }
+        }
+
+
+
         Alert::success('Success', 'Post published successfully!');
         return redirect()->route('admin.instagram.index');
     }
