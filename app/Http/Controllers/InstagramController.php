@@ -176,7 +176,6 @@ class InstagramController extends Controller
                 // dd($imageName);
                 $result = CloudinaryController::upload(Storage::url($image->path), $imageName);
                 $url = $result;
-                $resulted[] = $url;
                 $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
 
                 // dd($this->accessToken);
@@ -188,7 +187,6 @@ class InstagramController extends Controller
                                 ->asForm()
                                 ->post($createUrl, [
                                     'image_url'    => $url,
-                                    'access_token' => $this->accessToken,
                                 ]);
 
                 if (! $createResp->successful()) {
