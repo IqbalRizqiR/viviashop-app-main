@@ -224,6 +224,8 @@ class InstagramController extends Controller
         } else {
             $image  = $product->productImages->first();
             // dd($image);
+            $imageName = explode('/', $image->path);
+            $imageName = end($imageName);
             $result = CloudinaryController::upload(Storage::url($image->path), $imageName);
             $url = $result;
             $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
