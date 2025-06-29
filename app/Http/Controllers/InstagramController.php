@@ -156,8 +156,11 @@ class InstagramController extends Controller
             //     'caption' => 'required|string|max:2200',
             // ]);
             foreach ($product->productImages as $image) {
-                dd(Storage::url($image->path));
-                $result = CloudinaryController::upload($image->getRealPath(), $image->getClientOriginalName());
+                // dd();
+                $imageName = explode('/', $image->path);
+                $imageName = end($imageName);
+                // dd($imageName);
+                $result = CloudinaryController::upload(Storage::url($image->path), $image->getClientOriginalName());
                 $url = $result;
                 $resulted[] = $url;
                 $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
