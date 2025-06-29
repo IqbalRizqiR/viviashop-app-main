@@ -69,6 +69,13 @@ class InstagramController extends Controller
         // Socialite will exchange the code for a short‑lived token
         $instagramUser = Socialite::driver('instagram-basic')->user();
 
+        Log::info('Instagram User Data', [
+            'id' => $instagramUser->getId(),
+            'name' => $instagramUser->getName(),
+            'email' => $instagramUser->getEmail(),
+            'token' => $instagramUser->token,
+        ]);
+
         // Exchange for long‑lived token if you want (60 days)
         $response = Http::asForm()->post('https://graph.instagram.com/access_token', [
             'grant_type'    => 'ig_exchange_token',
