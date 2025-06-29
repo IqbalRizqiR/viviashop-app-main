@@ -156,7 +156,7 @@ class InstagramController extends Controller
             //     'caption' => 'required|string|max:2200',
             // ]);
             foreach ($product->productImages as $image) {
-                dd(Storage::disk('public')->url($image->path));
+                dd(Storage::url($image->path));
                 $result = CloudinaryController::upload($image->getRealPath(), $image->getClientOriginalName());
                 $url = $result;
                 $resulted[] = $url;
