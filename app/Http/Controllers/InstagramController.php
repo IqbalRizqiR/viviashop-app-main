@@ -146,6 +146,7 @@ class InstagramController extends Controller
         }
 
         $childrenId = [];
+        dd($product->productImages->count());
 
         if ($product->productImages->count() > 1) {
             // $request->validate([
