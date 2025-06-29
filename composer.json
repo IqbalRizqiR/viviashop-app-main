@@ -23,6 +23,7 @@
         "midtrans/midtrans-php": "^2.6",
         "milon/barcode": "^12.0",
         "realrashid/sweet-alert": "^7.2",
+        "socialiteproviders/instagram": "^5.1",
         "socialiteproviders/instagram-basic": "^4.2",
         "yajra/laravel-datatables-oracle": "^10.3.1"
     },
