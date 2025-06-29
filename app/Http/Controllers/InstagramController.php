@@ -31,11 +31,11 @@ class InstagramController extends Controller
 
             // dd(config('instagram.verify_token'));
 
-            // dd(Log::info('Instagram Webhook GET', [
-            //     'mode'      => $mode,
-            //     'token'     => $token,
-            //     'challenge' => $challenge,
-            // ]));
+            dd(Log::info('Instagram Webhook GET', [
+                'mode'      => $mode,
+                'token'     => $token,
+                'challenge' => $challenge,
+            ]));
 
             if ($mode === 'subscribe' && $token === config('instagram.verify_token')) {
                 return response($challenge, 200);
@@ -61,7 +61,6 @@ class InstagramController extends Controller
                         ->scopes(['user_profile','user_media'])
                         ->redirect();
     }
-
     /**
      * Step 2: Handle Instagram's redirect back to your app.
      */

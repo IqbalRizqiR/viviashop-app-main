@@ -20,7 +20,7 @@ const data = {
       console.log(error);
  });
 
-axios.get("https://graph.instagram.com/v23.0/me?fields=user_id,username&access_token=IGAAIn1ZBIkLt9BZAFBnYzB4dHZA4VVlhQ3Y0b1JzQnQyQ2U2d2dNMVM5WjlWbFJXaUtDVlduV0FNYTByRXZAiUW9CM09zaklEeHhWMThETlZAzYmZAlZAm1SU1hqU0w1UlVqMFJ2ZAGpuaTJQQ2JvaEZACZA0FlOUtn")
-.then(function (response) {
-      console.log("OK", response.data);
-})
+// axios.get("https://graph.instagram.com/v23.0/me?fields=user_id,username&access_token=IGAAIn1ZBIkLt9BZAFBnYzB4dHZA4VVlhQ3Y0b1JzQnQyQ2U2d2dNMVM5WjlWbFJXaUtDVlduV0FNYTByRXZAiUW9CM09zaklEeHhWMThETlZAzYmZAlZAm1SU1hqU0w1UlVqMFJ2ZAGpuaTJQQ2JvaEZACZA0FlOUtn")
+// .then(function (response) {
+//       console.log("OK", response.data);
+// })
