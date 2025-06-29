@@ -76,7 +76,7 @@ class InstagramController extends Controller
             'token' => $instagramUser->token,
         ]);
         // Now we need to exchange the short-lived token for a long-lived token
-        $response = Http::get('https://graph.instagram.com/access_token', [
+        $response = Http::get('https://graph.facebook.com/access_token', [
             'grant_type' => 'ig_exchange_token',
             'client_secret' => config('instagram.client_secret'),
             'access_token' => $instagramUser->token,
@@ -115,13 +115,13 @@ class InstagramController extends Controller
         $image  = $request->file('image');
         $result = CloudinaryController::upload($image->getRealPath(), $image->getClientOriginalName());
         $url = $result;
-        $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
+        $urlIG= 'https://graph.facebook.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
 
         // dd($this->accessToken);
 
 
         $igUserId    = env('INSTAGRAM_CLIENT_ID');
-        $createUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media";
+        $createUrl   = "https://graph.facebook.com/v23.0/{$igUserId}/media";
 
         $createResp = Http::withToken($this->accessToken)
                         ->asForm()
@@ -138,7 +138,7 @@ class InstagramController extends Controller
         $creationId = $createResp->json()['id'];
 
         // 3) Publish the container
-        $publishUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media_publish";
+        $publishUrl   = "https://graph.facebook.com/v23.0/{$igUserId}/media_publish";
         $publishResp  = Http::withToken($this->accessToken)
                         ->asForm()
                         ->post($publishUrl, [
@@ -176,12 +176,12 @@ class InstagramController extends Controller
                 // dd($imageName);
                 $result = CloudinaryController::upload(Storage::url($image->path), $imageName);
                 $url = $result;
-                $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
+                $urlIG= 'https://graph.facebook.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
 
                 // dd($this->accessToken);
 
                 $igUserId    = env('INSTAGRAM_CLIENT_ID');
-                $createUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media";
+                $createUrl   = "https://graph.facebook.com/v23.0/{$igUserId}/media";
 
                 $createResp = Http::withToken($this->accessToken)
                                 ->asForm()
@@ -199,7 +199,7 @@ class InstagramController extends Controller
             // Create a carousel container
             $carouselResp = Http::withToken($this->accessToken)
                             ->asForm()
-                            ->post("https://graph.instagram.com/v23.0/{$igUserId}/media", [
+                            ->post("https://graph.facebook.com/v23.0/{$igUserId}/media", [
                                 'children'     => implode(',', $childrenId),
                                 'media_type'   => 'CAROUSEL',
                                 'caption'      => strtoupper($product->name) . ' | ' . $product->short_description,
@@ -210,7 +210,7 @@ class InstagramController extends Controller
             }
             $creationId = $carouselResp->json()['id'];
             // 3) Publish the container
-            $publishUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media_publish";
+            $publishUrl   = "https://graph.facebook.com/v23.0/{$igUserId}/media_publish";
             $publishResp  = Http::withToken($this->accessToken)
                             ->asForm()
                             ->post($publishUrl, [
@@ -228,12 +228,12 @@ class InstagramController extends Controller
             $imageName = end($imageName);
             $result = CloudinaryController::upload(Storage::url($image->path), $imageName);
             $url = $result;
-            $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
+            $urlIG= 'https://graph.facebook.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
 
             // dd($this->accessToken);
 
             $igUserId    = env('INSTAGRAM_CLIENT_ID');
-            $createUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media";
+            $createUrl   = "https://graph.facebook.com/v23.0/{$igUserId}/media";
 
             $createResp = Http::withToken($this->accessToken)
                             ->asForm()
@@ -249,7 +249,7 @@ class InstagramController extends Controller
 
             $creationId = $createResp->json()['id'];
             // 3) Publish the container
-            $publishUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media_publish";
+            $publishUrl   = "https://graph.facebook.com/v23.0/{$igUserId}/media_publish";
             $publishResp  = Http::withToken($this->accessToken)
                             ->asForm()
                             ->post($publishUrl, [
@@ -270,7 +270,7 @@ class InstagramController extends Controller
 
     public function getInstagramData()
     {
-        $response = Http::withToken($this->accessToken)->get('https://graph.instagram.com/me/media', [
+        $response = Http::withToken($this->accessToken)->get('https://graph.facebook.com/me/media', [
             'fields' => 'id,caption,media_type,media_url,thumbnail_url,timestamp',
             'access_token' => $this->accessToken,
         ]);
