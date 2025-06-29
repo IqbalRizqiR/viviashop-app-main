@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Socialite\Facades\Socialite;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -155,7 +156,7 @@ class InstagramController extends Controller
             //     'caption' => 'required|string|max:2200',
             // ]);
             foreach ($product->productImages as $image) {
-                // dd($product->productImages);
+                dd(Storage::disk('public')->path($image->path));
                 $result = CloudinaryController::upload($image->getRealPath(), $image->getClientOriginalName());
                 $url = $result;
                 $resulted[] = $url;
