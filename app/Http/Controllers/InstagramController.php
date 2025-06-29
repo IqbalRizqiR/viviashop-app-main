@@ -67,7 +67,7 @@ class InstagramController extends Controller
     public function handleCallback(Request $request)
     {
         // Socialite will exchange the code for a short‑lived token
-        $instagramUser = Socialite::driver('instagram-basic')->user();
+        $instagramUser = Socialite::driver('instagrambasic')->user();
 
         Log::info('Instagram User Data', [
             'id' => $instagramUser->getId(),
