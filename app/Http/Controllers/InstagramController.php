@@ -146,7 +146,7 @@ class InstagramController extends Controller
         }
 
         $childrenId = [];
-        dd($product->productImages->count());
+        // dd($product->productImages->count());
 
         if ($product->productImages->count() > 1) {
             // $request->validate([
@@ -154,8 +154,8 @@ class InstagramController extends Controller
             //     'caption' => 'required|string|max:2200',
             // ]);
 
+            dd($product->productImages);
             foreach ($product->productImages as $image) {
-                dd($image);
                 $result = CloudinaryController::upload($image->getRealPath(), $image->getClientOriginalName());
                 $url = $result;
                 $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
