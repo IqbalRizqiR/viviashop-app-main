@@ -31,11 +31,11 @@ class InstagramController extends Controller
 
             // dd(config('instagram.verify_token'));
 
-            dd(Log::info('Instagram Webhook GET', [
-                'mode'      => $mode,
-                'token'     => $token,
-                'challenge' => $challenge,
-            ]));
+            // dd(Log::info('Instagram Webhook GET', [
+            //     'mode'      => $mode,
+            //     'token'     => $token,
+            //     'challenge' => $challenge,
+            // ]));
 
             if ($mode === 'subscribe' && $token === config('instagram.verify_token')) {
                 return response($challenge, 200);
