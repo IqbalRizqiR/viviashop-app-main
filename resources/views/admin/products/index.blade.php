@@ -62,7 +62,7 @@
                                         <i class="fa fa-download"></i>
                                     </a>
                                     <a href="{{ route('admin.instagram.postProduct', $product->id) }}" class="btn btn-sm btn-primary">
-                                        <i class="fa fa-instagram"></i>
+                                        <i class="fab fa-instagram"></i>
                                     </a>
                                     <form onclick="return confirm('are you sure !')" action="{{ route('admin.products.destroy', $product) }}"
                                         method="POST">
