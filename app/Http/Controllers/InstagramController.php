@@ -57,7 +57,7 @@ class InstagramController extends Controller
      */
     public function redirectToInstagram()
     {
-        return Socialite::driver('instagram-basic')
+        return Socialite::driver('instagram')
                         ->scopes(['user_profile','user_media'])
                         ->redirect();
     }
@@ -67,7 +67,7 @@ class InstagramController extends Controller
     public function handleCallback(Request $request)
     {
         // Socialite will exchange the code for a short‑lived token
-        $instagramUser = Socialite::driver('instagram-basic')->user();
+        $instagramUser = Socialite::driver('instagram')->user();
 
         Log::info('Instagram User Data', [
             'id' => $instagramUser->getId(),
@@ -84,6 +84,11 @@ class InstagramController extends Controller
         ]);
 
         $longLived = $response->json()['access_token'];
+
+        Log::info('Instagram Long-Lived Token', [
+            'long_lived_token' => $longLived,
+            'expires_in' => Carbon::now()->addDays(60)->toDateTimeString(),
+        ]);
 
         // Store $longLived in your DB or config for later API calls
         auth()->user()->updateInstagramToken($longLived);
