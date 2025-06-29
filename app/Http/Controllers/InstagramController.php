@@ -201,6 +201,7 @@ class InstagramController extends Controller
                             ->asForm()
                             ->post("https://graph.instagram.com/v23.0/{$igUserId}/media", [
                                 'children'     => implode(',', $childrenId),
+                                'media_type'   => 'CAROUSEL',
                                 'caption'      => strtoupper($product->name) . ' | ' . $product->short_description,
                                 'access_token' => $this->accessToken,
                             ]);
