@@ -179,7 +179,7 @@ class InstagramController extends Controller
 
                 $childrenId[] = $createResp->json()['id'];
             }
-            dd($resulted);
+            dd($childrenId);
             // Create a carousel container
             $carouselResp = Http::withToken($this->accessToken)
                             ->asForm()
