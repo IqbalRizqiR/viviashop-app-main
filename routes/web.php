@@ -102,8 +102,6 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
         ->name('instagram.callback');
     Route::match(['get','post'], '/instagram/webhook', [InstagramController::class, 'webhook'])
         ->name('instagram.webhook');
-
-
     Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
     Route::resource('attributes', \App\Http\Controllers\Admin\AttributeController::class);
