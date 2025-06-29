@@ -148,16 +148,17 @@ class InstagramController extends Controller
         $childrenId = [];
         // dd($product->productImages->count());
 
+        $resulted = [];
         if ($product->productImages->count() > 1) {
             // $request->validate([
             //     'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             //     'caption' => 'required|string|max:2200',
             // ]);
-
-            dd($product->productImages);
             foreach ($product->productImages as $image) {
+                dd($product->productImages);
                 $result = CloudinaryController::upload($image->getRealPath(), $image->getClientOriginalName());
                 $url = $result;
+                $resulted[] = $url;
                 $urlIG= 'https://graph.instagram.com/v23.0/' . config('instagram.client_id') . '/media?access_token=' . $this->accessToken;
 
                 // dd($this->accessToken);
@@ -178,6 +179,7 @@ class InstagramController extends Controller
 
                 $childrenId[] = $createResp->json()['id'];
             }
+            dd($resulted);
             // Create a carousel container
             $carouselResp = Http::withToken($this->accessToken)
                             ->asForm()
