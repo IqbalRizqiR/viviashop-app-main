@@ -9,46 +9,55 @@ use App\Models\ProductInventory;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class ProdukImport implements ToCollection, WithHeadingRow
 {
-    /**
-    * @param Collection $collection
-    */
     public function collection(Collection $rows)
     {
-        // dd($rows);
-        foreach ($rows as $row) {
-            // dd($row['price']);
-            $products = Product::create([
-                'sku' => $row['name'], // jika sku tidak ada, gunakan nama
-                'type' => 'simple',
-                'name' => $row['name'],
-                'price' => $row['price'],
-                'harga_beli' => $row['harga_beli'],
-                'status' => 1,
-                'description' => $row['description'],
-                'user_id' => Auth::id(),
-                'barcode' => rand(1000000000, 9999999999),
-                'short_description' => $row['short_description'],
-                'slug' => Str::slug($row['name']),
-            ]);
+        foreach ($rows as $index => $row) {
+            try {
+                // Validasi data minimal yang harus ada
+                if (empty($row['sku']) || !isset($row['price'])) {
+                    Log::warning("Baris $index dilewati karena tidak memiliki 'name' atau 'price'.", $row->toArray());
+                    continue;
+                }
 
-        $category = Category::where('name', $row['category_name'])->first();
-        // $product->category_id = $category?->id;
+                // Buat produk
+                $product = Product::create([
+                    'sku' => $row['sku'] ?? 'sku-' . uniqid(),
+                    'type' => 'simple',
+                    'name' => $row['name'],
+                    'price' => $row['price'] ?? 0,
+                    'harga_beli' => $row['harga_beli'] ?? 0,
+                    'status' => 1,
+                    'description' => $row['description'] ?? '',
+                    'user_id' => Auth::id(),
+                    'barcode' => rand(1000000000, 9999999999),
+                    'short_description' => $row['short_description'] ?? '',
+                    'slug' => Str::slug($row['name']),
+                ]);
 
-            // dd($products->id);
-            ProductCategory::create([
-                'product_id' => $products->id,
-                'category_id' => $category?->id ?? 1, // jika tidak ada category, set ke 1 (default)
-            ]);
+                // Cek category, fallback ke default (ID 1)
+                $category = Category::where('name', $row['category_name'] ?? '')->first();
+                ProductCategory::create([
+                    'product_id' => $product->id,
+                    'category_id' => $category?->id ?? 1,
+                ]);
 
-            ProductInventory::create([
-                'product_id' => $products->id,
-                'qty' => $row['stok'],
-            ]);
+                // Tambah stok awal
+                ProductInventory::create([
+                    'product_id' => $product->id,
+                    'qty' => $row['stok'] ?? 0,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error("Gagal import baris $index: " . $e->getMessage(), [
+                    'row' => $row->toArray(),
+                ]);
+                continue;
+            }
         }
     }
 }
