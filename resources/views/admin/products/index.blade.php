@@ -51,8 +51,14 @@
                                 @else
                                   <td>No quantity</td>
                                 @endif
-                                <td>{!! DNS1D::getBarcodeHTML($product->barcode, 'C128', 1.5, 20) !!}</td>
-                                <td>{{ $product->barcode }}</td>
+                                @if ($product->barcode != null)
+                                    <td>{!! DNS1D::getBarcodeHTML($product->barcode, 'C128', 1.5, 20) !!}</td>
+                                    <td>{{ $product->barcode }}</td>
+
+                                @else
+                                    <td>no barcode</td>
+                                    <td>no barcode</td>
+                                @endif
                                 <td>
                                 <div class="btn-group btn-group-sm">
                                     <a href="{{ route('admin.products.edit', $product) }}" class="btn btn-sm btn-primary">
