@@ -17,6 +17,7 @@ use App\Imports\ProdukImport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use RealRashid\SweetAlert\Facades\Alert;
 use Maatwebsite\Excel\Facades\Excel;
+use ProductTemplateExport;
 
 class ProductController extends Controller
 {
@@ -32,7 +33,7 @@ class ProductController extends Controller
 
     public function exportTemplate()
     {
-        
+        return Excel::download(new ProductTemplateExport, 'template_produk.xlsx');
     }
 
     /**
