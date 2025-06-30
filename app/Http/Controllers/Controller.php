@@ -77,11 +77,11 @@ class Controller extends BaseController
         $url = $this->rajaOngkirBaseUrl . $resource;
 
         // Log request information for debugging
-        Log::debug('RajaOngkir request', [
-            'url' => $url,
-            'method' => $method,
-            'params' => $params
-        ]);
+        // Log::debug('RajaOngkir request', [
+        //     'url' => $url,
+        //     'method' => $method,
+        //     'params' => $params
+        // ]);
 
         try {
             if ($method == 'POST') {
@@ -98,10 +98,10 @@ class Controller extends BaseController
             $responseBody = $response->getBody()->getContents();
 
             // Log response for debugging
-            Log::debug('RajaOngkir response', [
-                'status' => $response->getStatusCode(),
-                'body' => substr($responseBody, 0, 300) . '...' // Log first 300 chars to avoid huge logs
-            ]);
+            // Log::debug('RajaOngkir response', [
+            //     'status' => $response->getStatusCode(),
+            //     'body' => substr($responseBody, 0, 300) . '...' // Log first 300 chars to avoid huge logs
+            // ]);
 
             // Parse and return response
             return json_decode($responseBody, true);

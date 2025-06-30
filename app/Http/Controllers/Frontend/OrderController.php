@@ -208,10 +208,10 @@ view()->share('setting', $setting);
         ];
 
 
-        Log::info('Available shipping options', [
-            'count' => count($results),
-            'options' => $results,
-        ]);
+        // Log::info('Available shipping options', [
+        //     'count' => count($results),
+        //     'options' => $results,
+        // ]);
 
         return $response;
     }
