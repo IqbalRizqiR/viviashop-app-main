@@ -21,7 +21,7 @@ class Controller extends BaseController
 	protected $rajaOngkirOrigin = null;
 	protected $couriers = [
 		'jne' => 'JNE',
-		'pos' => 'POS Indonesia',
+		// 'pos' => 'POS Indonesia',
 		'tiki' => 'Titipan Kilat'
 	];
 
