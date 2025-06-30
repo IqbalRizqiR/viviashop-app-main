@@ -1,4 +1,4 @@
-<div class="sidebar-widget mb-45 d-flex justify-content-center align-items-center" style="margin-top: 130px;">
+<div class="sidebar-widget mb-45 d-flex flex-column justify-content-center align-items-center" style="margin-top: 130px;">
 	<h3 class="sidebar-title" style="">User Menu</h3>
 	<div class="sidebar-categories">
 		<ol class="text-center">
