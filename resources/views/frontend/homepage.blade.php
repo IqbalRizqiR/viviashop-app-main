@@ -14,8 +14,8 @@
         <div class="container py-5">
             <div class="row g-5 align-items-center">
                 <div class="col-md-12 col-lg-7">
-                    <h4 class="mb-3 text-black">Support Printing Terbaik</h4>
-                    <h1 class="mb-5 display-3 text-black">Menerima jasa printing dalam segala bentuk halaman</h1>
+                    <h4 class="mb-3 text-secondary">Support Printing Terbaik</h4>
+                    <h1 class="mb-5 display-3 text-primary">Menerima jasa printing dalam segala bentuk halaman</h1>
                 </div>
                 <div class="col-md-12 col-lg-5">
                     <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
