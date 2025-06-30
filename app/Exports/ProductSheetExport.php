@@ -25,6 +25,10 @@ class ProductSheetExport implements FromCollection, WithHeadings, WithTitle, Wit
                 'short_description' => '',
                 'description' => '',
                 'sku' => '',
+                'weight' => '',
+                'length' => '',
+                'width' => '',
+                'height' => '',
                 'stok' => '',
             ],
         ]);
@@ -41,6 +45,10 @@ class ProductSheetExport implements FromCollection, WithHeadings, WithTitle, Wit
             'description',
             'sku',
             'stok',
+            'weight',
+            'length',
+            'width',
+            'height',
 
         ];
     }

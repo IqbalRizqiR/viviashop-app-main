@@ -28,6 +28,10 @@ class ProdukImport implements ToCollection, WithHeadingRow
                 // Buat produk
                 $product = Product::create([
                     'sku' => $row['sku'] ?? 'sku-' . uniqid(),
+                    'weight' => $row['weight'] ?? 0,
+                    'length' => $row['length'] ?? 0,
+                    'width' => $row['width'] ?? 0,
+                    'height' => $row['height'] ?? 0,
                     'type' => 'simple',
                     'name' => $row['name'],
                     'price' => $row['price'] ?? 0,
