@@ -21,7 +21,7 @@
 				<div class="col-lg-9">
 					<div class="d-flex justify-content-between">
 						<h2 class="text-dark font-weight-medium">Order ID #{{ $order->code }}</h2>
-						
+
 					</div>
 					<div class="row pt-5">
 						<div class="col-xl-4 col-lg-4">
@@ -79,7 +79,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								@php 
+								@php
 									function showAttributes($jsonAttributes)
 									{
 										$jsonAttr = (string) $jsonAttributes;
@@ -119,11 +119,14 @@
 						</table>
 						@if ($order->isDelivered())
 							<a href="#" class="btn btn-block mt-2 btn-lg btn-success btn-pill" onclick="event.preventDefault();
-							document.getElementById('complete-form-{{ $order->id }}').submit();"> Mark as Completed</a>		
+							document.getElementById('complete-form-{{ $order->id }}').submit();"> Mark as Completed</a>
 							<form class="d-none" method="POST" action="{{ route('admin.orders.complete', $order) }}" id="complete-form-{{ $order->id }}">
 								@csrf
-							</form>				
+							</form>
 						@endif
+                        @if ($order->isPaid())
+                            <a href="{{ route('admin.orders.invoice', $order) }}" class="btn btn-block mt-2 btn-lg btn-primary btn-pill">Download Invoice</a>
+                        @endif
 					</div>
 				</div>
 			</div>
