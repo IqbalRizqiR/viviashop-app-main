@@ -50,7 +50,7 @@ class ProdukImport implements ToCollection, WithHeadingRow
                 // Tambah stok awal
                 ProductInventory::create([
                     'product_id' => $product->id,
-                    'qty' => $row['stok'] ?? 0,
+                    'qty' => $row['stok'],
                 ]);
             } catch (\Throwable $e) {
                 Log::error("Gagal import baris $index: " . $e->getMessage(), [
