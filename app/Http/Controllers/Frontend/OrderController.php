@@ -158,7 +158,7 @@ view()->share('setting', $setting);
 
                     try {
                         $response = $this->rajaOngkirRequest('/cost', $courierParams, 'POST');
-                        // echo 'masuk';
+                        dd($response['rajaongkir']['results']);
 
                         if (!empty($response['rajaongkir']['results'])) {
                             foreach ($response['rajaongkir']['results'] as $cost) {
