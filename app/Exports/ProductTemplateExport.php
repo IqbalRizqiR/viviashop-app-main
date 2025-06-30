@@ -15,7 +15,18 @@ class ProductTemplateExport implements FromCollection, WithHeadings, WithEvents
     public function collection()
     {
         // Bisa kosong, karena hanya ingin buat template
-        return collect([]);
+        return collect([
+            [
+                'name' => '',
+                'price' => '',
+                'harga_beli' => '',
+                'category_id' => '', // dropdown isi nama category
+                'short_description' => '',
+                'description' => '',
+                'sku' => '',
+                'stok' => '',
+            ],
+        ]);
     }
 
     public function headings(): array
