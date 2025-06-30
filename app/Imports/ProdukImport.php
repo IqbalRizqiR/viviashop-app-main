@@ -22,7 +22,7 @@ class ProdukImport implements ToCollection, WithHeadingRow
             $products = Product::create([
                 'type' => 'simple',
                 'name' => $row['name'],
-                'sku' => $row['name'],
+                'sku' => $row['sku'],
                 'price' => $row['price'],
                 'harga_beli' => $row['harga_beli'],
                 'status' => 1,
