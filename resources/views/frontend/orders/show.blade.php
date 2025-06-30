@@ -125,7 +125,7 @@
 							</form>
 						@endif
                         @if ($order->isPaid())
-                            <a href="{{ route('admin.orders.invoice', $order) }}" class="btn btn-block mt-2 btn-lg btn-primary btn-pill">Download Invoice</a>
+                            <a href="{{ route('admin.orders.invoices', $order) }}" class="btn btn-block mt-2 btn-lg btn-primary btn-pill">Download Invoice</a>
                         @endif
 					</div>
 				</div>
