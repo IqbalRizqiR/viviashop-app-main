@@ -24,7 +24,7 @@ class ProdukImport implements ToCollection, WithHeadingRow
             $products = Product::create([
                 'type' => 'simple',
                 'name' => $row['name'],
-                'sku' => $row['name'],
+                'sku' => $row['sku'] ? $row['sku'] : $row['name'], // jika sku tidak ada, gunakan nama
                 'price' => $row['price'],
                 'harga_beli' => $row['harga_beli'],
                 'status' => 1,
