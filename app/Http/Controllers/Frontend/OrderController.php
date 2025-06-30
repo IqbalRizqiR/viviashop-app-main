@@ -158,7 +158,7 @@ view()->share('setting', $setting);
 
                     try {
                         $response = $this->rajaOngkirRequest('/cost', $courierParams, 'POST');
-                        dd($response['rajaongkir']['results']);
+                        // dd($response['rajaongkir']['results']);
 
                         if (!empty($response['rajaongkir']['results'])) {
                             foreach ($response['rajaongkir']['results'] as $cost) {
@@ -206,6 +206,8 @@ view()->share('setting', $setting);
             'weight' => $weight,
             'results' => $results,
         ];
+
+        dd($response);
 
 
         // Log::info('Available shipping options', [
