@@ -22,9 +22,9 @@ class ProdukImport implements ToCollection, WithHeadingRow
         // dd($rows);
         foreach ($rows as $row) {
             $products = Product::create([
+                'sku' => $row['sku'] ? $row['sku'] : $row['name'], // jika sku tidak ada, gunakan nama
                 'type' => 'simple',
                 'name' => $row['name'],
-                'sku' => $row['sku'] ? $row['sku'] : $row['name'], // jika sku tidak ada, gunakan nama
                 'price' => $row['price'],
                 'harga_beli' => $row['harga_beli'],
                 'status' => 1,
