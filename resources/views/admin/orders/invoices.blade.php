@@ -152,6 +152,10 @@ body {
     color: #555;
 }
 
+.status-paid {
+    font-size: 30px;
+}
+
 @media print {
     body {
         background: #fff !important;
@@ -175,7 +179,7 @@ body {
             <div class="invoice-title">
                 <h1>INVOICE</h1>
                 <div class="invoice-number">{{ $order->code }}</div>
-                <span class="status-badge status-paid">{{ $order->payment_status }}</span>
+                <span class="status-badge status-paid">{{ strtoupper($order->payment_status) }}</span>
             </div>
         </div>
 
