@@ -395,7 +395,7 @@ class OrderController extends Controller
     public function doComplete(Request $request,Order $order)
 	{
 		if (!$order->isDelivered()) {
-			if ($order->shipment->shipping_service == 'self') {
+			if ($order->shipping_service_name == 'SELF') {
                 $order->status = Order::COMPLETED;
                 $order->approved_by = auth()->id();
                 $order->approved_at = now();
