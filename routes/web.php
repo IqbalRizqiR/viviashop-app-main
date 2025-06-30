@@ -53,6 +53,7 @@ Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderControl
         ->name('instagram.callback');
     Route::match(['get','post'], '/instagram/webhook', [InstagramController::class, 'webhook'])
         ->name('instagram.webhook');
+        Route::post('orders/complete/{order}', [\App\Http\Controllers\Admin\OrderController::class , 'doComplete'])->name('orders.complete');
 
 
 

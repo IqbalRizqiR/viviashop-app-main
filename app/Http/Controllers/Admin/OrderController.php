@@ -405,7 +405,7 @@ class OrderController extends Controller
 
                 if ($order->save()) {
                     Alert::success('Success', 'Order has been completed successfully!');
-                    return redirect('admin/orders');
+                    return redirect()->back();
                 }
             }
             Alert::error('Error', 'Order cannot be completed because it has not been delivered yet.');
@@ -417,7 +417,7 @@ class OrderController extends Controller
 		$order->approved_at = now();
 
 		if ($order->save()) {
-			return redirect('admin/orders');
+			return redirect()->back()->with('success', 'Order has been completed successfully!');
 		}
 	}
 

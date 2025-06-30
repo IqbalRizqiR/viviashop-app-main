@@ -120,7 +120,7 @@
 						@if ($order->isDelivered())
 							<a href="#" class="btn btn-block mt-2 btn-lg btn-success btn-pill" onclick="event.preventDefault();
 							document.getElementById('complete-form-{{ $order->id }}').submit();"> Mark as Completed</a>
-							<form class="d-none" method="POST" action="{{ route('admin.orders.complete', $order) }}" id="complete-form-{{ $order->id }}">
+							<form class="d-none" method="POST" action="{{ route('orders.complete', $order) }}" id="complete-form-{{ $order->id }}">
 								@csrf
 							</form>
 						@endif
