@@ -2,7 +2,7 @@
 @section('content')
 <style>
     .hero-header {
-        background: linear-gradient(rgba(248, 223, 173, 0.1), rgba(248, 223, 173, 0.1)), url('{{ asset('atksu.jpeg') }}') !important;
+        background: linear-gradient(rgba(248, 223, 173, 0.1), rgba(248, 223, 173, 0.1)), url('{{ asset('atksu.jpg') }}') !important;
         background-position: center !important;
         background-size: cover !important;
         background-repeat: no-repeat !important;
