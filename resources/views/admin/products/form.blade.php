@@ -7,7 +7,7 @@
                         aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
-                <a href="{{ route('admin.products.exportTemplate') }}" class="btn btn-primary">Download Template Excel</a>
+                <a href="{{ route('admin.products.exportTemplate') }}" class="btn btn-primary">Download Template Excel ( terdapat dropdown pada category name )</a>
                 <form enctype="multipart/form-data" action="{{ route('admin.products.imports') }}" method="post">
                     @csrf
                     <input type="file" name="excelFile" class="form-control" id="">
