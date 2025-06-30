@@ -4,10 +4,10 @@ namespace App\Exports;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Events\BeforeExport;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 
 use App\Models\Category;
+use Maatwebsite\Excel\Events\AfterSheet;
 
 class ProductTemplateExport implements FromCollection, WithHeadings, WithEvents
 {
@@ -46,18 +46,19 @@ class ProductTemplateExport implements FromCollection, WithHeadings, WithEvents
     public function registerEvents(): array
     {
         return [
-            BeforeExport::class => function (BeforeExport $event) {
-                // Ambil worksheet pertama
-                $sheet = $event->writer->getDelegate()->getSheet(0);
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
 
                 $categories = Category::pluck('name')->toArray();
+
+                // Handle tanda kutip agar tidak crash di formula Excel
                 $list = implode(',', array_map(function ($v) {
                     return '"' . str_replace('"', '""', $v) . '"';
                 }, $categories));
 
-                // Pasang dropdown dari baris 2 sampai 100
+                // Set dropdown untuk baris 2-100 di kolom C (category_id)
                 for ($row = 2; $row <= 100; $row++) {
-                    $validation = new DataValidation();
+                    $validation = $sheet->getCell("C$row")->getDataValidation();
                     $validation->setType(DataValidation::TYPE_LIST);
                     $validation->setErrorStyle(DataValidation::STYLE_STOP);
                     $validation->setAllowBlank(true);
@@ -65,11 +66,8 @@ class ProductTemplateExport implements FromCollection, WithHeadings, WithEvents
                     $validation->setShowErrorMessage(true);
                     $validation->setShowDropDown(true);
                     $validation->setFormula1('"' . $list . '"');
-
-                    $cell = "C{$row}";
-                    $sheet->getCell($cell)->setDataValidation($validation);
                 }
-            },
+            }
         ];
     }
 }
