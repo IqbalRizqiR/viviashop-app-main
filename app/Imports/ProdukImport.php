@@ -20,7 +20,7 @@ class ProdukImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
-            // dd($row);
+            dd($row['sku']);
             $products = Product::create([
                 'type' => 'simple',
                 'name' => $row['name'],
