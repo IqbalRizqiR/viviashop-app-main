@@ -11,10 +11,10 @@
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Data Produk</h3>
-                <div class="ms-2">
-                    <a href="{{ route('admin.products.create')}}" class="btn btn-info shadow-sm float-right"> <i class="fa fa-plus"></i> Tambah </a>
-                    <a href="{{ route('admin.barcode.download')}}" class="btn btn-info shadow-sm float-right"> <i class="fa fa-plus"></i> Download Barcode </a>
-                    <button onclick="addForm();" class="btn btn-success shadow-sm float-right"> <i class="fa fa-plus"></i> Excel </button>
+                <div class="">
+                    <a href="{{ route('admin.products.create')}}" class="btn btn-info shadow-sm float-right ms-2"> <i class="fa fa-plus"></i> Tambah </a>
+                    <a href="{{ route('admin.barcode.download')}}" class="btn btn-info shadow-sm float-right ms-2"> <i class="fa fa-plus"></i> Download Barcode </a>
+                    <button onclick="addForm();" class="btn btn-success shadow-sm float-right ms-2"> <i class="fa fa-plus"></i> Excel </button>
                 </div>
               </div>
               <!-- /.card-header -->
@@ -67,7 +67,7 @@
                                     <a href="{{ route('admin.barcode.downloadSingle', $product->id) }}" class="btn btn-sm btn-primary">
                                         <i class="fa fa-download"></i>
                                     </a>
-                                    <a href="{{ route('admin.instagram.postProduct', $product->id) }}" class="btn btn-sm btn-primary">
+                                    <a href="{{ route('admin.instagram.postProduct', $product->id) }}" style="background-color: pink !important" class="btn btn-sm btn-primary">
                                         <i class="fab fa-instagram"></i>
                                     </a>
                                     <form onclick="return confirm('are you sure !')" action="{{ route('admin.products.destroy', $product) }}"
