@@ -6,7 +6,7 @@
         background-position: center !important;
         background-size: cover !important;
         background-repeat: no-repeat !important;
-        filter: blur 12px !important;
+        filter: blur(12px) !important;
 
     }
 </style>
