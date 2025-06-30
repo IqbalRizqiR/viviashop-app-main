@@ -17,7 +17,7 @@ use App\Imports\ProdukImport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use RealRashid\SweetAlert\Facades\Alert;
 use Maatwebsite\Excel\Facades\Excel;
-use ProductTemplateExport;
+use App\Exports\ProductTemplateExport;
 
 class ProductController extends Controller
 {
