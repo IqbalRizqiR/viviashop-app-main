@@ -19,36 +19,39 @@ class ProdukImport implements ToCollection, WithHeadingRow
     */
     public function collection(Collection $rows)
     {
+        $rowed = [];
         // dd($rows);
         foreach ($rows as $row) {
-            dd($row);
-            $products = Product::create([
-                'sku' => $row['name'], // jika sku tidak ada, gunakan nama
-                'type' => 'simple',
-                'name' => $row['name'],
-                'price' => $row['price'],
-                'harga_beli' => $row['harga_beli'],
-                'status' => 1,
-                'description' => $row['description'],
-                'user_id' => Auth::id(),
-                'barcode' => rand(1000000000, 9999999999),
-                'short_description' => $row['short_description'],
-                'slug' => Str::slug($row['name']),
-            ]);
+            $rowed[] = $row;
+        //     $products = Product::create([
+        //         'sku' => $row['name'], // jika sku tidak ada, gunakan nama
+        //         'type' => 'simple',
+        //         'name' => $row['name'],
+        //         'price' => $row['price'],
+        //         'harga_beli' => $row['harga_beli'],
+        //         'status' => 1,
+        //         'description' => $row['description'],
+        //         'user_id' => Auth::id(),
+        //         'barcode' => rand(1000000000, 9999999999),
+        //         'short_description' => $row['short_description'],
+        //         'slug' => Str::slug($row['name']),
+        //     ]);
 
-        $category = Category::where('name', $row['category_name'])->first();
-        // $product->category_id = $category?->id;
+        // $category = Category::where('name', $row['category_name'])->first();
+        // // $product->category_id = $category?->id;
 
-            // dd($products->id);
-            ProductCategory::create([
-                'product_id' => $products->id,
-                'category_id' => $category?->id ?? 1, // jika tidak ada category, set ke 1 (default)
-            ]);
+        //     // dd($products->id);
+        //     ProductCategory::create([
+        //         'product_id' => $products->id,
+        //         'category_id' => $category?->id ?? 1, // jika tidak ada category, set ke 1 (default)
+        //     ]);
 
-            ProductInventory::create([
-                'product_id' => $products->id,
-                'qty' => $row['stok'],
-            ]);
+        //     ProductInventory::create([
+        //         'product_id' => $products->id,
+        //         'qty' => $row['stok'],
+        //     ]);
         }
+
+        dd($rowed);
     }
 }
