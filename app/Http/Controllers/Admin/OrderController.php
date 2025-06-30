@@ -396,6 +396,9 @@ class OrderController extends Controller
 	{
 		if (!$order->isDelivered()) {
 			if ($order->shipping_service_name == 'SELF') {
+                $order->shipment->status = 'delivered';
+                $order->shipment->delivered_by = auth()->id();
+                $order->shipment->delivered_at = now();
                 $order->status = Order::COMPLETED;
                 $order->approved_by = auth()->id();
                 $order->approved_at = now();
