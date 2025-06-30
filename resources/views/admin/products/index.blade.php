@@ -67,7 +67,7 @@
                                     <a href="{{ route('admin.barcode.downloadSingle', $product->id) }}" class="btn btn-sm btn-primary">
                                         <i class="fa fa-download"></i>
                                     </a>
-                                    <a href="{{ route('admin.instagram.postProduct', $product->id) }}" style="background-color: pink !important" class="btn btn-sm btn-primary">
+                                    <a href="{{ route('admin.instagram.postProduct', $product->id) }}" style="background-color: #ff00ff !important; border: 1px solid #ff00ff !important" class="btn btn-sm btn-primary">
                                         <i class="fab fa-instagram"></i>
                                     </a>
                                     <form onclick="return confirm('are you sure !')" action="{{ route('admin.products.destroy', $product) }}"
