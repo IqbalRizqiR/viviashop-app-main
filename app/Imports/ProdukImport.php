@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductInventory;
@@ -33,10 +34,13 @@ class ProdukImport implements ToCollection, WithHeadingRow
                 'slug' => Str::slug($row['name']),
             ]);
 
+        $category = Category::where('name', $row['category_name'])->first();
+        // $product->category_id = $category?->id;
+
             // dd($products->id);
             ProductCategory::create([
                 'product_id' => $products->id,
-                'category_id' => $row['id_category'],
+                'category_id' => $category?->id ?? 1, // jika tidak ada category, set ke 1 (default)
             ]);
 
             ProductInventory::create([
