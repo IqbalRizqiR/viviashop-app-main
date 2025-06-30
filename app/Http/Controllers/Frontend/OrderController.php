@@ -125,6 +125,8 @@ view()->share('setting', $setting);
 	private function _getShippingCost($destination, $weight)
     {
         $results = [];
+
+        $resultsed = [];
         // $includeSelf = true;
 
         // // Optionally add SELF pickup if your system supports it
@@ -177,6 +179,7 @@ view()->share('setting', $setting);
                                     }
                                 }
                             }
+                            $resultsed[] = $response;
                         }
                     } catch (\Exception $e) {
                         echo $e->getMessage();
@@ -207,7 +210,7 @@ view()->share('setting', $setting);
             'results' => $results,
         ];
 
-        dd($response);
+        dd($resultsed);
 
 
         // Log::info('Available shipping options', [
