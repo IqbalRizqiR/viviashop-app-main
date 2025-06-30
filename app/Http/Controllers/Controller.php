@@ -83,26 +83,27 @@ class Controller extends BaseController
         //     'params' => $params
         // ]);
         if ($method == 'POST') {
-                // For POST requests, add form params to request body
-                $requestParams['form_params'] = $params;
-            } else if ($method == 'GET' && !empty($params)) {
-                // For GET requests, add params to URL as query string
-                $query = is_array($params) ? '?'.http_build_query($params) : '';
-                $url = $this->rajaOngkirBaseUrl . $resource . $query;
-            }
+            // For POST requests, add form params to request body
+            $requestParams['form_params'] = $params;
+        } else if ($method == 'GET' && !empty($params)) {
+            // For GET requests, add params to URL as query string
+            $query = is_array($params) ? '?'.http_build_query($params) : '';
+            $url = $this->rajaOngkirBaseUrl . $resource . $query;
+        }
 
-            // Make the request
-            $response = $client->request($method, $url, $requestParams);
-            $responseBody = $response->getBody()->getContents();
+        // Make the request
+        $response = $client->request($method, $url, $requestParams);
+        $responseBody = $response->getBody()->getContents();
 
-            // Log response for debugging
-            Log::debug('RajaOngkir response', [
-                'status' => $response->getStatusCode(),
-                'body' => substr($responseBody, 0, 300) . '...' // Log first 300 chars to avoid huge logs
-            ]);
+        // Log response for debugging
+        Log::debug('RajaOngkir response', [
+            'status' => $response->getStatusCode(),
+            'body' => substr($responseBody, 0, 300) . '...' // Log first 300 chars to avoid huge logs
+        ]);
 
-            // Parse and return response
-            return json_decode($responseBody, true);
+        // Parse and return response
+        return json_decode($responseBody, true);
+
 
         // try {
 
