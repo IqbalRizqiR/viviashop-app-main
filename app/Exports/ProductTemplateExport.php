@@ -6,7 +6,6 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\BeforeExport;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 use App\Models\Category;
 
@@ -48,17 +47,17 @@ class ProductTemplateExport implements FromCollection, WithHeadings, WithEvents
     {
         return [
             BeforeExport::class => function (BeforeExport $event) {
-                /** @var Worksheet $sheet */
-                $sheet = $event->writer->getDelegate()->getActiveSheet();
+                // Ambil worksheet pertama
+                $sheet = $event->writer->getDelegate()->getSheet(0);
 
                 $categories = Category::pluck('name')->toArray();
                 $list = implode(',', array_map(function ($v) {
                     return '"' . str_replace('"', '""', $v) . '"';
                 }, $categories));
 
-                // Tempelkan dropdown ke cell kolom C (category_id), baris 2-100 (misalnya)
+                // Pasang dropdown dari baris 2 sampai 100
                 for ($row = 2; $row <= 100; $row++) {
-                    $validation = $sheet->getCell("C$row")->getDataValidation();
+                    $validation = new DataValidation();
                     $validation->setType(DataValidation::TYPE_LIST);
                     $validation->setErrorStyle(DataValidation::STYLE_STOP);
                     $validation->setAllowBlank(true);
@@ -66,6 +65,9 @@ class ProductTemplateExport implements FromCollection, WithHeadings, WithEvents
                     $validation->setShowErrorMessage(true);
                     $validation->setShowDropDown(true);
                     $validation->setFormula1('"' . $list . '"');
+
+                    $cell = "C{$row}";
+                    $sheet->getCell($cell)->setDataValidation($validation);
                 }
             },
         ];

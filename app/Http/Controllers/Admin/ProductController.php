@@ -33,7 +33,7 @@ class ProductController extends Controller
 
     public function exportTemplate()
     {
-        return Excel::download(new ProductTemplateExport, 'template_produk.xlsx');
+        return Excel::download(new ProductTemplateExport, 'template.xlsx', \Maatwebsite\Excel\Excel::XLSX);
     }
 
     /**
