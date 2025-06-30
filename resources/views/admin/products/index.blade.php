@@ -14,6 +14,7 @@
                 <div class="ms-2">
                     <a href="{{ route('admin.products.create')}}" class="btn btn-info shadow-sm float-right"> <i class="fa fa-plus"></i> Tambah </a>
                     <a href="{{ route('admin.barcode.download')}}" class="btn btn-info shadow-sm float-right"> <i class="fa fa-plus"></i> Download Barcode </a>
+                    <a href="{{ route('admin.products.exportTemplate')}}" class="btn btn-info shadow-sm float-right"> <i class="fa fa-plus"></i> Download Excel </a>
                     <button onclick="addForm();" class="btn btn-success shadow-sm float-right"> <i class="fa fa-plus"></i> Excel </button>
                 </div>
               </div>

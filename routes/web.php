@@ -54,7 +54,7 @@ Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderControl
     Route::match(['get','post'], '/instagram/webhook', [InstagramController::class, 'webhook'])
         ->name('instagram.webhook');
 
-    Route::get('/products/exportTemplate', [ProductController::class, 'exportTemplate'])->name("products.exportTemplate");
+
 
 
 Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' => 'admin.'], function() {
@@ -63,6 +63,7 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
      ->name('products.find-barcode');
     Route::get('/orders/invoices/{id}', [\App\Http\Controllers\Admin\OrderController::class, 'invoices'])
      ->name('orders.invoices');
+     Route::get('/products/exportTemplate', [ProductController::class, 'exportTemplate'])->name("products.exportTemplate");
     Route::get('users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
     Route::resource('setting', SettingController::class);
     Route::get('profile', [\App\Http\Controllers\Admin\ProfileController::class, 'show'])->name('profile.show');
