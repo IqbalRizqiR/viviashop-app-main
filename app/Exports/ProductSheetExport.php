@@ -20,8 +20,8 @@ class ProductSheetExport implements FromCollection, WithHeadings, WithTitle, Wit
             [
                 'name' => '',
                 'price' => '',
-                'harga_beli' => '',
                 'category_name' => '', // dropdown isi nama category
+                'harga_beli' => '',
                 'short_description' => '',
                 'description' => '',
                 'sku' => '',
