@@ -82,9 +82,7 @@ class Controller extends BaseController
         //     'method' => $method,
         //     'params' => $params
         // ]);
-
-        try {
-            if ($method == 'POST') {
+        if ($method == 'POST') {
                 // For POST requests, add form params to request body
                 $requestParams['form_params'] = $params;
             } else if ($method == 'GET' && !empty($params)) {
@@ -105,19 +103,22 @@ class Controller extends BaseController
 
             // Parse and return response
             return json_decode($responseBody, true);
-        } catch (\GuzzleHttp\Exception\RequestException $e) {
-            // Log detailed error information
-            if ($e->hasResponse()) {
-                $errorBody = $e->getResponse()->getBody()->getContents();
-                Log::error('RajaOngkir error response', [
-                    'status' => $e->getResponse()->getStatusCode(),
-                    'body' => $errorBody
-                ]);
-            } else {
-                Log::error('RajaOngkir request failed: ' . $e->getMessage());
-            }
-            throw $e;
-        }
+
+        // try {
+
+        // } catch (\GuzzleHttp\Exception\RequestException $e) {
+        //     // Log detailed error information
+        //     if ($e->hasResponse()) {
+        //         $errorBody = $e->getResponse()->getBody()->getContents();
+        //         Log::error('RajaOngkir error response', [
+        //             'status' => $e->getResponse()->getStatusCode(),
+        //             'body' => $errorBody
+        //         ]);
+        //     } else {
+        //         Log::error('RajaOngkir request failed: ' . $e->getMessage());
+        //     }
+        //     throw $e;
+        // }
     }
 
     /**
