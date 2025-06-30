@@ -28,6 +28,7 @@ class ProdukImport implements ToCollection, WithHeadingRow
                 'status' => 1,
                 'description' => $row['description'],
                 'user_id' => Auth::id(),
+                'barcode' => rand(1000000000, 9999999999),
                 'short_description' => $row['short_description'],
                 'slug' => Str::slug($row['name']),
             ]);
