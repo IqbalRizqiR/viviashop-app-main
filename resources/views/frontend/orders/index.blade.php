@@ -46,7 +46,11 @@
 											@endif
 											<td>{{ $order->status }}</td>
 											<td>{{ $order->payment_status }}</td>
-											<td>{{ $order->payment_method }}</td>
+											@if ($order->payment_method == 'cod')
+                                                <td>Toko</td>
+                                            @else
+                                                <td>{{ $order->payment_method }}</td>
+                                            @endif
 											<td>
 												@if ($order->payment_method == 'manual' || $order->payment_method == 'qris')
 													<a href="{{ url('orders/'. $order->id) }}" class="btn btn-info btn-sm">details</a>

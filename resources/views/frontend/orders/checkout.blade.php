@@ -182,7 +182,7 @@
                         <div class="row g-4 text-center align-items-center justify-content-center border-bottom py-3">
                             <div class="col-12">
                                 <div class="form-check text-start my-3">
-                                    <input type="checkbox" class="form-check-input checkoption bg-primary border-0" id="Paypal-1" name="payment_method" value="cod">
+                                    <input type="checkbox" class="form-check-input checkoption bg-primary border-0" id="Paypal-1" name="payment_method" value="toko">
                                     <label class="form-check-label" for="Paypal-1">Bayar Di Toko</label>
                                 </div>
                             </div>
