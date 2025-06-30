@@ -9,7 +9,7 @@
                     @csrf
                     <input type="hidden" value="{{ $order->id }}" name="id_order">
                     <div class="form-group mb-3">
-                        <input type="file" class="form-control" name="file_bukti" id="image">
+                        <input type="file" required class="form-control" name="file_bukti" id="image">
                     </div>
                     <div class="form-item mt-4 d-none image-item">
                         <label for="">Preview Image</label>

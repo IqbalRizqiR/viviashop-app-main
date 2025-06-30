@@ -157,6 +157,7 @@
                                             <div class="py-3 border-bottom border-top">
                                                 <p class="mb-0 text-dark total-amount">{{ number_format((int)Cart::subtotal(0,'','') + (int)$unique_code) }}</p>
                                             </div>
+                                            <p>harap tunggu nominal berubah sesuai dengan total sebelum checkout</p>
                                         </td>
                                     </tr>
                                 </tbody>
