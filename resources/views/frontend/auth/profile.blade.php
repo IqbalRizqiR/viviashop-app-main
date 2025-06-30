@@ -8,10 +8,6 @@
 			<div class="row">
 				<div class="col-lg-3">
 					@include('frontend.partials.user_menu')
-					<form action="{{ route('logout') }}" method="post">
-						@csrf
-						<button class="btn btn-primary">Logout</button>
-					</form>
 				</div>
 				<div class="col-lg-9">
                     @if(session()->has('message'))

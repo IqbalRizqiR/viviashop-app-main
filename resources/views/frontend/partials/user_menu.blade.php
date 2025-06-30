@@ -5,6 +5,10 @@
 			<h6><a style="color: black;" href="{{ url('profile') }}">Profile</a></h6>
 			<h6><a style="color: black;" href="{{ url('orders') }}">Orders</a></h6>
 			<h6><a style="color: black;" href="{{ url('carts') }}">Cart</a></h6>
+            <form action="{{ route('logout') }}" method="post">
+                @csrf
+                <button class="btn btn-primary">Logout</button>
+            </form>
 		</ol>
 	</div>
 </div>
