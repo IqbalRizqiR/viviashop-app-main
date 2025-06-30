@@ -13,6 +13,7 @@ use App\Models\Product;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class OrderController extends Controller
 {
@@ -394,7 +395,18 @@ class OrderController extends Controller
     public function doComplete(Request $request,Order $order)
 	{
 		if (!$order->isDelivered()) {
-			return redirect('admin/orders');
+			if ($order->shipment->shipping_service == 'self') {
+                $order->status = Order::COMPLETED;
+                $order->approved_by = auth()->id();
+                $order->approved_at = now();
+
+                if ($order->save()) {
+                    Alert::success('Success', 'Order has been completed successfully!');
+                    return redirect('admin/orders');
+                }
+            }
+            Alert::error('Error', 'Order cannot be completed because it has not been delivered yet.');
+            return redirect()->back();
 		}
 
 		$order->status = Order::COMPLETED;
