@@ -211,6 +211,11 @@
 @push('script-alt')
     <script>
         $(document).ready(function(){
+            console.log($("#shipping-city").val())
+            var city_id = $('#shipping-city').val();
+            if (city_id) {
+                getShippingCostOptions(city_id);
+            }
             $('#images').hide();
 
             $('.checkoption').click(function() {
