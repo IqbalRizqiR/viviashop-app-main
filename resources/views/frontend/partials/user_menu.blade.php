@@ -7,7 +7,7 @@
 			<h6><a style="color: black;" href="{{ url('carts') }}">Cart</a></h6>
             <form action="{{ route('logout') }}" method="post">
                 @csrf
-                <button class="btn btn-primary">Logout</button>
+                <button class="btn btn-primary mt-5">Logout</button>
             </form>
 		</ol>
 	</div>
