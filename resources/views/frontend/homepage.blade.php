@@ -1,5 +1,11 @@
 @extends('frontend.layouts')
 @section('content')
+<style>
+    .hero-header {
+        background: url('{{ asset('atk.jpeg') }}') !important;
+
+    }
+</style>
     <!-- Hero Start -->
     <div class="container-fluid py-5 mb-5 hero-header">
         <div class="container py-5">
