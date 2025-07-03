@@ -11,7 +11,7 @@
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Tambah Slide</h3>
-                <a href="{{ route('admin.slides.index')}}" class="btn btn-success shadow-sm float-right"> <i class="fa fa-arrow-left"></i> Kembali</a>
+                <a href="{{ route('admin.users.index')}}" class="btn btn-success shadow-sm float-right"> <i class="fa fa-arrow-left"></i> Kembali</a>
               </div>
               <!-- /.card-header -->
               <div class="card-body">
