@@ -120,7 +120,7 @@ class InstagramController extends Controller
         // dd($this->accessToken);
 
 
-        $igUserId    = env('INSTAGRAM_CLIENT_ID');
+        $igUserId    = env('INSTAGRAM_CLIENT_USER_ID');
         $createUrl   = "https://graph.instagram.com/v23.0/{$igUserId}/media";
 
         $createResp = Http::withToken($this->accessToken)
