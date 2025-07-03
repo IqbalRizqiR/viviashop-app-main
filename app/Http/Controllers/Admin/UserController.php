@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class UserController extends Controller
 {
@@ -31,6 +32,7 @@ class UserController extends Controller
             'password' => bcrypt(request('password')),
             'is_admin' => true,
         ]);
+        Alert::success('Success', 'User created successfully.');
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
@@ -48,7 +50,7 @@ class UserController extends Controller
             'email' => request('email'),
             'password' => request('password') ? bcrypt(request('password')) : $user->password,
         ]);
-
+        Alert::success('Success', 'User updated successfully.');
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
     public function destroy($id)
@@ -58,6 +60,7 @@ class UserController extends Controller
             return redirect()->route('admin.users.index')->with('error', 'You cannot delete yourself.');
         }
         $user->delete();
+        Alert::success('Success', 'User deleted successfully.');
         return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
     }
 }
