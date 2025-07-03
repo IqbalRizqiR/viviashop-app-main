@@ -15,7 +15,7 @@
               </div>
               <!-- /.card-header -->
               <div class="card-body">
-                <form method="post" action="{{ route('admin.slides.store') }}" enctype="multipart/form-data">
+                <form method="post" action="{{ route('admin.users.store') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="form-group row border-bottom pb-4">
                         <label for="name" class="col-sm-2 col-form-label">Name</label>
