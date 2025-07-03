@@ -76,15 +76,15 @@ class InstagramController extends Controller
             'token' => $instagramUser->token,
         ]);
         // Now we need to exchange the short-lived token for a long-lived token
-        // $response = Http::get('https://graph.instagram.com/access_token', [
-        //     'grant_type' => 'ig_exchange_token',
-        //     'client_secret' => config('instagram.client_secret'),
-        //     'access_token' => $instagramUser->token,
-        // ]);
+        $response = Http::get('https://graph.instagram.com/access_token', [
+            'grant_type' => 'ig_exchange_token',
+            'client_secret' => config('instagram.client_secret'),
+            'access_token' => $instagramUser->token,
+        ]);
 
-        // dd(Log::info('Instagram Token Exchange Response', [
-        //     'response' => $response->json(),
-        // ]));
+        dd(Log::info('Instagram Token Exchange Response', [
+            'response' => $response->json(),
+        ]));
 
         $longLived = $response->json()['access_token'];
 
