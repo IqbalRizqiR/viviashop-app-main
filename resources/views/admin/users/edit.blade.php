@@ -16,8 +16,8 @@
               <!-- /.card-header -->
               <div class="card-body">
                 <form method="post" action="{{ route('admin.users.edit', $user->id) }}" enctype="multipart/form-data">
-                    @csrf
                     @method('PUT')
+                    @csrf
                     <div class="form-group row border-bottom pb-4">
                         <label for="name" class="col-sm-2 col-form-label">Name</label>
                         <div class="col-sm-10">
