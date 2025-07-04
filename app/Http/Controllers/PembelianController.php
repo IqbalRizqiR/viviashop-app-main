@@ -63,7 +63,7 @@ class PembelianController extends Controller
                 return '
                 <div class="btn-group">
                     <button onclick="showDetail(`'. route('admin.pembelian.show', $pembelian->id) .'`)" class="btn btn-xs btn-info btn-flat"><i class="fa fa-eye"></i></button>
-                    <a href="'. route('admin.pembelian.invoices', $pembelian->id) . ')" class="btn btn-xs btn-info btn-flat"><i class="fa fa-download"></i></a>
+                    <a href="'. route('admin.pembelian.invoices', $pembelian->id) . '" class="btn btn-xs btn-info btn-flat"><i class="fa fa-download"></i></a>
                     <a href="'. route('admin.pembelian_detail.editBayar', $pembelian->id) .'" class="btn btn-xs btn-info btn-flat"><i class="fa fa-pencil"></i></a>
                     <button onclick="deleteData(`'. route('admin.pembelian.destroy', $pembelian->id) .'`)" class="btn btn-xs btn-danger btn-flat"><i class="fa fa-trash"></i></button>
                 </div>
