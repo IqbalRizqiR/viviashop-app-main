@@ -65,7 +65,7 @@ class HomepageController extends Controller
         return view('admin.reports.index', compact('tanggalAwal', 'tanggalAkhir'));
     }
 
-    public function reportRevenue($awal, $akhir)
+    public function exportExcel($awal, $akhir)
     {
         $fileName = "Laporan-Revenue-{$awal}_{$akhir}.xlsx";
 
