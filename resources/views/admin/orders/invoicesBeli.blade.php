@@ -8,8 +8,6 @@
 </head>
 <body>
 <style>
-    /* Optimal print style for A4 portrait, minimal margins and high-contrast text */
-
 @page {
     size: A4 portrait;
     margin: 10mm;            /* small page margins */
@@ -219,7 +217,7 @@ body {
                 </tr>
             </thead>
             <tbody>
-                @if ($pembelian->details>count() > 1)
+                @if ($pembelian->details->count() > 1)
                     @foreach ($pembelian->details as $item)
                         <tr>
                             <td class="">
