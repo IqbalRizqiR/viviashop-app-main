@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Exports\ReportRevenue;
 use App\Models\Slide;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use App\Http\Controllers\InstagramController; // Import the InstagramController
+use Maatwebsite\Excel\Facades\Excel;
 
 class HomepageController extends Controller
 {
@@ -61,6 +63,16 @@ class HomepageController extends Controller
         }
 
         return view('admin.reports.index', compact('tanggalAwal', 'tanggalAkhir'));
+    }
+
+    public function reportRevenue($awal, $akhir)
+    {
+        $fileName = "Laporan-Revenue-{$awal}_{$akhir}.xlsx";
+
+        return Excel::download(
+            new ReportRevenue($awal, $akhir),
+            $fileName
+        );
     }
 
     public function getReportsData($awal, $akhir)

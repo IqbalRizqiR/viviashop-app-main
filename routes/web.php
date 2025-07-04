@@ -84,6 +84,9 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
     Route::get('/pembelian_detail/{id}/data', [PembelianDetailController::class, 'data'])->name('pembelian_detail.data');
     Route::get('/pembelian/invoices/{id}', [PembelianController::class, 'invoices'])
         ->name('pembelian.invoices');
+    Route::get('reports/revenue/{awal}/{akhir}/excel',
+        [App\Http\Controllers\Frontend\HomepageController::class, 'exportExcel']
+    )->name('reports.revenue.excel');
     Route::get('/pembelian_detail/loadform/{diskon}/{total}', [PembelianDetailController::class, 'loadForm'])->name('pembelian_detail.load_form');
     Route::get('/pembelian_detail/editBayar/{id}', [PembelianDetailController::class, 'editBayar'])->name('pembelian_detail.editBayar');
     Route::put('/pembelian_detail/updateEdit/{id}', [PembelianDetailController::class, 'updateEdit'])->name('pembelian_detail.updateEdit');

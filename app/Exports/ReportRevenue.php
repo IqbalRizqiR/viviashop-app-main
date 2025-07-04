@@ -1,39 +1,47 @@
 <?php
-
 namespace App\Exports;
 
-use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\FromView;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use App\Http\Controllers\Frontend\HomepageController;
 
-class ReportRevenue implements FromView
+class ReportRevenue implements FromArray, WithHeadings, ShouldAutoSize
 {
+    protected array $data;
 
-	private $_results;
+    public function __construct(string $awal, string $akhir)
+    {
+        // reuse your controller’s logic
+        $ctrl = new HomepageController();
+        $this->data = $ctrl->getReportsData($awal, $akhir);
+    }
 
-	/**
-	 * Create a new exporter instance.
-	 *
-	 * @param array $results query result
-	 *
-	 * @return void
-	 */
-	public function __construct($products)
-	{
-		$this->_results = $products;
-	}
+    public function array(): array
+    {
+        // map into pure rows
+        return array_map(fn($row) => [
+            $row['DT_RowIndex'],
+            $row['tanggal'],
+            $row['penjualan'],
+            $row['pembelian'],
+            $row['pengeluaran'],
+            $row['pendapatan'],
+            $row['keuntungan'],
+        ], $this->data);
+    }
 
-	/**
-	 * Load the view.
-	 *
-	 * @return void
-	 */
-	public function view(): View
-	{
-		return view(
-			'admin.reports.exports.excel_revenue',
-			[
-				'revenues' => $this->_results,
-			]
-		);
-	}
+    public function headings(): array
+    {
+        return [
+            'No',
+            'Tanggal',
+            'Penjualan',
+            'Pembelian',
+            'Pengeluaran',
+            'Pendapatan',
+            'Keuntungan',
+        ];
+    }
 }
