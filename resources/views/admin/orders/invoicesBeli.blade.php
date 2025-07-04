@@ -224,24 +224,24 @@ body {
                         <tr>
                             <td class="">
                                 <div class="item-description">
-                                    {{ $item->product_name }}
+                                    {{ $item->product->name }}
                                 </div>
                             </td>
-                            <td class="text-right">{{ $item->qty }}</td>
-                            <td class="text-right">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
-                            <td class="text-right">Rp {{ number_format($item->total, 0, ',', '.') }}</td>
+                            <td class="text-right">{{ $item->jumlah }}</td>
+                            <td class="text-right">Rp {{ number_format($item->harga_beli, 0, ',', '.') }}</td>
+                            <td class="text-right">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
                         </tr>
                     @endforeach
                 @else
                     <tr>
                         <td class="">
                             <div class="item-description">
-                                {{ $pembelian->details[0]->name }}
+                                {{ $pembelian->details[0]->product->name }}
                             </div>
                         </td>
-                        <td class="text-right">{{ $pembelian->details[0]->qty }}</td>
-                        <td class="text-right">Rp {{ number_format($pembelian->details[0]->base_price, 0, ',', '.') }}</td>
-                        <td class="text-right">Rp {{ number_format($pembelian->details[0]->sub_total, 0, ',', '.') }}</td>
+                        <td class="text-right">{{ $pembelian->details[0]->jumlah }}</td>
+                        <td class="text-right">Rp {{ number_format($pembelian->details[0]->harga_beli, 0, ',', '.') }}</td>
+                        <td class="text-right">Rp {{ number_format($pembelian->details[0]->subtotal, 0, ',', '.') }}</td>
                     </tr>
                 @endif
             </tbody>
