@@ -20,7 +20,7 @@
                 <table class="table table-stiped table-bordered table-pembelian">
                     <thead>
                         <th width="5%">No</th>
-                        <th>Tanggal Obat Datang</th>
+                        <th>Tanggal Barang Datang</th>
                         <th>Supplier</th>
                         <th>Total Item</th>
                         <th>Total Harga</th>

@@ -7,6 +7,7 @@ use App\Models\PembelianDetail;
 use App\Models\Product;
 use App\Models\RekamanStok;
 use App\Models\Supplier;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -18,6 +19,15 @@ class PembelianController extends Controller
         $supplier = Supplier::orderBy('nama')->get();
 
         return view('admin.pembelian.index', compact('supplier'));
+    }
+
+    public function invoices($id)
+    {
+        $pembelian = Pembelian::with(['supplier', 'details'])->where('id', $id)->first();
+
+        $pdf  = Pdf::loadView('admin.orders.invoicesBeli', compact('pembelian'))->setOptions(['defaultFont' => 'sans-serif']);
+        $pdf->setPaper('a4', 'potrait');
+        return $pdf->stream('invoice.pdf');
     }
 
     public function data()
@@ -53,6 +63,7 @@ class PembelianController extends Controller
                 return '
                 <div class="btn-group">
                     <button onclick="showDetail(`'. route('admin.pembelian.show', $pembelian->id) .'`)" class="btn btn-xs btn-info btn-flat"><i class="fa fa-eye"></i></button>
+                    <a href="'. route('admin.pembelian.invoices', $pembelian->id) . ')" class="btn btn-xs btn-info btn-flat"><i class="fa fa-download"></i></a>
                     <a href="'. route('admin.pembelian_detail.editBayar', $pembelian->id) .'" class="btn btn-xs btn-info btn-flat"><i class="fa fa-pencil"></i></a>
                     <button onclick="deleteData(`'. route('admin.pembelian.destroy', $pembelian->id) .'`)" class="btn btn-xs btn-danger btn-flat"><i class="fa fa-trash"></i></button>
                 </div>
