@@ -13,7 +13,7 @@ class Pembelian extends Model
 
     public function details()
     {
-        return $this->hasMany(PembelianDetail::class);
+        return $this->hasMany(PembelianDetail::class, 'id', 'id_pembelian');
     }
 
     public function supplier()
