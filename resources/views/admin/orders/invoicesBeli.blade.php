@@ -217,8 +217,8 @@ body {
                 </tr>
             </thead>
             <tbody>
-                @if ($pembelian->details->count() > 1)
-                    @foreach ($pembelian->details as $item)
+                @if ($pembelian_detail->count() > 1)
+                    @foreach ($pembelian_detail as $item)
                         <tr>
                             <td class="">
                                 <div class="item-description">
@@ -234,12 +234,12 @@ body {
                     <tr>
                         <td class="">
                             <div class="item-description">
-                                {{ $pembelian->details[0]->product->name }}
+                                {{ $pembelian_detail[0]->product->name }}
                             </div>
                         </td>
-                        <td class="text-right">{{ $pembelian->details[0]->jumlah }}</td>
-                        <td class="text-right">Rp {{ number_format($pembelian->details[0]->harga_beli, 0, ',', '.') }}</td>
-                        <td class="text-right">Rp {{ number_format($pembelian->details[0]->subtotal, 0, ',', '.') }}</td>
+                        <td class="text-right">{{ $pembelian_detail[0]->jumlah }}</td>
+                        <td class="text-right">Rp {{ number_format($pembelian_detail[0]->harga_beli, 0, ',', '.') }}</td>
+                        <td class="text-right">Rp {{ number_format($pembelian_detail[0]->subtotal, 0, ',', '.') }}</td>
                     </tr>
                 @endif
             </tbody>
