@@ -222,7 +222,7 @@ body {
                         <tr>
                             <td class="">
                                 <div class="item-description">
-                                    {{ $item->product->name }}
+                                    {{ $item->products->name }}
                                 </div>
                             </td>
                             <td class="text-right">{{ $item->jumlah }}</td>
@@ -234,7 +234,7 @@ body {
                     <tr>
                         <td class="">
                             <div class="item-description">
-                                {{ $pembelian_detail[0]->product->name }}
+                                {{ $pembelian_detail[0]->products->name }}
                             </div>
                         </td>
                         <td class="text-right">{{ $pembelian_detail[0]->jumlah }}</td>
