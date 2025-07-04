@@ -24,6 +24,7 @@ class PembelianController extends Controller
     public function invoices($id)
     {
         $pembelian = Pembelian::with(['supplier', 'details'])->where('id', $id)->first();
+        dd($pembelian);
 
         $pdf  = Pdf::loadView('admin.orders.invoicesBeli', compact('pembelian'))->setOptions(['defaultFont' => 'sans-serif']);
         $pdf->setPaper('a4', 'potrait');
