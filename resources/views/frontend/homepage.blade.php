@@ -362,6 +362,32 @@
     </div>
     </div>
     <!-- Banner Section End -->
+
+    <!-- Katalog Section Start -->
+    <div class="container-fluid py-5">
+      <div class="container py-5">
+        <div class="row g-5 align-items-center">
+          <div class="col-lg-6">
+            <div class="text-center text-lg-start">
+              <h1 class="display-4">Katalog Produk Kami</h1>
+              <p class="mb-4">Jelajahi rangkaian lengkap produk kami. Anda dapat melihatnya langsung di sini atau mengunduhnya dalam format PDF untuk referensi Anda di lain waktu.</p>
+              <a href="https://drive.google.com/uc?export=download&id=1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij" class="btn btn-primary rounded-pill py-3 px-5" target="_blank"> <i class="fa fa-download me-2"></i> Download Katalog </a>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card shadow-lg">
+              <div class="card-body p-2">
+                <div class="embed-responsive embed-responsive-16by9" style="height: 600px">
+                  <iframe class="embed-responsive-item w-100 h-100" src="https://drive.google.com/file/d/1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij/preview?usp=sharing" allow="autoplay"> </iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Katalog Section End -->
+
     @push('script-alt')
         <script>
             $('.change-the-class').click(function(e) {
