@@ -423,38 +423,6 @@
     </div>
     <!-- Katalog Section End -->
 
-        <script>
-    // Function to hide loading overlay
-    function hideLoading() {
-        const loading = document.getElementById('katalog-loading');
-        if (loading) {
-            loading.style.display = 'none';
-        }
-    }
-
-    // Simple loading management
-    document.addEventListener('DOMContentLoaded', function() {
-        const iframe = document.querySelector('iframe[src*="drive.google.com"]');
-        const loading = document.getElementById('katalog-loading');
-        
-        if (iframe && loading) {
-            // Hide loading after iframe loads
-            iframe.addEventListener('load', function() {
-                setTimeout(() => {
-                    loading.style.display = 'none';
-                }, 2000); // Berikan waktu 2 detik untuk memuat content
-            });
-            
-            // Hide loading automatically after 8 seconds as backup
-            setTimeout(() => {
-                if (loading.style.display !== 'none') {
-                    loading.style.display = 'none';
-                }
-            }, 8000);
-        }
-    });
-    </script>
-
 <!-- Location Section Start -->
 <div class="container-fluid py-5 bg-light">
     <div class="container py-5">
@@ -474,7 +442,7 @@
                     <div class="row g-4">
                         <div class="col-12">
                             <div class="d-flex align-items-center p-3 rounded-3" style="background-color: #f8f9fa;">
-                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
                                     <i class="fas fa-map-marker-alt text-white fa-lg"></i>
                                 </div>
                                 <div>
