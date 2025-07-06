@@ -391,90 +391,146 @@
 <!-- Location Section Start -->
 <div class="container-fluid py-5 bg-light">
     <div class="container py-5">
+        <div class="text-center mb-5">
+            <h1 class="display-4 text-primary">Kunjungi Toko Kami</h1>
+            <p class="lead">Temukan lokasi fisik VIVIA PrintShop dan rasakan pengalaman berbelanja langsung</p>
+        </div>
+        
         <div class="row g-5 align-items-center">
             <div class="col-lg-6">
-                <div class="text-center text-lg-start">
-                    <h1 class="display-4 mb-4">Kunjungi Toko Kami</h1>
-                    <p class="mb-4">Temukan lokasi fisik ViviashShop dan kunjungi langsung toko kami untuk melihat berbagai produk printing dan ATK berkualitas. Tim kami siap membantu Anda dengan layanan terbaik.</p>
+                <div class="bg-white rounded-4 shadow-lg p-4 h-100">
+                    <h3 class="text-primary mb-4">
+                        <i class="fas fa-store me-2"></i>
+                        Informasi Toko
+                    </h3>
                     
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-primary rounded-circle p-3 me-3">
-                                    <i class="fas fa-map-marker-alt text-white"></i>
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background-color: #f8f9fa;">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-map-marker-alt text-white fa-lg"></i>
                                 </div>
                                 <div>
-                                    <h6 class="mb-1">Alamat</h6>
-                                    <p class="mb-0 text-muted">Jl. Raya Viviashop</p>
+                                    <h6 class="mb-1 text-primary fw-bold">Alamat Lengkap</h6>
+                                    <p class="mb-0 text-muted">VIVIA PrintShop<br>Jl. Raya Pringgolayan, Pringgolayan, Kec. Bangsal, Kabupaten Mojokerto, Jawa Timur</p>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="col-md-6">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-secondary rounded-circle p-3 me-3">
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background-color: #f8f9fa;">
+                                <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
                                     <i class="fas fa-clock text-white"></i>
                                 </div>
                                 <div>
-                                    <h6 class="mb-1">Jam Buka</h6>
-                                    <p class="mb-0 text-muted">08:00 - 17:00 WIB</p>
+                                    <h6 class="mb-1 text-success fw-bold">Jam Operasional</h6>
+                                    <p class="mb-0 text-muted small">Senin - Sabtu<br>08:00 - 17:00 WIB</p>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="col-md-6">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-success rounded-circle p-3 me-3">
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background-color: #f8f9fa;">
+                                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
                                     <i class="fas fa-phone text-white"></i>
                                 </div>
                                 <div>
-                                    <h6 class="mb-1">Telepon</h6>
-                                    <p class="mb-0 text-muted">+62 123 456 789</p>
+                                    <h6 class="mb-1 text-warning fw-bold">Kontak</h6>
+                                    <p class="mb-0 text-muted small">+62 123 456 789</p>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="col-md-6">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-warning rounded-circle p-3 me-3">
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background-color: #f8f9fa;">
+                                <div class="bg-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
                                     <i class="fas fa-envelope text-white"></i>
                                 </div>
                                 <div>
-                                    <h6 class="mb-1">Email</h6>
-                                    <p class="mb-0 text-muted">info@viviashop.com</p>
+                                    <h6 class="mb-1 text-info fw-bold">Email</h6>
+                                    <p class="mb-0 text-muted small">info@viviashop.com</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background-color: #f8f9fa;">
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="fab fa-whatsapp text-white"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 text-secondary fw-bold">WhatsApp</h6>
+                                    <p class="mb-0 text-muted small">+62 812 3456 7890</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <a href="https://maps.app.goo.gl/adKMKhPKJUWahDeF7" target="_blank" class="btn btn-primary rounded-pill py-3 px-5">
-                        <i class="fas fa-directions me-2"></i>
-                        Dapatkan Petunjuk Arah
-                    </a>
+                    <div class="text-center mt-4">
+                        <a href="https://maps.app.goo.gl/adKMKhPKJUWahDeF7" target="_blank" class="btn btn-primary rounded-pill py-3 px-5 me-3">
+                            <i class="fas fa-directions me-2"></i>
+                            Petunjuk Arah
+                        </a>
+                        <a href="https://wa.me/6281234567890" target="_blank" class="btn btn-success rounded-pill py-3 px-5">
+                            <i class="fab fa-whatsapp me-2"></i>
+                            Chat WhatsApp
+                        </a>
+                    </div>
                 </div>
             </div>
+            
             <div class="col-lg-6">
-                <div class="card shadow-lg border-0">
-                    <div class="card-header bg-primary text-white text-center py-3">
+                <div class="bg-white rounded-4 shadow-lg overflow-hidden h-100">
+                    <div class="bg-primary text-white text-center py-3">
                         <h5 class="mb-0">
                             <i class="fas fa-map-marker-alt me-2"></i>
-                            Lokasi ViviashShop
+                            Lokasi VIVIA PrintShop
                         </h5>
+                        <small>Klik pada peta untuk melihat detail lokasi</small>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="position-relative">
-                            <iframe 
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.521260322283!2d106.8195613507864!3d-6.194741395493371!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f5390917b759%3A0x6b91e3c2c4ed1ba5!2sJl.%20Raya%20Viviashop!5e0!3m2!1sen!2sid!4v1641234567890!5m2!1sen!2sid"
-                                width="100%" 
-                                height="400" 
-                                style="border:0;" 
-                                allowfullscreen="" 
-                                loading="lazy" 
-                                referrerpolicy="no-referrer-when-downgrade"
-                                class="rounded-bottom">
-                            </iframe>
-                            <div class="position-absolute top-0 end-0 m-3">
-                                <a href="https://maps.app.goo.gl/adKMKhPKJUWahDeF7" target="_blank" 
-                                   class="btn btn-sm btn-light shadow-sm" title="Buka di Google Maps">
-                                    <i class="fas fa-external-link-alt"></i>
-                                </a>
+                    <div class="position-relative">
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3954.6902460456313!2d112.2357296745512!3d-7.608646375209187!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7841556bd5c5bb%3A0x4517452691764b02!2sVIVIA%20PrintShop!5e0!3m2!1sid!2sid!4v1751760890529!5m2!1sid!2sid"
+                            width="100%" 
+                            height="450" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <a href="https://maps.app.goo.gl/adKMKhPKJUWahDeF7" target="_blank" 
+                               class="btn btn-sm btn-light shadow-sm rounded-circle" 
+                               title="Buka di Google Maps"
+                               style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Additional Info Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="bg-primary rounded-4 p-4 text-white text-center">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="mb-2">
+                                <i class="fas fa-car me-2"></i>
+                                Mudah Dijangkau dengan Kendaraan
+                            </h4>
+                            <p class="mb-0">Lokasi strategis dengan akses mudah, area parkir luas, dan dekat dengan pusat kota Mojokerto</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex justify-content-center">
+                                <div class="bg-white rounded-circle p-3 me-3">
+                                    <i class="fas fa-car text-primary fa-2x"></i>
+                                </div>
+                                <div class="bg-white rounded-circle p-3">
+                                    <i class="fas fa-motorcycle text-primary fa-2x"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
