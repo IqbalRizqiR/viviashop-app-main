@@ -442,7 +442,7 @@
                     <div class="row g-4">
                         <div class="col-12">
                             <div class="d-flex align-items-center p-3 rounded-3" style="background-color: #f8f9fa;">
-                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 70px; height: 70px;">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 70px; height: 60px;">
                                     <i class="fas fa-map-marker-alt text-white fa-lg"></i>
                                 </div>
                                 <div>
