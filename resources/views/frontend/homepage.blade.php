@@ -442,7 +442,7 @@
                     <div class="row g-4">
                         <div class="col-12">
                             <div class="d-flex align-items-center p-3 rounded-3" style="background-color: #f8f9fa;">
-                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 70px; height: 60px;">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 65px; height: 50px;">
                                     <i class="fas fa-map-marker-alt text-white fa-lg"></i>
                                 </div>
                                 <div>
@@ -556,7 +556,7 @@
                                 <i class="fas fa-car me-2"></i>
                                 Mudah Dijangkau dengan Kendaraan
                             </h4>
-                            <p class="mb-0">Lokasi strategis dengan akses mudah, area parkir luas, dan dekat dengan pusat kota Mojokerto</p>
+                            <p class="mb-0">Lokasi strategis dengan akses mudah, dekat dengan pusat religi Jombang</p>
                         </div>
                         <div class="col-md-4">
                             <div class="d-flex justify-content-center">
