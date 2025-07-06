@@ -454,11 +454,10 @@
                   </h5>
                   <small class="opacity-75">Lihat semua produk kami dalam satu tempat</small>
                 </div>
-                                <div class="card-body p-0 position-relative">
+                                 <div class="card-body p-0 position-relative">
                   <div class="embed-responsive embed-responsive-16by9" style="height: 600px; position: relative;">
                     <iframe class="embed-responsive-item w-100 h-100" 
-                            src="https://drive.google.com/file/d/1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij/preview" 
-                            allow="autoplay"
+                            src="https://drive.google.com/file/d/1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij/view?usp=sharing" 
                             style="border: none;"
                             onload="hideLoading()"> 
                     </iframe>
@@ -478,30 +477,6 @@
                              class="btn btn-primary btn-sm">
                             <i class="fas fa-external-link-alt me-2"></i>
                             Buka di Tab Baru
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- Fallback Content - jika iframe gagal load -->
-                    <div class="position-absolute top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center bg-light" 
-                         id="katalog-fallback" style="z-index: 5;">
-                      <div class="text-center p-4">
-                        <i class="fas fa-file-pdf text-primary mb-3" style="font-size: 4rem;"></i>
-                        <h5 class="mb-3">Katalog VIVIA PrintShop</h5>
-                        <p class="text-muted mb-4">Preview tidak dapat dimuat. Silakan download atau buka di tab baru.</p>
-                        <div>
-                          <a href="https://drive.google.com/uc?export=download&id=1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij" 
-                             target="_blank" 
-                             class="btn btn-primary me-2">
-                            <i class="fas fa-download me-2"></i>
-                            Download PDF
-                          </a>
-                          <a href="https://drive.google.com/file/d/1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij/view" 
-                             target="_blank" 
-                             class="btn btn-outline-primary">
-                            <i class="fas fa-external-link-alt me-2"></i>
-                            Buka di Google Drive
                           </a>
                         </div>
                       </div>
@@ -587,37 +562,25 @@
         }
     }
 
-    // Enhanced loading management
+    // Simple loading management
     document.addEventListener('DOMContentLoaded', function() {
         const iframe = document.querySelector('iframe[src*="drive.google.com"]');
         const loading = document.getElementById('katalog-loading');
-        const fallback = document.getElementById('katalog-fallback');
         
         if (iframe && loading) {
             // Hide loading after iframe loads
             iframe.addEventListener('load', function() {
                 setTimeout(() => {
                     loading.style.display = 'none';
-                }, 1000);
+                }, 2000); // Berikan waktu 2 detik untuk memuat content
             });
             
-            // Show fallback if iframe fails to load after 10 seconds
-            setTimeout(() => {
-                if (loading.style.display !== 'none') {
-                    loading.style.display = 'none';
-                    if (fallback) {
-                        fallback.classList.remove('d-none');
-                        fallback.classList.add('d-flex');
-                    }
-                }
-            }, 10000);
-            
-            // Hide loading automatically after 5 seconds as backup
+            // Hide loading automatically after 8 seconds as backup
             setTimeout(() => {
                 if (loading.style.display !== 'none') {
                     loading.style.display = 'none';
                 }
-            }, 5000);
+            }, 8000);
         }
     });
     </script>
