@@ -363,160 +363,30 @@
     </div>
     <!-- Banner Section End -->
 
-    <!-- Katalog Section Start -->
-    <div class="container-fluid py-5 bg-light">
+        <!-- Katalog Section Start -->
+    <div class="container-fluid py-5">
       <div class="container py-5">
-        <!-- Header Section -->
-        <div class="text-center mb-5">
-          <h1 class="display-4 text-primary mb-3">Katalog Produk Kami</h1>
-          <p class="lead text-muted">Jelajahi rangkaian lengkap produk printing dan ATK berkualitas</p>
-          <div class="mx-auto" style="width: 100px; height: 3px; background: linear-gradient(90deg, #81c408, #28a745);"></div>
-        </div>
-
         <div class="row g-5 align-items-center">
           <div class="col-lg-6">
-            <div class="bg-white rounded-4 shadow-lg p-5 h-100">
-              <div class="text-center text-lg-start">
-                <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-                  <i class="fas fa-book-open text-white fa-2x"></i>
-                </div>
-                <h2 class="display-5 text-primary mb-4">Katalog Digital</h2>
-                <p class="mb-4 text-muted fs-5">Jelajahi rangkaian lengkap produk kami. Anda dapat melihatnya langsung di sini atau mengunduhnya dalam format PDF untuk referensi Anda di lain waktu.</p>
-                
-                <!-- Features List -->
-                <div class="row g-3 mb-4">
-                  <div class="col-md-6">
-                    <div class="d-flex align-items-center">
-                      <div class="bg-success rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                        <i class="fas fa-check text-white"></i>
-                      </div>
-                      <span class="text-muted">Produk Terlengkap</span>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="d-flex align-items-center">
-                      <div class="bg-warning rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                        <i class="fas fa-star text-white"></i>
-                      </div>
-                      <span class="text-muted">Kualitas Terjamin</span>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="d-flex align-items-center">
-                      <div class="bg-info rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                        <i class="fas fa-download text-white"></i>
-                      </div>
-                      <span class="text-muted">Download Gratis</span>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="d-flex align-items-center">
-                      <div class="bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                        <i class="fas fa-mobile-alt text-white"></i>
-                      </div>
-                      <span class="text-muted">Mobile Friendly</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Download Button -->
-                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                  <a href="https://drive.google.com/uc?export=download&id=1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij" 
-                     class="btn btn-primary btn-lg rounded-pill py-3 px-5 me-md-2 shadow-sm" 
-                     target="_blank"> 
-                    <i class="fa fa-download me-2"></i> 
-                    Download Katalog PDF
-                  </a>
-                  <a href="#" class="btn btn-outline-primary btn-lg rounded-pill py-3 px-5 shadow-sm">
-                    <i class="fas fa-eye me-2"></i>
-                    Preview Online
-                  </a>
-                </div>
-              </div>
+            <div class="text-center text-lg-start">
+              <h1 class="display-4">Katalog Produk Kami</h1>
+              <p class="mb-4">Jelajahi rangkaian lengkap produk kami. Anda dapat melihatnya langsung di sini atau mengunduhnya dalam format PDF untuk referensi Anda di lain waktu.</p>
+              <a href="https://drive.google.com/uc?export=download&id=1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij" class="btn btn-primary rounded-pill py-3 px-5" target="_blank"> <i class="fa fa-download me-2"></i> Download Katalog </a>
             </div>
           </div>
-          
           <div class="col-lg-6">
-            <div class="position-relative">
-              <!-- Decorative Elements -->
-              <div class="position-absolute top-0 start-0 translate-middle">
-                <div class="bg-primary rounded-circle" style="width: 60px; height: 60px; opacity: 0.1;"></div>
-              </div>
-              <div class="position-absolute bottom-0 end-0 translate-middle">
-                <div class="bg-success rounded-circle" style="width: 80px; height: 80px; opacity: 0.1;"></div>
-              </div>
-
-              <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-                <div class="card-header bg-gradient text-white text-center py-3" style="background: linear-gradient(135deg, #81c408, #28a745);">
-                  <h5 class="mb-0">
-                    <i class="fas fa-file-pdf me-2"></i>
-                    Katalog Produk VIVIA PrintShop
-                  </h5>
-                  <small class="opacity-75">Lihat semua produk kami dalam satu tempat</small>
-                </div>
-                                 <div class="card-body p-0 position-relative">
-                  <div class="embed-responsive embed-responsive-16by9" style="height: 600px; position: relative;">
-                    <iframe class="embed-responsive-item w-100 h-100" 
-                            src="https://drive.google.com/file/d/1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij/view?usp=sharing" 
-                            style="border: none;"
-                            onload="hideLoading()"> 
-                    </iframe>
-                    
-                    <!-- Loading Overlay -->
-                    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light" 
-                         id="katalog-loading" style="z-index: 10;">
-                      <div class="text-center">
-                        <div class="spinner-border text-primary mb-3" role="status">
-                          <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="text-muted">Memuat katalog...</p>
-                        <!-- Fallback button jika loading terlalu lama -->
-                        <div class="mt-3">
-                          <a href="https://drive.google.com/file/d/1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij/view" 
-                             target="_blank" 
-                             class="btn btn-primary btn-sm">
-                            <i class="fas fa-external-link-alt me-2"></i>
-                            Buka di Tab Baru
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Action Buttons Overlay -->
-                  <div class="position-absolute top-0 end-0 m-3">
-                    <div class="dropdown">
-                      <button class="btn btn-light btn-sm rounded-circle shadow-sm" 
-                              type="button" 
-                              data-bs-toggle="dropdown" 
-                              style="width: 40px; height: 40px;">
-                        <i class="fas fa-ellipsis-v"></i>
-                      </button>
-                      <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                          <a class="dropdown-item" href="https://drive.google.com/uc?export=download&id=1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij" target="_blank">
-                            <i class="fas fa-download me-2"></i>Download PDF
-                          </a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" href="https://drive.google.com/file/d/1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij/view" target="_blank">
-                            <i class="fas fa-external-link-alt me-2"></i>Buka di Tab Baru
-                          </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                          <a class="dropdown-item" href="{{ route('shop') }}">
-                            <i class="fas fa-shopping-cart me-2"></i>Lihat Produk
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
+            <div class="card shadow-lg">
+              <div class="card-body p-2">
+                <div class="embed-responsive embed-responsive-16by9" style="height: 600px">
+                  <iframe class="embed-responsive-item w-100 h-100" src="https://drive.google.com/file/d/1G3sq9BUgN4RaRBgVOs6iTSASHrYHB6Ij/preview?usp=sharing" allow="autoplay"> </iframe>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+    <!-- Katalog Section End -->
 
         <!-- Stats Section -->
         <div class="row mt-5">
