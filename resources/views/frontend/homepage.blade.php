@@ -388,6 +388,103 @@
     </div>
     <!-- Katalog Section End -->
 
+<!-- Location Section Start -->
+<div class="container-fluid py-5 bg-light">
+    <div class="container py-5">
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6">
+                <div class="text-center text-lg-start">
+                    <h1 class="display-4 mb-4">Kunjungi Toko Kami</h1>
+                    <p class="mb-4">Temukan lokasi fisik ViviashShop dan kunjungi langsung toko kami untuk melihat berbagai produk printing dan ATK berkualitas. Tim kami siap membantu Anda dengan layanan terbaik.</p>
+                    
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary rounded-circle p-3 me-3">
+                                    <i class="fas fa-map-marker-alt text-white"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Alamat</h6>
+                                    <p class="mb-0 text-muted">Jl. Raya Viviashop</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary rounded-circle p-3 me-3">
+                                    <i class="fas fa-clock text-white"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Jam Buka</h6>
+                                    <p class="mb-0 text-muted">08:00 - 17:00 WIB</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success rounded-circle p-3 me-3">
+                                    <i class="fas fa-phone text-white"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Telepon</h6>
+                                    <p class="mb-0 text-muted">+62 123 456 789</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-warning rounded-circle p-3 me-3">
+                                    <i class="fas fa-envelope text-white"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Email</h6>
+                                    <p class="mb-0 text-muted">info@viviashop.com</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="https://maps.app.goo.gl/adKMKhPKJUWahDeF7" target="_blank" class="btn btn-primary rounded-pill py-3 px-5">
+                        <i class="fas fa-directions me-2"></i>
+                        Dapatkan Petunjuk Arah
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-primary text-white text-center py-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            Lokasi ViviashShop
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="position-relative">
+                            <iframe 
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.521260322283!2d106.8195613507864!3d-6.194741395493371!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f5390917b759%3A0x6b91e3c2c4ed1ba5!2sJl.%20Raya%20Viviashop!5e0!3m2!1sen!2sid!4v1641234567890!5m2!1sen!2sid"
+                                width="100%" 
+                                height="400" 
+                                style="border:0;" 
+                                allowfullscreen="" 
+                                loading="lazy" 
+                                referrerpolicy="no-referrer-when-downgrade"
+                                class="rounded-bottom">
+                            </iframe>
+                            <div class="position-absolute top-0 end-0 m-3">
+                                <a href="https://maps.app.goo.gl/adKMKhPKJUWahDeF7" target="_blank" 
+                                   class="btn btn-sm btn-light shadow-sm" title="Buka di Google Maps">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Location Section End -->
+
     @push('script-alt')
         <script>
             $('.change-the-class').click(function(e) {
