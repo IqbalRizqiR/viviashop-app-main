@@ -38,11 +38,13 @@
 											@if ($order->shipment != NULL)
 												@if ($order->shipment->track_number != NULL)
 													<td>{{ $order->shipment->track_number }}</td>
-												@else
-													<td>Belum ada resi</td>
+												@elseif($roder->shipment->track_number == NULL && $order->shipment->shipment_method == 'self')
+													<td>Ambil di Toko</td>
+                                                @else
+                                                    <td>Belum Ada Resi</td>
 												@endif
 											@else
-												<td>Belum ada resi</td>
+												<td>Ambil di Toko</td>
 											@endif
 											<td>{{ $order->status }}</td>
 											<td>{{ $order->payment_status }}</td>
