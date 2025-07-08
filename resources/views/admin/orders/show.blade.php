@@ -161,37 +161,37 @@
                                     <a href="{{ url('admin/orders/'. $order->id .'/cancel')}}" class="btn btn-block mt-2 btn-lg btn-warning btn-pill"> Cancel</a>
 
                                     @endif
-                                    @if ($order->payment_status == 'waiting' && $order->payment_method == 'qris')
+                                    @if ($order->payment_status == 'waiting' && $order->payment_method == 'qris' && !$order->isCancelled())
                                             <form action="{{ route('admin.orders.confirmAdmin', $order->id) }}" method="POST">
                                                 @method('PUT')
                                                 @csrf
                                                 <button type="submit" class="btn btn-block mt-2 btn-lg btn-success btn-pill"> Confirm Payment</button>
                                             </form>
-                                    @elseif ($order->payment_status == 'waiting' && $order->payment_method == 'manual')
+                                    @elseif ($order->payment_status == 'waiting' && !$order->isCancelled() && $order->payment_method == 'manual')
                                             <form action="{{ route('admin.orders.confirmAdmin', $order->id) }}" method="POST">
                                                 @method('PUT')
                                                 @csrf
                                                 <button type="submit" class="btn btn-block mt-2 btn-lg btn-success btn-pill"> Confirm Payment</button>
                                             </form>
-                                    @elseif($order->payment_status == 'unpaid' && $order->payment_method == 'manual')
+                                    @elseif($order->payment_status == 'unpaid' && !$order->isCancelled() && $order->payment_method == 'manual')
                                         <form action="{{ route('admin.orders.confirmAdmin', $order->id) }}" method="POST">
                                             @method('PUT')
                                             @csrf
                                             <button type="submit" class="btn btn-block mt-2 btn-lg btn-success btn-pill"> Confirm Payment</button>
                                         </form>
-                                    @elseif($order->payment_status == 'unpaid' && $order->payment_method == 'cod')
+                                    @elseif($order->payment_status == 'unpaid' && !$order->isCancelled() && $order->payment_method == 'cod')
                                         <form action="{{ route('admin.orders.confirmAdmin', $order->id) }}" method="POST">
                                             @method('PUT')
                                             @csrf
                                             <button type="submit" class="btn btn-block mt-2 btn-lg btn-success btn-pill"> Confirm Payment</button>
                                         </form>
-                                    @elseif($order->payment_status == 'unpaid' && $order->payment_method == 'qris')
+                                    @elseif($order->payment_status == 'unpaid' && !$order->isCancelled() && $order->payment_method == 'qris')
                                         <form action="{{ route('admin.orders.confirmAdmin', $order->id) }}" method="POST">
                                             @method('PUT')
                                             @csrf
                                             <button type="submit" class="btn btn-block mt-2 btn-lg btn-success btn-pill"> Confirm Payment</button>
                                         </form>
-                                    @elseif($order->payment_status == 'unpaid' && $order->payment_method == 'toko')
+                                    @elseif($order->payment_status == 'unpaid' && !$order->isCancelled() && $order->payment_method == 'toko')
                                         <form action="{{ route('admin.orders.confirmAdmin', $order->id) }}" method="POST">
                                             @method('PUT')
                                             @csrf
