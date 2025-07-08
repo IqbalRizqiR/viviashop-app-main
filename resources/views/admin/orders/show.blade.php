@@ -144,7 +144,7 @@
                             @if (!$order->trashed())
                                     @if ($order->isPaid() && $order->isConfirmed() && $order->payment_method != 'cod' && $order->payment_method != 'toko' && $order->shipping_service_name != 'SELF')
                                         <a href="{{ url('admin/shipments/'. $order->shipment->id .'/edit')}}" class="btn btn-block mt-2 btn-lg btn-primary btn-pill"> Procced to Shipment</a>
-                                    @elseif($order->isPaid() && $order->isCancelled() && $order->isConfirmed() && $order->payment_method == 'cod' || $order->shipping_service_name == 'SELF' && !$order->isCompleted())
+                                    @elseif(!$order->isCancelled() && $order->isPaid() && $order->isConfirmed() && $order->payment_method == 'cod' || $order->shipping_service_name == 'SELF' && !$order->isCompleted())
                                         <a href="#" class="btn btn-block mt-2 btn-lg btn-success btn-pill" onclick="event.preventDefault();
                                         document.getElementById('complete-form-{{ $order->id }}').submit();"> Mark as Completed</a>
                                         <form class="d-none" method="POST" action="{{ route('admin.orders.complete', $order) }}" id="complete-form-{{ $order->id }}">
@@ -152,15 +152,14 @@
                                         </form>
                                     @endif
 
-                                    @if (in_array($order->status, [\App\Models\Order::CREATED, \App\Models\Order::CONFIRMED]) && !$order->isCancelled() &&  $order->payment_method == 'automatic')
-                                        <a href="{{ url('admin/orders/'. $order->id .'/cancel')}}" class="btn btn-block mt-2 btn-lg btn-warning btn-pill"> Cancel</a>
+                                    @unless ($order->isCancelled())
+                                        @if ($order->isPaid() && !$order->isCancelled() && $order->payment_method == 'manual' || $order->payment_method == 'cod')
+                                            <a href="{{ route('admin.orders.invoices', $order->id) }}" class="btn btn-block mt-2 btn-lg btn-primary btn-pill">Download Invoice</a>
+                                        @elseif ($order->isPaid() && !$order->isCancelled() && $order->payment_method == 'qris')
+                                            <a href="{{ route('admin.orders.invoices', $order->id) }}" class="btn btn-block mt-2 btn-lg btn-primary btn-pill">Download Invoice</a>
+                                        @endif
 
-                                    @elseif (in_array($order->status, [\App\Models\Order::CREATED, \App\Models\Order::CONFIRMED]) && !$order->isCancelled() && $order->payment_method == 'manual' || $order->payment_method == 'cod' || $order->payment_method == 'qris' && $order->isPaid())
-                                    <a href="{{ url('admin/orders/'. $order->id .'/cancel')}}" class="btn btn-block mt-2 btn-lg btn-warning btn-pill"> Cancel</a>
-                                    @elseif (in_array($order->status, [\App\Models\Order::CREATED, \App\Models\Order::CONFIRMED]) && !$order->isCancelled() && $order->payment_method == 'manual' || $order->payment_method == 'cod' || $order->payment_method == 'qris' && !$order->isPaid())
-                                    <a href="{{ url('admin/orders/'. $order->id .'/cancel')}}" class="btn btn-block mt-2 btn-lg btn-warning btn-pill"> Cancel</a>
-
-                                    @endif
+                                    @endunless
                                     @if ($order->payment_status == 'waiting' && $order->payment_method == 'qris' && !$order->isCancelled())
                                             <form action="{{ route('admin.orders.confirmAdmin', $order->id) }}" method="POST">
                                                 @method('PUT')
@@ -198,7 +197,7 @@
                                             <button type="submit" class="btn btn-block mt-2 btn-lg btn-success btn-pill"> Confirm Payment</button>
                                         </form>
                                     @endif
-                                    @if ($order->isDelivered() && $order->isCancelled())
+                                    @if ($order->isDelivered() && !$order->isCancelled())
                                         <a href="#" class="btn btn-block mt-2 btn-lg btn-success btn-pill" onclick="event.preventDefault();
                                         document.getElementById('complete-form-{{ $order->id }}').submit();"> Mark as Completed</a>
                                         <form class="d-none" method="POST" action="{{ route('admin.orders.complete', $order) }}" id="complete-form-{{ $order->id }}">
