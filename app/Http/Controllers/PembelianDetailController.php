@@ -48,19 +48,14 @@ class PembelianDetailController extends Controller
         $detail = PembelianDetail::with('products')
             ->where('id_pembelian', $id)
             ->get();
-            // dd(count($detail));
+
         $data = array();
         $total = 0;
         $total_item = 0;
 
         foreach ($detail as $item) {
-            $total += $item->harga_beli * $item->jumlah;
-            $total_item += $item->jumlah;
             $row = array();
-            $row['kode_produk'] = '
-            <div class="total d-none">'. $total .'</div>
-                <div class="total_item d-none">'. $total_item .'</div>
-            <span class="label label-success">'. $item->products['id'] .'</span';
+            $row['kode_produk'] = '<span class="label label-success">'. $item->products['id'] .'</span>';
             $row['nama_produk'] = $item->products['name'];
             $row['harga_jual']  = '<input type="number" class="form-control input-sm price" data-id="'. $item->products['id'] .'" value="'. $item->products['price'] .'">';
             $row['harga_beli']  = '<input type="number" class="form-control input-sm harga_beli" data-id="'. $item->products['id'] .'" data-uid="'. $item->id .'" value="'. $item->products['harga_beli'] .'">';
@@ -71,9 +66,17 @@ class PembelianDetailController extends Controller
                                 </div>';
             $data[] = $row;
 
-
+            $total += $item->harga_beli * $item->jumlah;
+            $total_item += $item->jumlah;
         }
-        // dd($data);
+
+        // Sembunyikan total dan total_item di baris terakhir jika ada data
+        if (!empty($data)) {
+            $data[0]['kode_produk'] = '
+                <div class="total d-none">'. $total .'</div>
+                <div class="total_item d-none">'. $total_item .'</div>
+                <span class="label label-success">'. $data[0]['kode_produk'] .'</span>';
+        }
 
         return datatables()
             ->of($data)
