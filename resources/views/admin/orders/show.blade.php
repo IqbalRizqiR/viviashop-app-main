@@ -145,11 +145,13 @@
                                     @if ($order->isPaid() && $order->isConfirmed() && $order->payment_method != 'cod' && $order->payment_method != 'toko' && $order->shipping_service_name != 'SELF')
                                         <a href="{{ url('admin/shipments/'. $order->shipment->id .'/edit')}}" class="btn btn-block mt-2 btn-lg btn-primary btn-pill"> Procced to Shipment</a>
                                     @elseif(!$order->isCancelled() && $order->isPaid() && $order->isConfirmed() && $order->payment_method == 'cod' || $order->shipping_service_name == 'SELF' && !$order->isCompleted())
-                                        <a href="#" class="btn btn-block mt-2 btn-lg btn-success btn-pill" onclick="event.preventDefault();
-                                        document.getElementById('complete-form-{{ $order->id }}').submit();"> Mark as Completed</a>
-                                        <form class="d-none" method="POST" action="{{ route('admin.orders.complete', $order) }}" id="complete-form-{{ $order->id }}">
-                                            @csrf
-                                        </form>
+                                        @unless ($order->isCancelled())
+                                            <a href="#" class="btn btn-block mt-2 btn-lg btn-success btn-pill" onclick="event.preventDefault();
+                                            document.getElementById('complete-form-{{ $order->id }}').submit();"> Mark as Completed</a>
+                                            <form class="d-none" method="POST" action="{{ route('admin.orders.complete', $order) }}" id="complete-form-{{ $order->id }}">
+                                                @csrf
+                                            </form>
+                                        @endunless
                                     @endif
 
                                     @unless ($order->isCancelled())
