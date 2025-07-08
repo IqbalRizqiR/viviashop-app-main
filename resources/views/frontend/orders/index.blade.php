@@ -38,7 +38,7 @@
 											@if ($order->shipment != NULL)
 												@if ($order->shipment->track_number != NULL)
 													<td>{{ $order->shipment->track_number }}</td>
-												@elseif($order->shipment->track_number == NULL && $order->shipment->shipment_method == 'SELF')
+												@elseif($order->shipment->track_number == NULL && $order->shipping_courier == 'SELF')
 													<td>Ambil di Toko</td>
                                                 @else
                                                     <td>Belum Ada Resi</td>
