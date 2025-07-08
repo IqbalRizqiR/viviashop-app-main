@@ -340,7 +340,7 @@ view()->share('setting', $setting);
 				'shipping_city_id' => 'required|numeric',
 				'phone' => 'required|string|max:15',
 				'email' => 'required|email|max:255',
-				'payment_method' => 'required|string|in:manual,automatic,qris,cod',
+				'payment_method' => 'required|string|in:manual,automatic,qris,cod,toko',
 				'shipping_service' => 'required|string',
 			]);
 
