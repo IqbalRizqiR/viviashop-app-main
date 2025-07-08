@@ -408,7 +408,7 @@ class OrderController extends Controller
                     return redirect()->back();
                 }
             }
-            Alert::error('Error', 'Order cannot be completed because it has not been delivered yet.');
+            Alert::error('Error', 'Order cannot be completed because it has not been delivered or paid yet.');
             return redirect()->back();
 		}
 
