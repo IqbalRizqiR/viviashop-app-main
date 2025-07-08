@@ -97,7 +97,7 @@ class Order extends Model
 
     public function isCompleted()
 	{
-		return $this->payment_status == self::COMPLETED;
+		return $this->status == self::COMPLETED;
 	}
 
 	public function isCancelled()
