@@ -412,9 +412,14 @@ class OrderController extends Controller
             return redirect()->back();
 		}
 
-		$order->status = Order::COMPLETED;
-		$order->approved_by = auth()->id();
-		$order->approved_at = now();
+		if(!$order->isPaid()) {
+            Alert::error('Error', 'Order cannot be completed because it has not been paid yet.');
+            return redirect()->back();
+        } else {
+            $order->status = Order::COMPLETED;
+            $order->approved_by = auth()->id();
+            $order->approved_at = now();
+        }
 
 		if ($order->save()) {
 			return redirect()->back()->with('success', 'Order has been completed successfully!');
