@@ -122,6 +122,7 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
     Route::resource('products.product_images', \App\Http\Controllers\Admin\ProductImageController::class);
     Route::get('/products/generateAllBarcodes', [ProductController::class, 'generateBarcodeAll'])->name('products.generateAll');
+    Route::get('/products/generateSingleBarcode/{id}', [ProductController::class, 'generateBarcodeSingle'])->name('products.generateSingle');
     Route::resource('slides', \App\Http\Controllers\Admin\SlideController::class);
     Route::get('slides/{slideId}/up', [\App\Http\Controllers\Admin\SlideController::class, 'moveUp']);
     Route::get('slides/{slideId}/down', [\App\Http\Controllers\Admin\SlideController::class, 'moveDown']);

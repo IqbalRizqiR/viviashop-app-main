@@ -109,6 +109,15 @@ class ProductController extends Controller
         Alert::success('Berhasil', 'Barcode untuk semua produk telah dibuat.');
         return redirect()->route('admin.products.index');
     }
+    public function generateBarcodeSingle($id)
+    {
+        $products = Product::where('id', $id)->first();
+        $products->barcode = rand(1000000000, 9999999999);
+        $products->save();
+
+        Alert::success('Berhasil', 'Barcode untuk produk telah dibuat.');
+        return redirect()->route('admin.products.index');
+    }
 
     private function _convertVariantAsName($variant)
 	{
