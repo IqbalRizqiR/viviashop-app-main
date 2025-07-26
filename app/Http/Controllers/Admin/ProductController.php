@@ -198,7 +198,7 @@ class ProductController extends Controller
                     }
                 } else {
                     $request['barcode'] = rand(1000000000, 9999999999);
-                    dd($request->validated());
+                    dd($request->all());
                     $product = Product::create($request->validated() + ['user_id' => auth()->id()]);
 
                     $product->categories()->sync($categoryIds);
