@@ -169,7 +169,7 @@ class ProductController extends Controller
 					'link3' => $request->link3,
 					'name' => $product->name . $this->_convertVariantAsName($variant),
 				];
-
+                $request['barcode'] = rand(1000000000, 9999999999);
 				$newProductVariant = Product::create($variantParams);
 
 				$categoryIds = !empty($request['category_id']) ? $request['category_id'] : [];

@@ -36,7 +36,7 @@ class ProductRequest extends FormRequest
                     'link3' => 'nullable',
                     'name' => ['required', 'max:255'],
                     'sku' => ['required', 'max:255', 'unique:products,sku'],
-                    'barcode' => 'nullable|numeric|unique:products,barcode',
+                    'barcode' => 'nullable|numeric',
                 ];
             }
             case 'PUT':
