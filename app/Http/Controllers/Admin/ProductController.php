@@ -199,7 +199,7 @@ class ProductController extends Controller
                 } else {
 
                     dd($request->validated());
-                    $product = Product::create($request->validated() + ['user_id' => auth()->id()]);
+                    $product = Product::create($request->validated() + ['user_id' => auth()->id()] + ['barcode' => $request['barcode']]);
 
                     $product->categories()->sync($categoryIds);
 
