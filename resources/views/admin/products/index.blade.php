@@ -70,7 +70,7 @@
                                     <a href="{{ route('admin.instagram.postProduct', $product->id) }}" style="background-color: #ff00ff !important; border: 1px solid #ff00ff !important" class="btn btn-sm btn-primary">
                                         <i class="fab fa-instagram"></i>
                                     </a>
-                                    <a href="{{ route('admin.products.generateSingleBarcode', $product->id) }}" class="btn btn-sm btn-success">
+                                    <a href="{{ route('admin.products.generateSingle', $product->id) }}" class="btn btn-sm btn-success">
                                         <i class="fa fa-barcode"></i>
                                     </a>
                                     <form onclick="return confirm('are you sure !')" action="{{ route('admin.products.destroy', $product) }}"
