@@ -189,7 +189,7 @@ class ProductController extends Controller
 			function () use ($request) {
 				$categoryIds = !empty($request['category_id']) ? $request['category_id'] : [];
                 $product = Product::where('name', $request['name'])->where('parent_id', NULL)->first();
-
+                $request['barcode'] = rand(1000000000, 9999999999);
                 if ($product != NULL && $request['type'] == 'configurable') {
                     $product->categories()->sync($categoryIds);
 
@@ -197,8 +197,8 @@ class ProductController extends Controller
                         $this->_generateProductVariants($product, $request);
                     }
                 } else {
-                    $request['barcode'] = rand(1000000000, 9999999999);
-                    dd($request->all());
+
+                    dd($request->validated());
                     $product = Product::create($request->validated() + ['user_id' => auth()->id()]);
 
                     $product->categories()->sync($categoryIds);
