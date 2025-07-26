@@ -60,6 +60,7 @@ class ProductRequest extends FormRequest
                         'description' => 'required',
                         'name' => ['required', 'max:255', 'unique:products,name,'.$this->route()->product->id],
                         'sku' => ['required', 'max:255', 'unique:products,sku,'. $this->route()->product->id],
+                        'barcode' => 'numeric',
                     ];
                 }else {
                     return [
@@ -76,6 +77,7 @@ class ProductRequest extends FormRequest
                         'description' => 'required',
                         'name' => ['required', 'max:255', 'unique:products,name,'. $this->route()->product->id],
                         'sku' => ['required', 'max:255', 'unique:products,sku,'. $this->route()->product->id],
+                        'barcode' => 'numeric',
                     ];
                 }
 

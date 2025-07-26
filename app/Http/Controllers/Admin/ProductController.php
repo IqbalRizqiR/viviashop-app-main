@@ -329,6 +329,7 @@ class ProductController extends Controller
 		$saved = DB::transaction(
 			function () use ($product, $request) {
 				$categoryIds = !empty($request['category_id']) ? $request['category_id'] : [];
+                $request['barcode'] = rand(1000000000, 9999999999);
 				$product->update($request->validated());
 				$product->categories()->sync($categoryIds);
 
