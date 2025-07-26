@@ -198,7 +198,7 @@ class ProductController extends Controller
                     }
                 } else {
                     $product = Product::create($request->validated() + ['user_id' => auth()->id()] + ['barcode' => $request['barcode']]);
-
+                    // suka kah
                     $product->categories()->sync($categoryIds);
 
                     if ($request['type'] == 'configurable') {
