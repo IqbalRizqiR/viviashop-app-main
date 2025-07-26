@@ -34,9 +34,9 @@ class ProductRequest extends FormRequest
                     'link1' => 'nullable',
                     'link2' => 'nullable',
                     'link3' => 'nullable',
+                    'barcode' => 'nullable',
                     'name' => ['required', 'max:255'],
                     'sku' => ['required', 'max:255', 'unique:products,sku'],
-                    'barcode' => 'numeric',
                 ];
             }
             case 'PUT':
@@ -58,9 +58,9 @@ class ProductRequest extends FormRequest
                         'link3' => 'nullable',
                         'short_description' => 'required',
                         'description' => 'required',
+                        'barcode' => 'nullable',
                         'name' => ['required', 'max:255', 'unique:products,name,'.$this->route()->product->id],
                         'sku' => ['required', 'max:255', 'unique:products,sku,'. $this->route()->product->id],
-                        'barcode' => 'numeric',
                     ];
                 }else {
                     return [
@@ -75,9 +75,9 @@ class ProductRequest extends FormRequest
                         'link3' => 'nullable',
                         'short_description' => 'required',
                         'description' => 'required',
+                        'barcode' => 'nullable',
                         'name' => ['required', 'max:255', 'unique:products,name,'. $this->route()->product->id],
                         'sku' => ['required', 'max:255', 'unique:products,sku,'. $this->route()->product->id],
-                        'barcode' => 'numeric',
                     ];
                 }
 
