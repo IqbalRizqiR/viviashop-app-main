@@ -42,6 +42,9 @@
                                     <a href="{{ route('admin.attributes.edit', $attribute) }}" class="btn btn-sm btn-primary">
                                         <i class="fa fa-edit"></i>
                                     </a>
+                                    <a href="{{ route('attributes.options.index', $attribute) }}" class="btn btn-sm btn-info" title="Manage Options">
+                                        <i class="fa fa-cogs"></i> Options
+                                    </a>
                                     <form onclick="return confirm('are you sure !')" action="{{ route('admin.attributes.destroy', $attribute) }}"
                                         method="POST">
                                         @csrf

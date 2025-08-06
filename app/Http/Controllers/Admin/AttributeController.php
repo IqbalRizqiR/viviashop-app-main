@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Attribute;
+use App\Models\AttributeOption;
+use App\Models\SubAttributeOption;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AttributeRequest;
@@ -86,6 +88,90 @@ class AttributeController extends Controller
 
         return redirect()->back()->with([
             'message' => 'Berhasil di hapus',
+            'alert-type' => 'danger'
+        ]);
+    }
+
+    /**
+     * Show attribute options for specific attribute
+     */
+    public function showOptions(Attribute $attribute)
+    {
+        $attributeOptions = $attribute->attribute_options()->get();
+        return view('admin.attributes.options.index', compact('attribute', 'attributeOptions'));
+    }
+
+    /**
+     * Store attribute option
+     */
+    public function storeOption(Request $request, Attribute $attribute)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255'
+        ]);
+
+        AttributeOption::create([
+            'name' => $request->name,
+            'attribute_id' => $attribute->id
+        ]);
+
+        return redirect()->back()->with([
+            'message' => 'Option berhasil ditambahkan!',
+            'alert-type' => 'success'
+        ]);
+    }
+
+    /**
+     * Delete attribute option
+     */
+    public function destroyOption(AttributeOption $attributeOption)
+    {
+        $attributeOption->delete();
+
+        return redirect()->back()->with([
+            'message' => 'Option berhasil dihapus!',
+            'alert-type' => 'danger'
+        ]);
+    }
+
+    /**
+     * Show sub attribute options for specific attribute option
+     */
+    public function showSubOptions(AttributeOption $attributeOption)
+    {
+        $subAttributeOptions = $attributeOption->sub_attribute_options()->get();
+        return view('admin.attributes.sub-options.index', compact('attributeOption', 'subAttributeOptions'));
+    }
+
+    /**
+     * Store sub attribute option
+     */
+    public function storeSubOption(Request $request, AttributeOption $attributeOption)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255'
+        ]);
+
+        SubAttributeOption::create([
+            'name' => $request->name,
+            'attribute_option_id' => $attributeOption->id
+        ]);
+
+        return redirect()->back()->with([
+            'message' => 'Sub-option berhasil ditambahkan!',
+            'alert-type' => 'success'
+        ]);
+    }
+
+    /**
+     * Delete sub attribute option
+     */
+    public function destroySubOption(SubAttributeOption $subAttributeOption)
+    {
+        $subAttributeOption->delete();
+
+        return redirect()->back()->with([
+            'message' => 'Sub-option berhasil dihapus!',
             'alert-type' => 'danger'
         ]);
     }
