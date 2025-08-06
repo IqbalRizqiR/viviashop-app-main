@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AttributeOption extends Model
+class AttributeVariant extends Model
 {
     use HasFactory;
 
@@ -16,8 +16,8 @@ class AttributeOption extends Model
         return $this->belongsTo(Attribute::class);
     }
 
-    public function attribute_variant()
+    public function attribute_options()
     {
-        return $this->belongsTo(AttributeVariant::class);
+        return $this->hasMany(AttributeOption::class);
     }
 }
