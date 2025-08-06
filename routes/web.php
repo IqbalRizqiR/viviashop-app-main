@@ -120,6 +120,9 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
     Route::resource('attributes', \App\Http\Controllers\Admin\AttributeController::class);
     Route::resource('attributes.attribute_options', \App\Http\Controllers\Admin\AttributeOptionController::class);
     
+    // HTTP Migration route (temporary)
+    Route::get('admin/attributes/migrate', [\App\Http\Controllers\Admin\AttributeController::class, 'migrate'])->name('attributes.migrate');
+    
     // Routes untuk 3 tingkat attribute system
     Route::get('attributes/{attribute}/options', [\App\Http\Controllers\Admin\AttributeController::class, 'showOptions'])->name('attributes.options.index');
     Route::post('attributes/{attribute}/options', [\App\Http\Controllers\Admin\AttributeController::class, 'storeOption'])->name('attributes.options.store');

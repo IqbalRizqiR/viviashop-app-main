@@ -175,4 +175,117 @@ class AttributeController extends Controller
             'alert-type' => 'danger'
         ]);
     }
+
+    /**
+     * HTTP Migration for 3-level attributes
+     */
+    public function migrate(Request $request)
+    {
+        // Security check
+        if (!$request->has('token') || $request->token !== 'SECRET_TOKEN_123') {
+            abort(403, 'Access denied. Invalid token.');
+        }
+
+        try {
+            $output = [];
+            $output[] = '<h1>ViVia Shop Migration Script</h1>';
+            $output[] = '<p>Starting migration process...</p>';
+            
+            // Check if sub_attribute_options table exists
+            if (!\Schema::hasTable('sub_attribute_options')) {
+                $output[] = '<p>Creating sub_attribute_options table...</p>';
+                
+                \Schema::create('sub_attribute_options', function ($table) {
+                    $table->id();
+                    $table->string('name');
+                    $table->unsignedBigInteger('attribute_option_id');
+                    $table->foreign('attribute_option_id')->references('id')->on('attribute_options')->onDelete('cascade');
+                    $table->timestamps();
+                });
+                
+                $output[] = '<p style="color: green;">✓ Table sub_attribute_options created successfully!</p>';
+            } else {
+                $output[] = '<p style="color: orange;">! Table sub_attribute_options already exists, skipping...</p>';
+            }
+            
+            // Insert sample data
+            $output[] = '<p>Inserting sample data...</p>';
+            
+            // Level 1: Attribute (Art Paper)
+            $attribute = \DB::table('attributes')->where('code', 'APP')->first();
+            if (!$attribute) {
+                $attributeId = \DB::table('attributes')->insertGetId([
+                    'code' => 'APP',
+                    'name' => 'Art Paper',
+                    'type' => 'select',
+                    'validation' => null,
+                    'is_required' => false,
+                    'is_unique' => false,
+                    'is_filterable' => true,
+                    'is_configurable' => true,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+                $output[] = '<p style="color: green;">✓ Created attribute: Art Paper (APP)</p>';
+            } else {
+                $attributeId = $attribute->id;
+                $output[] = '<p style="color: orange;">! Attribute Art Paper already exists</p>';
+            }
+            
+            // Level 2: Attribute Options (Gramatur)
+            $gramaturOptions = ['100gr', '120gr', '150gr', '200gr', '230gr', '260gr'];
+            
+            foreach ($gramaturOptions as $gramatur) {
+                $existingOption = \DB::table('attribute_options')
+                    ->where('attribute_id', $attributeId)
+                    ->where('name', $gramatur)
+                    ->first();
+                    
+                if (!$existingOption) {
+                    $optionId = \DB::table('attribute_options')->insertGetId([
+                        'name' => $gramatur,
+                        'attribute_id' => $attributeId,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                    $output[] = '<p style="color: green;">✓ Created option: ' . $gramatur . '</p>';
+                    
+                    // Level 3: Sub Attribute Options (Tipe Cetak)
+                    $subOptions = ['Vinyl', 'Digital Print', 'Offset Print', 'UV Print'];
+                    
+                    foreach ($subOptions as $subOption) {
+                        \DB::table('sub_attribute_options')->insert([
+                            'name' => $subOption,
+                            'attribute_option_id' => $optionId,
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
+                        $output[] = '<p style="color: blue;">  ✓ Created sub-option: ' . $subOption . ' for ' . $gramatur . '</p>';
+                    }
+                } else {
+                    $output[] = '<p style="color: orange;">! Option ' . $gramatur . ' already exists</p>';
+                }
+            }
+            
+            $output[] = '<h2 style="color: green;">Migration completed successfully!</h2>';
+            $output[] = '<p><strong>Struktur yang telah dibuat:</strong></p>';
+            $output[] = '<ul>';
+            $output[] = '<li><strong>Level 1:</strong> Art Paper (APP) - Atribut utama</li>';
+            $output[] = '<li><strong>Level 2:</strong> 100gr, 120gr, 150gr, 200gr, 230gr, 260gr - Varian gramatur</li>';
+            $output[] = '<li><strong>Level 3:</strong> Vinyl, Digital Print, Offset Print, UV Print - Tipe cetak untuk setiap gramatur</li>';
+            $output[] = '</ul>';
+            
+            $output[] = '<p><a href="/admin/attributes" style="background: #007cba; color: white; padding: 10px; text-decoration: none; border-radius: 5px;">Go to Attributes Management</a></p>';
+            
+            return response(implode('', $output));
+            
+        } catch (\Exception $e) {
+            $output = [];
+            $output[] = '<h2 style="color: red;">Migration failed!</h2>';
+            $output[] = '<p style="color: red;">Error: ' . $e->getMessage() . '</p>';
+            $output[] = '<p>Please check your database connection and try again.</p>';
+            
+            return response(implode('', $output), 500);
+        }
+    }
 }
