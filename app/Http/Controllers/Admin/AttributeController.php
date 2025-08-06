@@ -14,8 +14,13 @@ class AttributeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        // Auto-migrate if sub_attribute_options table doesn't exist
+        if (!schema()->hasTable('sub_attribute_options')) {
+            $this->autoMigrate();
+        }
+        
         $attributes = Attribute::orderBy('name', 'ASC')->get();
 
         return view('admin.attributes.index', compact('attributes'));
@@ -286,6 +291,74 @@ class AttributeController extends Controller
             $output[] = '<p>Please check your database connection and try again.</p>';
             
             return response(implode('', $output), 500);
+        }
+    }
+
+    /**
+     * Auto migrate sub_attribute_options table and sample data
+     */
+    private function autoMigrate()
+    {
+        try {
+            // Create sub_attribute_options table
+            \Schema::create('sub_attribute_options', function ($table) {
+                $table->id();
+                $table->string('name');
+                $table->unsignedBigInteger('attribute_option_id');
+                $table->foreign('attribute_option_id')->references('id')->on('attribute_options')->onDelete('cascade');
+                $table->timestamps();
+            });
+            
+            // Insert sample data
+            $attribute = \DB::table('attributes')->where('code', 'APP')->first();
+            if (!$attribute) {
+                $attributeId = \DB::table('attributes')->insertGetId([
+                    'code' => 'APP',
+                    'name' => 'Art Paper',
+                    'type' => 'select',
+                    'validation' => null,
+                    'is_required' => false,
+                    'is_unique' => false,
+                    'is_filterable' => true,
+                    'is_configurable' => true,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            } else {
+                $attributeId = $attribute->id;
+            }
+            
+            $gramaturOptions = ['100gr', '120gr', '150gr', '200gr', '230gr', '260gr'];
+            
+            foreach ($gramaturOptions as $gramatur) {
+                $existingOption = \DB::table('attribute_options')
+                    ->where('attribute_id', $attributeId)
+                    ->where('name', $gramatur)
+                    ->first();
+                    
+                if (!$existingOption) {
+                    $optionId = \DB::table('attribute_options')->insertGetId([
+                        'name' => $gramatur,
+                        'attribute_id' => $attributeId,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                    
+                    $subOptions = ['Vinyl', 'Digital Print', 'Offset Print', 'UV Print'];
+                    
+                    foreach ($subOptions as $subOption) {
+                        \DB::table('sub_attribute_options')->insert([
+                            'name' => $subOption,
+                            'attribute_option_id' => $optionId,
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ]);
+                    }
+                }
+            }
+            
+        } catch (\Exception $e) {
+            // Ignore errors during auto-migration
         }
     }
 }
