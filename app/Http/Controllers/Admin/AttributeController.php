@@ -10,7 +10,7 @@ use App\Http\Requests\Admin\AttributeRequest;
 class AttributeController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource.p
      */
     public function index()
     {
