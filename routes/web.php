@@ -119,18 +119,6 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
     Route::resource('attributes', \App\Http\Controllers\Admin\AttributeController::class);
     Route::resource('attributes.attribute_options', \App\Http\Controllers\Admin\AttributeOptionController::class);
-    
-    // HTTP Migration route (temporary)
-    Route::get('admin/attributes/migrate', [\App\Http\Controllers\Admin\AttributeController::class, 'migrate'])->name('attributes.migrate');
-    
-    // Routes untuk 3 tingkat attribute system
-    Route::get('attributes/{attribute}/options', [\App\Http\Controllers\Admin\AttributeController::class, 'showOptions'])->name('attributes.options.index');
-    Route::post('attributes/{attribute}/options', [\App\Http\Controllers\Admin\AttributeController::class, 'storeOption'])->name('attributes.options.store');
-    Route::delete('attribute-options/{attributeOption}', [\App\Http\Controllers\Admin\AttributeController::class, 'destroyOption'])->name('attributes.options.destroy');
-    
-    Route::get('attribute-options/{attributeOption}/sub-options', [\App\Http\Controllers\Admin\AttributeController::class, 'showSubOptions'])->name('attributes.sub-options.index');
-    Route::post('attribute-options/{attributeOption}/sub-options', [\App\Http\Controllers\Admin\AttributeController::class, 'storeSubOption'])->name('attributes.sub-options.store');
-    Route::delete('sub-attribute-options/{subAttributeOption}', [\App\Http\Controllers\Admin\AttributeController::class, 'destroySubOption'])->name('attributes.sub-options.destroy');
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
     Route::resource('products.product_images', \App\Http\Controllers\Admin\ProductImageController::class);
     Route::get('/products/generateAllBarcodes', [ProductController::class, 'generateBarcodeAll'])->name('products.generateAll');

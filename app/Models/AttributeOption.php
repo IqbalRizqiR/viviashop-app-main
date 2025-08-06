@@ -15,9 +15,4 @@ class AttributeOption extends Model
     {
         return $this->belongsTo(Attribute::class);
     }
-
-    public function sub_attribute_options()
-    {
-        return $this->hasMany(SubAttributeOption::class);
-    }
 }
