@@ -6,15 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use App\Models\ProductInventory;
-use A	public function checkPage()
-	{
-		// Since provinces are not used in the view (commented out), 
-		// we can safely provide an empty array
-		$provinces = [];
-		
-		$products = Product::where('type', 'simple')->get();
-		return view('admin.order-admin.create', compact('provinces', 'products'));
-	}llers\Controller;
+use App\Http\Controllers\Controller;
 use App\Exceptions\OutOfStockException;
 use App\Models\Payment;
 use App\Models\Product;
@@ -169,273 +161,113 @@ class OrderController extends Controller
 
 	public function checkPage()
 	{
-		// Since provinces are not used in the view (commented out), 
-		// we can safely provide an empty array
 		$provinces = [];
-		
 		$products = Product::where('type', 'simple')->get();
 		return view('admin.order-admin.create', compact('provinces', 'products'));
 	}
 
 	public function storeAdmin(Request $request)
 	{
-		try {
-			// Validate input data
-			$request->validate([
-				'first_name' => 'required|string|max:255',
-				'last_name' => 'required|string|max:255',
-				'address1' => 'required|string|max:255',
-				'postcode' => 'required|string|max:10',
-				'phone' => 'required|string|max:20',
-				'email' => 'required|email|max:255',
-				'product_id' => 'required',
-				'qty' => 'required',
-			]);
+		$validated = $request->validate([
+			'first_name' => 'required|string|max:255',
+			'last_name' => 'required|string|max:255',
+			'address1' => 'required|string|max:255',
+			'postcode' => 'required|string|max:10',
+			'phone' => 'required|string|max:20',
+			'email' => 'required|email|max:255',
+			'product_id' => 'required|array|min:1',
+			'product_id.*' => 'required|integer',
+			'qty' => 'required|array|min:1',
+			'qty.*' => 'required|integer|min:1',
+		]);
 
-			$params = $request->all();
-			
-			// Ensure product_id and qty are arrays for consistency
-			if (!is_array($params['product_id'])) {
-				$params['product_id'] = [$params['product_id']];
+		if (count($validated['product_id']) !== count($validated['qty'])) {
+			return redirect()->back()->withErrors(['error' => 'Product and quantity count mismatch'])->withInput();
+		}
+
+		$order = DB::transaction(function () use ($request, $validated) {
+			$totalPrice = 0;
+			$orderItems = [];
+
+			for ($i = 0; $i < count($validated['product_id']); $i++) {
+				$product = Product::find($validated['product_id'][$i]);
+				if (!$product) {
+					throw new \Exception('Product not found: ' . $validated['product_id'][$i]);
+				}
+
+				$qty = $validated['qty'][$i];
+				$itemTotal = $product->price * $qty;
+				$totalPrice += $itemTotal;
+
+				$orderItems[] = [
+					'product_id' => $product->id,
+					'qty' => $qty,
+					'base_price' => $product->price,
+					'base_total' => $itemTotal,
+					'tax_amount' => 0,
+					'tax_percent' => 0,
+					'discount_amount' => 0,
+					'discount_percent' => 0,
+					'sub_total' => $itemTotal,
+					'sku' => $product->sku ?? '',
+					'type' => $product->type ?? 'simple',
+					'name' => $product->name,
+					'weight' => (string)($product->weight ?? 0),
+					'attributes' => '[]',
+				];
 			}
-			if (!is_array($params['qty'])) {
-				$params['qty'] = [$params['qty']];
+
+			$uniqueCode = rand(1, 999);
+			$grandTotal = $totalPrice + $uniqueCode;
+
+			$orderData = [
+				'user_id' => auth()->id(),
+				'code' => Order::generateCode(),
+				'status' => Order::CREATED,
+				'order_date' => now(),
+				'payment_due' => now()->addDays(7),
+				'payment_status' => Order::UNPAID,
+				'payment_method' => 'toko',
+				'base_total_price' => $totalPrice,
+				'tax_amount' => 0,
+				'tax_percent' => 0,
+				'discount_amount' => 0,
+				'discount_percent' => 0,
+				'shipping_cost' => 0,
+				'grand_total' => $grandTotal,
+				'notes' => $request->input('note'),
+				'customer_first_name' => $validated['first_name'],
+				'customer_last_name' => $validated['last_name'],
+				'customer_address1' => $validated['address1'],
+				'customer_phone' => $validated['phone'],
+				'customer_email' => $validated['email'],
+				'customer_postcode' => (int)$validated['postcode'],
+			];
+
+			if ($request->hasFile('attachments')) {
+				$orderData['attachments'] = $request->file('attachments')->store('assets/slides', 'public');
 			}
-			
-			// Validate that we have the same number of products and quantities
-			if (count($params['product_id']) !== count($params['qty'])) {
-				throw new \Exception('Product and quantity count mismatch');
-			}
-			
-			// Validate that all product IDs exist
-			foreach ($params['product_id'] as $productId) {
-				if (!Product::where('id', $productId)->exists()) {
-					throw new \Exception('One or more products not found');
+
+			$order = Order::create($orderData);
+
+			foreach ($orderItems as $itemData) {
+				$itemData['order_id'] = $order->id;
+				$orderItem = OrderItem::create($itemData);
+				
+				if ($orderItem) {
+					try {
+						ProductInventory::reduceStock($itemData['product_id'], $itemData['qty']);
+					} catch (\Exception $e) {
+					}
 				}
 			}
 
-			$params['attachments'] = $request->file('attachments');
-			$params['unique_code'] = random_int(1, 999);
+			return $order;
+		});
 
-			$order = DB::transaction(function () use ($params) {
-				$order = $this->_saveOrder($params);
-				$this->_saveOrderItems($order, $params);
-				return $order;
-			});
-
-			if ($order) {
-				Session::flash('success', 'Order has been created successfully!');
-				return redirect()->route('admin.orders.index');
-			}
-
-			return redirect()->back()->withErrors(['error' => 'Order creation failed. Please try again.']);
-		} catch (\Illuminate\Validation\ValidationException $e) {
-			return redirect()->back()->withErrors($e->errors())->withInput();
-		} catch (\Exception $e) {
-			Log::error('Error creating order: ' . $e->getMessage());
-			return redirect()->back()->withErrors(['error' => 'An error occurred while creating the order: ' . $e->getMessage()])->withInput();
-		}
+		Session::flash('success', 'Order has been created successfully!');
+		return redirect()->route('admin.orders.index');
 	}
-
-	private function _saveOrder($params)
-	{
-		// Handle product_id which might be array or single value
-		$productIds = is_array($params['product_id']) ? $params['product_id'] : [$params['product_id']];
-		$quantities = is_array($params['qty']) ? $params['qty'] : [$params['qty']];
-		
-		$productId = $productIds[0];
-		
-		$products = Product::where('id', $productId)->first();
-		
-		if (!$products) {
-			throw new \Exception('Product not found');
-		}
-		
-		// Calculate total for all products
-		$baseTotalPrice = 0;
-		for ($i = 0; $i < count($productIds); $i++) {
-			$product = Product::where('id', $productIds[$i])->first();
-			if ($product) {
-				$baseTotalPrice += $product->price * $quantities[$i];
-			}
-		}
-		
-		$taxAmount = 0;
-		$taxPercent = 0;
-		$discountAmount = 0;
-		$paymentMethod = 'toko';
-		$unique_code = $params['unique_code'];
-		$discountPercent = 0;
-		$grandTotal = ($baseTotalPrice + $taxAmount) - $discountAmount + $unique_code;
-		$orderDate = date('Y-m-d H:i:s');
-		$paymentDue = (new \DateTime($orderDate))->modify('+7 day')->format('Y-m-d H:i:s');
-
-		// $user_profile = [
-		// 	'first_name' => $params['first_name'],
-		// 	'last_name' => $params['last_name'],
-		// 	'address1' => $params['address1'],
-		// 	'postcode' => $params['postcode'],
-		// 	'phone' => $params['phone'],
-		// 	'email' => $params['email'],
-		// ];
-
-		// auth()->user()->update($user_profile);
-
-        // dd($params);
-		if ($params['attachments'] != null) {
-			$orderParams = [
-				'user_id' => auth()->id(),
-				'code' => Order::generateCode(),
-				'status' => Order::CREATED,
-				'order_date' => $orderDate,
-				'payment_due' => $paymentDue,
-				'payment_status' => Order::UNPAID,
-				'attachments' => $params['attachments']->store('assets/slides', 'public'),
-				'base_total_price' => $baseTotalPrice,
-				'tax_amount' => $taxAmount,
-				'tax_percent' => $taxPercent,
-				'discount_amount' => $discountAmount,
-				'discount_percent' => $discountPercent,
-				'grand_total' => $grandTotal,
-				'note' => $params['note'],
-				'customer_first_name' => $params['first_name'],
-				'customer_last_name' => $params['last_name'],
-				'customer_address1' => $params['address1'],
-				'payment_method' => $paymentMethod,
-				'customer_phone' => $params['phone'],
-				'customer_email' => $params['email'],
-				'customer_postcode' => $params['postcode'],
-			];
-		} else {
-			$orderParams = [
-				'user_id' => auth()->id(),
-				'code' => Order::generateCode(),
-				'status' => Order::CREATED,
-				'order_date' => $orderDate,
-				'payment_due' => $paymentDue,
-				'payment_status' => Order::UNPAID,
-				'base_total_price' => $baseTotalPrice,
-				'tax_amount' => $taxAmount,
-				'tax_percent' => $taxPercent,
-				'discount_amount' => $discountAmount,
-				'discount_percent' => $discountPercent,
-				'grand_total' => $grandTotal,
-				'note' => $params['note'],
-				'customer_first_name' => $params['first_name'],
-				'customer_last_name' => $params['last_name'],
-				'customer_address1' => $params['address1'],
-				'payment_method' => $paymentMethod,
-				'customer_phone' => $params['phone'],
-				'customer_email' => $params['email'],
-				'customer_postcode' => $params['postcode'],
-			];
-		}
-
-
-		return Order::create($orderParams);
-	}
-
-	private function _saveOrderItems($order, $params)
-	{
-		if ($order) {
-            $data = [];
-
-			// Ensure product_id and qty are arrays
-			$productIds = is_array($params['product_id']) ? $params['product_id'] : [$params['product_id']];
-			$quantities = is_array($params['qty']) ? $params['qty'] : [$params['qty']];
-
-			if (count($productIds) == 1) {
-                $products = Product::where('id', $productIds[0])->first();
-                
-                if (!$products) {
-                    throw new \Exception('Product not found');
-                }
-                
-                $itemTaxAmount = 0;
-                $itemTaxPercent = 0;
-                $itemDiscountAmount = 0;
-                $itemDiscountPercent = 0;
-                $itemBaseTotal = $quantities[0] * $products->price;
-                $itemSubTotal = $itemBaseTotal + $itemTaxAmount - $itemDiscountAmount;
-
-                // $product = isset($products->parent) ? $products->parent : $products;
-
-                $orderItemParams = [
-                    'order_id' => $order->id,
-                    'product_id' => $productIds[0],
-                    'qty' => $quantities[0],
-                    'base_price' => $products->price,
-                    'base_total' => $itemBaseTotal,
-                    'tax_amount' => $itemTaxAmount,
-                    'tax_percent' => $itemTaxPercent,
-                    'discount_amount' => $itemDiscountAmount,
-                    // 'attachments' => $order->
-                    'discount_percent' => $itemDiscountPercent,
-                    'sub_total' => $itemSubTotal,
-                    'sku' => $products->sku,
-                    'type' => $products->type,
-                    'name' => $products->name,
-                    'weight' => $products->weight,
-                    'attributes' => json_encode([]),
-                ];
-
-                $orderItem = OrderItem::create($orderItemParams);
-
-                if ($orderItem) {
-                    ProductInventory::reduceStock($orderItem->product_id, $orderItem->qty);
-                }
-            } else {
-                $i = 0;
-                foreach ($productIds as $productId) {
-                    $idProduct = $productIds[$i];
-                    $qty = $quantities[$i];
-                    $products = Product::where('id', $productId)->first();
-                    
-                    if (!$products) {
-                        throw new \Exception('Product not found: ' . $productId);
-                    }
-                    
-                    $itemTaxAmount = 0;
-                    $itemTaxPercent = 0;
-                    $itemDiscountAmount = 0;
-                    $itemDiscountPercent = 0;
-                    $itemBaseTotal = $qty * $products->price;
-                    $itemSubTotal = $itemBaseTotal + $itemTaxAmount - $itemDiscountAmount;
-
-                    // $product = isset($products->parent) ? $products->parent : $products;
-
-                    $orderItemParams = [
-                        'order_id' => $order->id,
-                        'product_id' => $idProduct,
-                        'qty' => $qty,
-                        'base_price' => $products->price,
-                        'base_total' => $itemBaseTotal,
-                        'tax_amount' => $itemTaxAmount,
-                        'tax_percent' => $itemTaxPercent,
-                        'discount_amount' => $itemDiscountAmount,
-                        // 'attachments' => $order->
-                        'discount_percent' => $itemDiscountPercent,
-                        'sub_total' => $itemSubTotal,
-                        'sku' => $products->sku,
-                        'type' => $products->type,
-                        'name' => $products->name,
-                        'weight' => $products->weight,
-                        'attributes' => json_encode([]),
-                    ];
-
-                    $orderItem = OrderItem::create($orderItemParams);
-                    if ($orderItem) {
-                        ProductInventory::reduceStock($orderItem->product_id, $orderItem->qty);
-                    }
-                    $i++;
-                }
-            }
-
-        // dd($data);
-
-		}
-	}
-
 
     public function cancel(Order $order)
 	{
