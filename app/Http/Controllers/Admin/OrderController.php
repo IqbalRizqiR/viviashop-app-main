@@ -6,12 +6,21 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use App\Models\ProductInventory;
-use App\Http\Controllers\Controller;
+use A	public function checkPage()
+	{
+		// Since provinces are not used in the view (commented out), 
+		// we can safely provide an empty array
+		$provinces = [];
+		
+		$products = Product::where('type', 'simple')->get();
+		return view('admin.order-admin.create', compact('provinces', 'products'));
+	}llers\Controller;
 use App\Exceptions\OutOfStockException;
 use App\Models\Payment;
 use App\Models\Product;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -160,40 +169,99 @@ class OrderController extends Controller
 
 	public function checkPage()
 	{
-		$provinces = $this->getProvinces();
+		// Since provinces are not used in the view (commented out), 
+		// we can safely provide an empty array
+		$provinces = [];
+		
 		$products = Product::where('type', 'simple')->get();
-		// dd($provinces);
 		return view('admin.order-admin.create', compact('provinces', 'products'));
 	}
 
 	public function storeAdmin(Request $request)
 	{
-		$params = $request->all();
-		$params['attachments'] = $request->file('attachments');
-		$params['unique_code'] = random_int('1', '999');
+		try {
+			// Validate input data
+			$request->validate([
+				'first_name' => 'required|string|max:255',
+				'last_name' => 'required|string|max:255',
+				'address1' => 'required|string|max:255',
+				'postcode' => 'required|string|max:10',
+				'phone' => 'required|string|max:20',
+				'email' => 'required|email|max:255',
+				'product_id' => 'required',
+				'qty' => 'required',
+			]);
 
-		$order = DB::transaction(function () use ($params) {
-			$order = $this->_saveOrder($params);
-			$this->_saveOrderItems($order, $params);
-			return $order;
-		});
+			$params = $request->all();
+			
+			// Ensure product_id and qty are arrays for consistency
+			if (!is_array($params['product_id'])) {
+				$params['product_id'] = [$params['product_id']];
+			}
+			if (!is_array($params['qty'])) {
+				$params['qty'] = [$params['qty']];
+			}
+			
+			// Validate that we have the same number of products and quantities
+			if (count($params['product_id']) !== count($params['qty'])) {
+				throw new \Exception('Product and quantity count mismatch');
+			}
+			
+			// Validate that all product IDs exist
+			foreach ($params['product_id'] as $productId) {
+				if (!Product::where('id', $productId)->exists()) {
+					throw new \Exception('One or more products not found');
+				}
+			}
 
-		if ($order) {
-			Session::flash('success', 'Order has been created successfully!');
-			return redirect()->route('admin.orders.index');
+			$params['attachments'] = $request->file('attachments');
+			$params['unique_code'] = random_int(1, 999);
+
+			$order = DB::transaction(function () use ($params) {
+				$order = $this->_saveOrder($params);
+				$this->_saveOrderItems($order, $params);
+				return $order;
+			});
+
+			if ($order) {
+				Session::flash('success', 'Order has been created successfully!');
+				return redirect()->route('admin.orders.index');
+			}
+
+			return redirect()->back()->withErrors(['error' => 'Order creation failed. Please try again.']);
+		} catch (\Illuminate\Validation\ValidationException $e) {
+			return redirect()->back()->withErrors($e->errors())->withInput();
+		} catch (\Exception $e) {
+			Log::error('Error creating order: ' . $e->getMessage());
+			return redirect()->back()->withErrors(['error' => 'An error occurred while creating the order: ' . $e->getMessage()])->withInput();
 		}
-
-		return redirect()->back()->withErrors(['error' => 'Order creation failed. Please try again.']);
 	}
 
 	private function _saveOrder($params)
 	{
-		// dd($params['product_id']);
-		$products = Product::where('id', $params['product_id'])->first();
-		$baseTotalPrice = $products->price;
+		// Handle product_id which might be array or single value
+		$productIds = is_array($params['product_id']) ? $params['product_id'] : [$params['product_id']];
+		$quantities = is_array($params['qty']) ? $params['qty'] : [$params['qty']];
+		
+		$productId = $productIds[0];
+		
+		$products = Product::where('id', $productId)->first();
+		
+		if (!$products) {
+			throw new \Exception('Product not found');
+		}
+		
+		// Calculate total for all products
+		$baseTotalPrice = 0;
+		for ($i = 0; $i < count($productIds); $i++) {
+			$product = Product::where('id', $productIds[$i])->first();
+			if ($product) {
+				$baseTotalPrice += $product->price * $quantities[$i];
+			}
+		}
+		
 		$taxAmount = 0;
 		$taxPercent = 0;
-		// dd($params);
 		$discountAmount = 0;
 		$paymentMethod = 'toko';
 		$unique_code = $params['unique_code'];
@@ -272,21 +340,30 @@ class OrderController extends Controller
 		if ($order) {
             $data = [];
 
-			if (count($params['product_id']) == 1) {
-                $products = Product::where('id', $params['product_id'][0])->first();
+			// Ensure product_id and qty are arrays
+			$productIds = is_array($params['product_id']) ? $params['product_id'] : [$params['product_id']];
+			$quantities = is_array($params['qty']) ? $params['qty'] : [$params['qty']];
+
+			if (count($productIds) == 1) {
+                $products = Product::where('id', $productIds[0])->first();
+                
+                if (!$products) {
+                    throw new \Exception('Product not found');
+                }
+                
                 $itemTaxAmount = 0;
                 $itemTaxPercent = 0;
                 $itemDiscountAmount = 0;
                 $itemDiscountPercent = 0;
-                $itemBaseTotal = $params['qty'][0] * $products->price;
+                $itemBaseTotal = $quantities[0] * $products->price;
                 $itemSubTotal = $itemBaseTotal + $itemTaxAmount - $itemDiscountAmount;
 
-                $product = isset($products->model->parent) ? $products->model->parent : $products->model;
+                // $product = isset($products->parent) ? $products->parent : $products;
 
                 $orderItemParams = [
                     'order_id' => $order->id,
-                    'product_id' => $params['product_id'][0],
-                    'qty' => $params['qty'][0],
+                    'product_id' => $productIds[0],
+                    'qty' => $quantities[0],
                     'base_price' => $products->price,
                     'base_total' => $itemBaseTotal,
                     'tax_amount' => $itemTaxAmount,
@@ -299,7 +376,7 @@ class OrderController extends Controller
                     'type' => $products->type,
                     'name' => $products->name,
                     'weight' => $products->weight,
-                    'attributes' => json_encode($products->options),
+                    'attributes' => json_encode([]),
                 ];
 
                 $orderItem = OrderItem::create($orderItemParams);
@@ -309,10 +386,15 @@ class OrderController extends Controller
                 }
             } else {
                 $i = 0;
-                foreach ($params['product_id'] as $productId) {
-                    $idProduct = $params['product_id'][$i];
-                    $qty = $params['qty'][$i];
+                foreach ($productIds as $productId) {
+                    $idProduct = $productIds[$i];
+                    $qty = $quantities[$i];
                     $products = Product::where('id', $productId)->first();
+                    
+                    if (!$products) {
+                        throw new \Exception('Product not found: ' . $productId);
+                    }
+                    
                     $itemTaxAmount = 0;
                     $itemTaxPercent = 0;
                     $itemDiscountAmount = 0;
@@ -320,7 +402,7 @@ class OrderController extends Controller
                     $itemBaseTotal = $qty * $products->price;
                     $itemSubTotal = $itemBaseTotal + $itemTaxAmount - $itemDiscountAmount;
 
-                    $product = isset($products->model->parent) ? $products->model->parent : $products->model;
+                    // $product = isset($products->parent) ? $products->parent : $products;
 
                     $orderItemParams = [
                         'order_id' => $order->id,
@@ -338,7 +420,7 @@ class OrderController extends Controller
                         'type' => $products->type,
                         'name' => $products->name,
                         'weight' => $products->weight,
-                        'attributes' => json_encode($products->options),
+                        'attributes' => json_encode([]),
                     ];
 
                     $orderItem = OrderItem::create($orderItemParams);

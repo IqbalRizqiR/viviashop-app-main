@@ -145,7 +145,7 @@
                     </div>
 
                     <div class="box-footer">
-                        <button type="submit" class="btn btn-success">Create Order</button>
+                        <button type="submit" class="btn btn-success" onclick="return validateForm()">Create Order</button>
                     </div>
                     <!-- Barcode Scanner Modal -->
                     <div class="modal fade" id="barcodeModal" tabindex="-1">
@@ -476,5 +476,14 @@ $(document).ready(function() {
         });
     });
 });
+
+function validateForm() {
+    const orderItems = document.getElementById('order-items');
+    if (orderItems.children.length === 0) {
+        alert('Please add at least one product to the order');
+        return false;
+    }
+    return true;
+}
 </script>
 @endpush
