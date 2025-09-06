@@ -156,7 +156,7 @@
                     </div>
 
                     <div class="box-footer">
-                        <button type="submit" class="btn btn-success" id="create-order-btn">Create Order</button>
+                        <button type="submit" class="btn btn-success" onclick="return validateForm()">Create Order</button>
                     </div>
                     <!-- Barcode Scanner Modal -->
                     <div class="modal fade" id="barcodeModal" tabindex="-1">
@@ -188,7 +188,7 @@
 @push('scripts')
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-<script type="text/javascript" 
+<script type="text/javascript"
     @if(config('midtrans.isProduction'))
         src="https://app.midtrans.com/snap/snap.js"
     @else
@@ -403,7 +403,7 @@ function loadAttributesForProduct(productId, itemIndex) {
 
 function renderAttributeOptions(attributes, itemIndex) {
     let attributeHtml = '<div class="border-top pt-3"><h6>Product Options:</h6>';
-    
+
     attributes.forEach(attribute => {
         attributeHtml += `
             <div class="form-group mb-3">
@@ -414,11 +414,11 @@ function renderAttributeOptions(attributes, itemIndex) {
                         <select class="form-control variant-select" data-attribute-code="${attribute.code}" data-item-index="${itemIndex}">
                             <option value="">Pilih Varian</option>
         `;
-        
+
         attribute.attribute_variants.forEach(variant => {
             attributeHtml += `<option value="${variant.id}">${variant.name}</option>`;
         });
-        
+
         attributeHtml += `
                         </select>
                     </div>
@@ -432,16 +432,16 @@ function renderAttributeOptions(attributes, itemIndex) {
             </div>
         `;
     });
-    
+
     attributeHtml += '</div>';
-    
+
     $(`#attribute-section-${itemIndex}`).html(attributeHtml);
-    
+
     $(`.variant-select[data-item-index="${itemIndex}"]`).on('change', function() {
         const variantId = $(this).val();
         const attributeCode = $(this).data('attribute-code');
         const optionSelect = $(this).closest('.row').find('.option-select');
-        
+
         if (variantId) {
             $.ajax({
                 url: `/api/attribute-options/0/${variantId}`,
@@ -464,7 +464,7 @@ function renderAttributeOptions(attributes, itemIndex) {
 function addProductToOrder(product) {
     const orderItems = document.getElementById('order-items');
     const itemIndex = orderItems.children.length;
-    
+
     let attributeSection = '';
     if (product.type === 'configurable') {
         attributeSection = `
@@ -496,7 +496,7 @@ function addProductToOrder(product) {
     `;
 
     orderItems.insertAdjacentHTML('beforeend', productHtml);
-    
+
     if (product.type === 'configurable') {
         loadAttributesForProduct(product.id, itemIndex);
     }
@@ -579,18 +579,6 @@ $(document).ready(function() {
     });
 });
 
-function handleFormSubmit(event) {
-    const paymentMethod = $('#payment_method').val();
-    
-    if (paymentMethod === 'qris' || paymentMethod === 'midtrans') {
-        event.preventDefault();
-        processPaymentGateway();
-        return false;
-    }
-    
-    return validateForm();
-}
-
 function validateForm() {
     const orderItems = document.getElementById('order-items');
     if (orderItems.children.length === 0) {
@@ -598,136 +586,6 @@ function validateForm() {
         return false;
     }
     return true;
-}
-
-$('#payment_method').change(function() {
-    const paymentMethod = $(this).val();
-    if (paymentMethod === 'qris' || paymentMethod === 'midtrans') {
-        $('#payment-gateway-section').show();
-        $('#create-order-btn').hide();
-    } else {
-        $('#payment-gateway-section').hide();
-        $('#create-order-btn').show();
-    }
-});
-
-$('#pay-button').click(function() {
-    const paymentMethod = $('#payment_method').val();
-    
-    if (paymentMethod === 'qris' || paymentMethod === 'midtrans') {
-        processPaymentGateway();
-    }
-});
-
-function processPaymentGateway() {
-    // Validate that products are added
-    const orderItems = document.getElementById('order-items');
-    if (orderItems.children.length === 0) {
-        alert('Please add at least one product to the order');
-        return;
-    }
-    
-    // Show loading state
-    const payButton = $('#pay-button');
-    const originalText = payButton.text();
-    payButton.prop('disabled', true).text('Processing...');
-    
-    const formData = new FormData($('#order-form')[0]);
-    
-    console.log('Form data being sent:');
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-    }
-    
-    console.log('Making AJAX request to:', '{{ route("admin.orders.storeAdmin") }}');
-    
-    $.ajax({
-        url: '{{ route("admin.orders.storeAdmin") }}',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            console.log('AJAX Response:', response);
-            
-            // Reset button state
-            const payButton = $('#pay-button');
-            payButton.prop('disabled', false).text('Process Payment');
-            
-            if (response.success) {
-                if (response.payment_token) {
-                    // Payment gateway order created, process payment immediately
-                    let orderCode = response.order_code || 'ORD-' + response.order_id;
-                    
-                    // Add a small delay to ensure the page is ready
-                    setTimeout(function() {
-                        if (typeof snap === 'undefined') {
-                            alert('Payment gateway not loaded. Please refresh the page and try again.');
-                            window.location.reload();
-                            return;
-                        }
-                        
-                        snap.pay(response.payment_token, {
-                            onSuccess: function(result) {
-                                alert('Payment successful!');
-                                window.location.href = '{{ route("admin.payment.finish") }}?order_id=' + orderCode;
-                            },
-                            onPending: function(result) {
-                                alert('Payment pending. Please complete your payment.');
-                                window.location.href = '{{ route("admin.payment.unfinish") }}?order_id=' + orderCode;
-                            },
-                            onError: function(result) {
-                                alert('Payment failed. Please try again.');
-                                window.location.href = '{{ route("admin.payment.error") }}?order_id=' + orderCode;
-                            },
-                            onClose: function() {
-                                console.log('Payment window closed');
-                                window.location.href = '{{ route("admin.orders.show", ":id") }}'.replace(':id', response.order_id);
-                            }
-                        });
-                    }, 100);
-                } else {
-                    // Regular order created without payment
-                    alert('Order created successfully!');
-                    window.location.href = '{{ route("admin.orders.show", ":id") }}'.replace(':id', response.order_id);
-                }
-            } else {
-                alert('Error: ' + (response.message || 'Unknown error occurred'));
-            }
-        },
-        error: function(xhr) {
-            console.error('AJAX Error:', xhr);
-            
-            // Reset button state
-            const payButton = $('#pay-button');
-            payButton.prop('disabled', false).text('Process Payment');
-            
-            let errorMessage = 'Error creating order. Please try again.';
-            
-            if (xhr.responseJSON) {
-                if (xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                } else if (xhr.responseJSON.errors) {
-                    const errors = Object.values(xhr.responseJSON.errors).flat();
-                    errorMessage = errors.join(', ');
-                }
-            } else if (xhr.responseText) {
-                try {
-                    const response = JSON.parse(xhr.responseText);
-                    if (response.message) {
-                        errorMessage = response.message;
-                    }
-                } catch (e) {
-                    console.log('Could not parse error response');
-                }
-            }
-            
-            alert(errorMessage);
-        }
-    });
 }
 </script>
 @endpush

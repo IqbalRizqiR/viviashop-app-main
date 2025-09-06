@@ -44,11 +44,11 @@ class OrderController extends Controller
         MidtransConfig::$isProduction = $this->isProduction;
         MidtransConfig::$isSanitized = $this->isSanitized;
         MidtransConfig::$is3ds = $this->is3ds;
-        
-        $isLocalhost = in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1']) || 
+
+        $isLocalhost = in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1']) ||
                        str_contains(request()->getHost(), '.local') ||
                        str_contains(request()->getHost(), 'laragon');
-        
+
         if ($isLocalhost) {
             MidtransConfig::$curlOptions = [
                 CURLOPT_SSL_VERIFYPEER => false,
@@ -115,7 +115,7 @@ class OrderController extends Controller
     public function show($id)
 	{
 		$order = Order::withTrashed()->with('shipment')->findOrFail($id);
-		
+
 		// Prepare payment data for Midtrans
 		$paymentData = [
 			'midtransClientKey' => config('midtrans.clientKey'),
@@ -124,7 +124,7 @@ class OrderController extends Controller
 				? 'https://app.midtrans.com/snap/snap.js'
 				: 'https://app.sandbox.midtrans.com/snap/snap.js'
 		];
-		
+
 		return view('admin.orders.show', compact('order', 'paymentData'));
 	}
 
@@ -292,7 +292,7 @@ class OrderController extends Controller
 			foreach ($orderItems as $itemData) {
 				$itemData['order_id'] = $order->id;
 				$orderItem = OrderItem::create($itemData);
-				
+
 				if ($orderItem) {
 					try {
 						ProductInventory::reduceStock($itemData['product_id'], $itemData['qty']);
@@ -350,17 +350,17 @@ class OrderController extends Controller
 
 		Session::flash('success', 'Order has been created successfully!');
 		return redirect()->route('admin.orders.show', $order->id);
-		
+
 		} catch (\Exception $e) {
 			Log::error('Order creation error: ' . $e->getMessage());
-			
+
 			if ($request->ajax() || $request->expectsJson()) {
 				return response()->json([
 					'success' => false,
 					'message' => 'Error creating order: ' . $e->getMessage()
 				], 500);
 			}
-			
+
 			return redirect()->back()->withErrors(['error' => 'Error creating order. Please try again.'])->withInput();
 		}
 	}
@@ -374,9 +374,9 @@ class OrderController extends Controller
 
 			$transactionStatus = $notification->transaction_status;
 			$orderCode = $notification->order_id;
-			
+
 			$order = Order::where('code', $orderCode)->first();
-			
+
 			if (!$order) {
 				return response()->json(['status' => 'error', 'message' => 'Order not found'], 404);
 			}
@@ -423,12 +423,12 @@ class OrderController extends Controller
 		}
 
 		$paymentResponse = $this->_generatePaymentToken($order);
-		
+
 		if ($paymentResponse['success']) {
 			$order->payment_token = $paymentResponse['token'];
 			$order->payment_url = $paymentResponse['redirect_url'];
 			$order->save();
-			
+
 			if (request()->expectsJson()) {
 				return response()->json([
 					'success' => true,
@@ -437,14 +437,14 @@ class OrderController extends Controller
 					'message' => 'Payment token generated successfully.'
 				]);
 			}
-			
+
 			return redirect()->back()->with('success', 'Payment token generated successfully. You can now process the payment.');
 		}
-		
+
 		if (request()->expectsJson()) {
 			return response()->json(['success' => false, 'message' => 'Failed to generate payment token: ' . $paymentResponse['message']]);
 		}
-		
+
 		return redirect()->back()->with('error', 'Failed to generate payment token: ' . $paymentResponse['message']);
 	}
 
@@ -452,18 +452,18 @@ class OrderController extends Controller
 	{
 		$orderId = $request->get('order_id');
 		$order = Order::where('code', $orderId)->first();
-		
+
 		if (!$order) {
 			return redirect()->route('admin.orders.index')->with('error', 'Order not found.');
 		}
-		
+
 		// Update payment status to paid
 		$order->payment_status = Order::PAID;
 		$order->status = Order::CONFIRMED;
 		$order->approved_at = now();
 		$order->notes = $order->notes . "\nPayment completed successfully via " . $order->payment_method;
 		$order->save();
-		
+
 		return redirect()->route('admin.orders.show', $order->id)->with('success', 'Payment successful! Order has been confirmed.');
 	}
 
@@ -471,16 +471,16 @@ class OrderController extends Controller
 	{
 		$orderId = $request->get('order_id');
 		$order = Order::where('code', $orderId)->first();
-		
+
 		if (!$order) {
 			return redirect()->route('admin.orders.index')->with('error', 'Order not found.');
 		}
-		
+
 		// Update payment status to waiting/pending
 		$order->payment_status = Order::WAITING;
 		$order->notes = $order->notes . "\nPayment pending via " . $order->payment_method;
 		$order->save();
-		
+
 		return redirect()->route('admin.orders.show', $order->id)->with('warning', 'Payment pending. Please complete your payment or wait for payment confirmation.');
 	}
 
@@ -488,25 +488,25 @@ class OrderController extends Controller
 	{
 		$orderId = $request->get('order_id');
 		$order = Order::where('code', $orderId)->first();
-		
+
 		if (!$order) {
 			return redirect()->route('admin.orders.index')->with('error', 'Order not found.');
 		}
-		
+
 		// Keep payment status as unpaid for error
 		$order->notes = $order->notes . "\nPayment failed via " . $order->payment_method;
 		$order->save();
-		
+
 		return redirect()->route('admin.orders.show', $order->id)->with('error', 'Payment failed. Please try again or contact support.');
 	}
 
 	private function _collectProductAttributes($product, $request, $itemIndex = null)
 	{
 		$attributes = [];
-		
+
 		if ($product->configurable()) {
 			$configurableAttributes = $product->configurableAttributes();
-			
+
 			// Handle both old and new attribute structure
 			if ($itemIndex !== null && $request->has('attributes') && ($request->input('attributes')[$itemIndex] ?? null)) {
 				// New structure from modal (2-level)
@@ -545,7 +545,7 @@ class OrderController extends Controller
 						}
 					}
 				}
-				
+
 				// Old structure for backward compatibility
 				if (!$hasDirectAttributes) {
 					foreach ($configurableAttributes as $attribute) {
@@ -569,7 +569,7 @@ class OrderController extends Controller
 				}
 			}
 		}
-		
+
 		return $attributes;
 	}
 
@@ -671,7 +671,7 @@ class OrderController extends Controller
 				'file' => $e->getFile(),
 				'line' => $e->getLine()
 			]);
-			
+
 			// Check if it's a specific Midtrans error
 			$errorMessage = $e->getMessage();
 			if (strpos($errorMessage, 'Undefined array key') !== false) {
@@ -681,7 +681,7 @@ class OrderController extends Controller
 			} elseif (strpos($errorMessage, 'ServerKey') !== false || strpos($errorMessage, 'ClientKey') !== false) {
 				$errorMessage = 'Payment gateway authentication error. Please contact administrator.';
 			}
-			
+
 			return [
 				'success' => false,
 				'message' => $errorMessage,
@@ -815,7 +815,7 @@ class OrderController extends Controller
 				$order->shipment->shipped_at = now();
 				$order->shipment->save();
 			}
-			
+
 			$order->status = Order::COMPLETED;
 			$order->approved_by = auth()->id();
 			$order->approved_at = now();
