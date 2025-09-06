@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Attribute;
+use App\Models\Brand;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use App\Models\AttributeOption;
 use App\Models\ProductInventory;
@@ -13,6 +15,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\File;
 use App\Models\ProductAttributeValue;
 use App\Http\Requests\Admin\ProductRequest;
+use App\Services\ProductVariantService;
 use App\Imports\ProdukImport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -21,12 +24,21 @@ use App\Exports\ProductTemplateExport;
 
 class ProductController extends Controller
 {
+    protected $productVariantService;
+
+    public function __construct(ProductVariantService $productVariantService)
+    {
+        $this->productVariantService = $productVariantService;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $products = Product::orderBy('name', 'ASC')->with('productInventory')->get();
+        $products = Product::with(['brand', 'productInventory', 'productVariants'])
+            ->where('parent_id', null)
+            ->orderBy('name', 'ASC')
+            ->get();
 
         return view('admin.products.index', compact('products'));
     }
@@ -42,15 +54,16 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::orderBy('name', 'ASC')->get(['name','id']);
+        $brands = Brand::active()->orderBy('name', 'ASC')->get(['name','id']);
         $types = Product::types();
         $configurable_attributes = $this->_getConfigurableAttributes();
 
-        return view('admin.products.create', compact('categories', 'types', 'configurable_attributes'));
+        return view('admin.products.create', compact('categories', 'brands', 'types', 'configurable_attributes'));
     }
 
     private function _getConfigurableAttributes()
 	{
-		return Attribute::where('is_configurable', true)->get();
+		return Attribute::where('is_configurable', true)->with(['attribute_variants.attribute_options'])->get();
     }
 
     private function _generateAttributeCombinations($arrays)
@@ -140,16 +153,19 @@ class ProductController extends Controller
             $attributeOption = AttributeOption::find($attributeOptionID);
 
 			if ($attributeOption != null) {
+                $attributeVariant = $attributeOption->attribute_variant;
+                $attribute = $attributeVariant->attribute;
+                
                 $attributeValueParams = [
                     'parent_product_id' => $parentProductID,
                     'product_id' => $product->id,
-                    'attribute_id' => $attributeOption->attribute_id,
+                    'attribute_id' => $attribute->id,
+                    'attribute_variant_id' => $attributeVariant->id,
+                    'attribute_option_id' => $attributeOption->id,
                     'text_value' => $attributeOption->name,
                 ];
                 ProductAttributeValue::create($attributeValueParams);
             }
-
-
 		}
 	}
 
@@ -194,49 +210,53 @@ class ProductController extends Controller
      */
     public function store(ProductRequest $request)
     {
-        $request['barcode'] = rand(1000000000, 9999999999);
-        $product = DB::transaction(
-			function () use ($request) {
-				$categoryIds = !empty($request['category_id']) ? $request['category_id'] : [];
-                $product = Product::where('name', $request['name'])->where('parent_id', NULL)->first();
-                if ($product != NULL && $request['type'] == 'configurable') {
-                    $product->categories()->sync($categoryIds);
-
-                    if ($request['type'] == 'configurable') {
-                        $this->_generateProductVariants($product, $request);
-                    }
-                } else {
-                    $product = Product::create($request->validated() + ['user_id' => auth()->id()] + ['barcode' => $request['barcode']]);
-                    // suka kah
-                    $product->categories()->sync($categoryIds);
-
-                    if ($request['type'] == 'configurable') {
-                        $this->_generateProductVariants($product, $request);
-                    }
+        try {
+            if ($request->type === 'configurable' && !empty($request->variants)) {
+                $result = $this->productVariantService->createConfigurableProduct(
+                    $request->validated(),
+                    $request->variants
+                );
+                $product = $result['product'];
+            } else {
+                $product = $this->productVariantService->createBaseProduct($request->validated());
+                
+                if ($request->type === 'simple') {
+                    $this->createSimpleProductInventory($product, $request);
                 }
+            }
 
+            return redirect()->route('admin.products.edit', $product)->with([
+                'message' => 'Produk berhasil dibuat!',
+                'alert-type' => 'success'
+            ]);
 
-				return $product;
-			}
-        );
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with([
+                'message' => 'Error: ' . $e->getMessage(),
+                'alert-type' => 'error'
+            ]);
+        }
+    }
 
-        return redirect()->route('admin.products.edit', $product)->with([
-            'message' => 'Berhasil di buat !',
-            'alert-type' => 'success'
-        ]);
+    private function createSimpleProductInventory(Product $product, $request)
+    {
+        if ($request->qty !== null) {
+            ProductInventory::create([
+                'product_id' => $product->id,
+                'qty' => $request->qty,
+            ]);
+        }
     }
 
     public function data()
     {
-        // 1) Fetch all products into a collection
-        $products = Product::select('id', 'sku', 'name', 'price')
+        $products = Product::with(['variants.productAttributeValues.attribute', 'variants.productAttributeValues.attribute_variant', 'variants.productAttributeValues.attribute_option'])
+            ->select('id', 'sku', 'name', 'price', 'type')
             ->get();
 
-
-        // 3) Return a valid DataTables JSON response
         return datatables()
-            ->of($products)                   // use the array of rows
-            ->addIndexColumn()            // adds DT_RowIndex
+            ->of($products)
+            ->addIndexColumn()
             ->addColumn('name' , function ($product) {
                 return $product->name;
             })
@@ -252,12 +272,37 @@ class ProductController extends Controller
                              class="btn btn-sm btn-success select-product"
                              data-id="'. $product->id .'"
                              data-sku="'. $product->sku .'"
-                            data-name="'. e($product->name) .'">
+                             data-name="'. e($product->name) .'"
+                             data-type="'. $product->type .'"
+                             data-price="'. $product->price .'">
                              Add
                             </button>';
             })
-            ->rawColumns(['action'])      // allow HTML in the action column
+            ->rawColumns(['action'])
             ->make(true);
+    }
+
+    public function getProductAttributes($id)
+    {
+        $product = Product::with(['variants.productAttributeValues.attribute', 'variants.productAttributeValues.attribute_variant', 'variants.productAttributeValues.attribute_option'])
+            ->find($id);
+        
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+
+        if ($product->type !== 'configurable') {
+            return response()->json(['attributes' => []]);
+        }
+
+        $configurableAttributes = \App\Models\Attribute::where('is_configurable', true)
+            ->with(['attribute_variants.attribute_options'])
+            ->get();
+
+        return response()->json([
+            'product' => $product,
+            'attributes' => $configurableAttributes
+        ]);
     }
 
     public function findByBarcode(Request $request)
@@ -303,14 +348,41 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Product $product)
+    public function edit(Product $product, Request $request)
     {
+        $product->load(['brand', 'categories']);
+        
+        $variantsPerPage = 3;
+        $currentPage = $request->get('variant_page', 1);
+        
+        $productVariants = $product->productVariants()
+            ->with('variantAttributes')
+            ->paginate($variantsPerPage, ['*'], 'variant_page', $currentPage);
+        
         $categories = Category::orderBy('name', 'ASC')->get(['name','id']);
+        $brands = Brand::active()->orderBy('name', 'ASC')->get(['name','id']);
         $statuses = Product::statuses();
         $types = Product::types();
-        $configurable_attributes = $this->_getConfigurableAttributes();
+        
+        $variantOptions = [];
+        if ($product->type === 'configurable' && $product->productVariants && $product->productVariants->count() > 0) {
+            $variantOptions = $product->getVariantOptions();
+        }
 
-        return view('admin.products.edit', compact('product','categories','statuses','types','configurable_attributes'));
+        $configurable_attributes = collect();
+        $selected_attributes = [];
+
+        return view('admin.products.edit', compact(
+            'product', 
+            'productVariants',
+            'categories', 
+            'brands', 
+            'statuses', 
+            'types', 
+            'variantOptions',
+            'configurable_attributes',
+            'selected_attributes'
+        ));
     }
 
     private function _updateProductVariants($request)
@@ -328,33 +400,94 @@ class ProductController extends Controller
 		}
 	}
 
+	private function _updateConfigurableAttributes($product, $request)
+	{
+		$configurableAttributes = $this->_getConfigurableAttributes();
+		$hasNewAttributes = false;
+
+		foreach ($configurableAttributes as $attribute) {
+			if (!empty($request[$attribute->code])) {
+				$hasNewAttributes = true;
+				break;
+			}
+		}
+
+		if ($hasNewAttributes) {
+			foreach ($product->variants as $variant) {
+				ProductAttributeValue::where('product_id', $variant->id)->delete();
+				$variant->delete();
+			}
+
+			$this->_generateProductVariants($product, $request);
+		}
+	}
+
     /**
      * Update the specified resource in storage.
      */
     public function update(ProductRequest $request, Product $product)
     {
-        $saved = false;
-		$saved = DB::transaction(
-			function () use ($product, $request) {
-				$categoryIds = !empty($request['category_id']) ? $request['category_id'] : [];
-                $request['barcode'] = rand(1000000000, 9999999999);
-				$product->update($request->validated());
-				$product->categories()->sync($categoryIds);
+        try {
+            DB::transaction(function () use ($product, $request) {
+                $product->update($request->validated());
+                
+                if (!empty($request->category_id)) {
+                    $product->categories()->sync($request->category_id);
+                }
 
-				if ($product->type == 'configurable') {
-					$this->_updateProductVariants($request);
-				} else {
-					ProductInventory::updateOrCreate(['product_id' => $product->id], ['qty' => $request['qty']]);
-				}
+                if ($product->type === 'configurable' && !empty($request->variants)) {
+                    $this->updateConfigurableProduct($product, $request);
+                } elseif ($product->type === 'simple') {
+                    $this->updateSimpleProduct($product, $request);
+                }
+            });
 
-				return true;
-			}
-        );
+            return redirect()->route('admin.products.index')->with([
+                'message' => 'Produk berhasil diperbarui!',
+                'alert-type' => 'info'
+            ]);
 
-        return redirect()->route('admin.products.index')->with([
-            'message' => 'Berhasil di ganti !',
-            'alert-type' => 'info'
-        ]);
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with([
+                'message' => 'Error: ' . $e->getMessage(),
+                'alert-type' => 'error'
+            ]);
+        }
+    }
+
+    private function updateConfigurableProduct(Product $product, $request)
+    {
+        if ($request->qty !== null) {
+            ProductInventory::updateOrCreate(
+                ['product_id' => $product->id],
+                ['qty' => $request->qty]
+            );
+        }
+
+        if (isset($request->variants)) {
+            foreach ($request->variants as $variantData) {
+                if (isset($variantData['id'])) {
+                    $variant = ProductVariant::find($variantData['id']);
+                    if ($variant) {
+                        $this->productVariantService->updateProductVariant($variant, $variantData);
+                    }
+                } else {
+                    $this->productVariantService->createSingleVariant($product, $variantData);
+                }
+            }
+        }
+        
+        $this->productVariantService->updateBasePrice($product);
+    }
+
+    private function updateSimpleProduct(Product $product, $request)
+    {
+        if ($request->qty !== null) {
+            ProductInventory::updateOrCreate(
+                ['product_id' => $product->id],
+                ['qty' => $request->qty]
+            );
+        }
     }
 
     /**
@@ -371,5 +504,26 @@ class ProductController extends Controller
             'message' => 'Berhasil di hapus !',
             'alert-type' => 'danger'
         ]);
+    }
+
+    public function deleteVariants($id)
+    {
+        $product = Product::findOrFail($id);
+        
+        if ($product->type !== 'configurable') {
+            return response()->json(['error' => 'Produk bukan tipe configurable'], 400);
+        }
+
+        DB::transaction(function () use ($product) {
+            foreach ($product->variants as $variant) {
+                ProductAttributeValue::where('product_id', $variant->id)->delete();
+                if ($variant->productInventory) {
+                    $variant->productInventory->delete();
+                }
+                $variant->delete();
+            }
+        });
+
+        return response()->json(['message' => 'Semua variant berhasil dihapus']);
     }
 }

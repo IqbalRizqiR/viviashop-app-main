@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         // $this->app->usePublicPath('/../../public_html');
-        $this->app->usePublicPath('/home/u875841990/domains/viviashop.com/public_html');
+        // $this->app->usePublicPath('/home/u875841990/domains/viviashop.com/public_html');
     }
 
     /**

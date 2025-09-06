@@ -15,4 +15,9 @@ class AttributeOption extends Model
     {
         return $this->belongsTo(Attribute::class);
     }
+
+    public function attribute_variant()
+    {
+        return $this->belongsTo(AttributeVariant::class);
+    }
 }

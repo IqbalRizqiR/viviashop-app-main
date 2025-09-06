@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class Order extends Model
 {
@@ -49,31 +52,18 @@ class Order extends Model
 		return $result;
 	}
 
-    public static function generateCode()
+	public static function generateCode()
 	{
-		$dateCode = self::ORDERCODE . '/' . date('Ymd') . '/' . self::integerToRoman(date('m')). '/' .self::integerToRoman(date('d')). '/';
+		$now = Carbon::now();
+		$dateCode = self::ORDERCODE . '-' . $now->format('d') . '-' . $now->format('m') . '-' . $now->format('Y') . '-' . $now->format('H') . '-' . $now->format('i') . '-' . $now->format('s');
 
-		$lastOrder = self::select([\DB::raw('MAX(orders.code) AS last_code')])
-			->where('code', 'like', $dateCode . '%')
-            ->first();
-
-        $lastOrderCode = !empty($lastOrder) ? $lastOrder['last_code'] : null;
-
-		$orderCode = $dateCode . '00001';
-		if ($lastOrderCode) {
-            $lastOrderNumber = str_replace($dateCode, '', $lastOrderCode);
-
-			$nextOrderNumber = sprintf('%05d', (int)$lastOrderNumber + 1);
-
-			$orderCode = $dateCode . $nextOrderNumber;
-        }
-
-		if (self::_isOrderCodeExists($orderCode)) {
-			return generateOrderCode();
+		if (self::_isOrderCodeExists($dateCode)) {
+			sleep(1);
+			return self::generateCode();
 		}
 
-		return $orderCode;
-    }
+		return $dateCode;
+	}
 
     private static function _isOrderCodeExists($orderCode)
 	{
@@ -129,5 +119,23 @@ class Order extends Model
 	public function scopeForUser($query, $user)
 	{
 		return $query->where('user_id', $user->id);
+	}
+
+	public function isOfflineStoreOrder()
+	{
+		// Check if order was created by admin (offline store order)
+		// Admin orders always have customer_last_name = "Toko"
+		return $this->customer_last_name === 'Toko';
+	}
+
+	public function needsShipment()
+	{
+		// Offline store orders (created by admin) never need shipment
+		if ($this->isOfflineStoreOrder()) {
+			return false;
+		}
+
+		// Online orders need shipment unless they are self pickup
+		return $this->shipping_service_name !== 'Self Pickup';
 	}
 }

@@ -59,37 +59,22 @@
                                         @if (request()->has('search'))
                                             <div class="fruite-img">
                                                 @php
-                                                    $image = !empty($row->productImages->first()) ? asset('storage/'.$row->productImages->first()->path) : asset('images/placeholder.jpg');
+                                                    $image = !empty($row->products->productImages->first()) ? asset('storage/'.$row->products->productImages->first()->path) : asset('images/placeholder.jpg');
                                                 @endphp
                                                 <img src="{{ $image }}" class="img-fluid w-100 rounded-top" alt="">
                                             </div>
-                                            @if (count($row->categories) <= 1)
-                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">{{ $row->categories[0]->name }}</div>
-                                            @else
-                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">{{ $row->categories->name }}</div>
-                                            @endif
+                                            <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">{{ $row->categories->name }}</div>
                                             <div class="p-3 border border-secondary border-top-0 rounded-bottom">
-                                                @if ($row->products == NULL)
-                                                    <a href="{{ route('shop-detail', $row->id) }}"><h4>{{ $row->name }}</h4></a>
-                                                    <b>{{ $row->short_description }}</b>
-                                                    @if ($row->productInventory != null)
-                                                        <p>Stok : {{ $row->productInventory->qty }}</p>
-                                                    @endif
-                                                    <div class="d-flex justify-content-center flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-2">Rp. {{ number_format($row->price) }}</p>
-                                                        <a  class="btn border border-secondary rounded-pill px-3 text-primary add-to-card"  product-id="{{ $row->id }}" product-type="{{ $row->type }}" product-slug="{{ $row->slug }}"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
-                                                    </div>
-                                                @else
-                                                    <a href="{{ route('shop-detail', $row->products->id) }}"><h4>{{ $row->products->name }}</h4></a>
-                                                    <b>{{ $row->products->short_description }}</b>
-                                                    @if ($row->products->productInventory != null)
-                                                        <p>Stok : {{ $row->products->productInventory->qty }}</p>
-                                                    @endif
-                                                    <div class="d-flex justify-content-center flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-2">Rp. {{ number_format($row->products->price) }}</p>
-                                                        <a class="btn border border-secondary rounded-pill px-3 text-primary add-to-card" product-id="{{ $row->products->id }}" product-type="{{ $row->products->type }}" product-slug="{{ $row->products->slug }}"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
-                                                    </div>
+                                                <a href="{{ route('shop-detail', $row->products->id) }}"><h4>{{ $row->products->name }}</h4></a>
+                                                <b style="color: black; font-weight: bold;">{{ $row->products->short_description }}</b>
+                                                @if ($row->products->productInventory != null)
+                                                    <p class="mt-4">Stok : {{ $row->products->productInventory->qty }}</p>
                                                 @endif
+                                                <div class="d-flex justify-content-center flex-lg-wrap">
+                                                    <p class="text-dark fs-5 fw-bold mb-2">Rp. {{ number_format($row->products->price) }}</p>
+                                                    <a href="" class="btn border border-secondary rounded-pill px-3 text-primary add-to-card" product-id="{{ $row->products->id }}" product-type="{{ $row->products->type }}" product-slug="{{ $row->products->slug }}"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                </div>
+                                            </div>
                                         @else
                                             <div class="fruite-img">
                                                 @php
@@ -109,8 +94,8 @@
                                                 <p class="text-dark fs-5 fw-bold mb-2">Rp. {{ number_format($row->products->price) }}</p>
                                                 <a href="" class="btn border border-secondary rounded-pill px-3 text-primary add-to-card" product-id="{{ $row->products->id }}" product-type="{{ $row->products->type }}" product-slug="{{ $row->products->slug }}"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
                                             </div>
+                                            </div>
                                         @endif
-                                        </div>
                                     </div>
                                 </div>
                                 @empty

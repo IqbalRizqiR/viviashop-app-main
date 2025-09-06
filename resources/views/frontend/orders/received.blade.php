@@ -1,5 +1,34 @@
 @extends('frontend.layouts')
 
+@push('styles')
+<style>
+	@media print {
+		.btn, .breadcrumb-area, .cart-heading, nav, footer {
+			display: none !important;
+		}
+		
+		body * {
+			visibility: hidden;
+		}
+		
+		.cart-main-area, .cart-main-area * {
+			visibility: visible;
+		}
+		
+		.cart-main-area {
+			position: absolute;
+			left: 0;
+			top: 0;
+			width: 100%;
+		}
+		
+		.no-print {
+			display: none !important;
+		}
+	}
+</style>
+@endpush
+
 @section('content')
 	<!-- header end -->
 	<div class="breadcrumb-area pt-205 breadcrumb-padding pb-210" style="margin-top: 12rem;">
@@ -62,6 +91,13 @@
                                     <br> Shipping Number: {{ $order->tracking_number }}
                                 @endif
 								<br> Payment Method : {{ $order->payment_method }}
+								@if($order->payment_status == 'paid')
+									<br><span class="text-success"><strong>✓ Payment Completed</strong></span>
+								@elseif($order->payment_status == 'waiting')
+									<br><span class="text-warning"><strong>⏳ Payment Pending</strong></span>
+								@else
+									<br><span class="text-danger"><strong>❌ Payment {{ ucfirst($order->payment_status) }}</strong></span>
+								@endif
 							</address>
 						</div>
 					</div>
@@ -131,21 +167,33 @@
 										<span>Rp{{ number_format($order->shipping_cost,0,",",".") }}</span>
 									</li>
 									<li>Unique Code
-										<span>Rp{{ number_format(($order->grand_total - ($order->base_total_price + $order->shipping_cost)),0,",",".") }}</span>
+										<span>Rp{{ number_format(0,0,",",".") }}</span>
 									</li>
 									<li>Total
 										<span>Rp{{ number_format($order->grand_total, 0,",", ".") }}</span>
 									</li>
 								</ul>
 								@if (!$order->isPaid() && $order->payment_method == 'automatic')
-									<button class="btn btn-success mt-3 d-none" id="pay-button">Proceed to payment</button>
+									<button class="btn btn-success mt-3 d-none no-print" id="pay-button">Proceed to payment</button>
 								@elseif(!$order->isPaid() && $order->payment_method == 'manual')
-									<a class="btn btn-success mt-3" href="{{ route('orders.confirmation_payment', $order->id) }}">Proceed to payment</a>
-                                @elseif(!$order->isPaid() && $order->payment_method == 'qris')
-									<a class="btn btn-success mt-3" href="{{ route('orders.confirmation_payment', $order->id) }}">Proceed to payment</a>
+									<a class="btn btn-success mt-3 no-print" href="{{ route('orders.confirmation_payment', $order->id) }}">Proceed to payment</a>
 								@elseif(!$order->isPaid() && $order->payment_method == 'cod')
-									<h1 class="text-center">Silahkan Lakukan Pembayaran ke Toko</h1>
-									<a href="{{ route('orders.index') }}" class="btn btn-primary">Kembali</a>
+									<h1 class="text-center no-print">Silahkan Lakukan Pembayaran ke Toko</h1>
+									<a href="{{ route('orders.index') }}" class="btn btn-primary no-print">Kembali</a>
+								@elseif(!$order->isPaid() && $order->payment_method == 'toko')
+									<h1 class="text-center no-print">Silahkan Lakukan Pembayaran ke Toko</h1>
+									<a href="{{ route('orders.index') }}" class="btn btn-primary no-print">Kembali</a>
+								@endif
+								
+								@if($order->isPaid())
+									<div class="mt-3 no-print">
+										<a href="{{ route('orders.invoice', $order->id) }}" class="btn btn-primary btn-lg">
+											<i class="fa fa-download"></i> Download Invoice
+										</a>
+										<button onclick="window.print()" class="btn btn-secondary btn-lg ml-2">
+											<i class="fa fa-print"></i> Print Page
+										</button>
+									</div>
 								@endif
 							</div>
 						</div>
@@ -190,6 +238,23 @@
 						});
 					});
 				}
+				
+				// Auto-refresh payment status if unpaid
+				@if(!$order->isPaid())
+				function checkPaymentStatus() {
+					fetch('{{ route('orders.status', $order->id) }}')
+						.then(response => response.json())
+						.then(data => {
+							if (data.payment_status === 'paid') {
+								location.reload();
+							}
+						})
+						.catch(error => console.log('Status check error:', error));
+				}
+				
+				// Check payment status every 10 seconds
+				setInterval(checkPaymentStatus, 10000);
+				@endif
 			});
 		</script>
 	@endif

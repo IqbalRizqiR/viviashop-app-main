@@ -85,33 +85,49 @@
 							<span>{{ number_format($product->priceLabel()) }}</span>
 						</div>
 						<p>{{ $product->short_description }}</p>
-						@if ($row->products->productInventory != null)
-							<p>Stok : {{ $row->products->productInventory->qty }}</p>
-						@endif
-                        <form action="{{ route('carts.store') }}" method="post">
+                        <form action="{{ route('carts.store') }}" method="post" id="addToCartForm">
 							@csrf
 							<input type="hidden" name="product_id" value="{{ $product->id }}">
+							<input type="hidden" name="variant_id" id="selectedVariantId" value="">
+							
 							@if ($product->type == 'configurable')
-								<div class="quick-view-select">
-									<div class="select-option-part">
-										<label>Size*</label>
-                                        <select name="size" class="select" id="">
-                                            @foreach($sizes as $size)
-                                                <option value="{{ $size }}">{{ $size }}</option>
-                                            @endforeach
-                                        </select>
+								@php
+									$variantOptions = $product->getVariantOptions();
+								@endphp
+								
+								@if(!empty($variantOptions))
+									<div class="variant-selection-area">
+										@foreach($variantOptions as $attributeName => $values)
+											<div class="variant-option-group mb-3">
+												<label class="variant-label">{{ ucfirst($attributeName) }} *</label>
+												<select class="variant-selector form-control" data-attribute="{{ $attributeName }}" required>
+													<option value="">Pilih {{ $attributeName }}</option>
+													@foreach($values as $value)
+														<option value="{{ $value }}">{{ $value }}</option>
+													@endforeach
+												</select>
+											</div>
+										@endforeach
+										
+										<div class="selected-variant-info mt-3" style="display: none;">
+											<div class="variant-price">
+												<strong>Harga: <span id="variantPrice">-</span></strong>
+											</div>
+											<div class="variant-stock">
+												<span>Stok: <span id="variantStock">-</span></span>
+											</div>
+											<div class="variant-sku">
+												<small>SKU: <span id="variantSku">-</span></small>
+											</div>
+										</div>
 									</div>
-									<div class="select-option-part">
-										<label>Color*</label>
-										<select name="color" class="select" id="">
-                                            @foreach($colors as $color)
-                                                <option value="{{ $color }}">{{ $color }}</option>
-                                            @endforeach
-                                        </select>
-									</div>
-								</div>
+								@endif
+							@else
+								@if ($product->productInventory != null)
+									<p>Stok : {{ $product->productInventory->qty }}</p>
+								@endif
 							@endif
-
+							
 							<div class="quickview-plus-minus">
 								<div class="cart-plus-minus">
 									<input type="number" name="qty" value="1" class="cart-plus-minus-box" min="1">
@@ -195,3 +211,74 @@
 		</div>
 	</div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    let productVariants = @json($product->type == 'configurable' ? $product->productVariants : []);
+    let selectedAttributes = {};
+    
+    // Handle variant selector changes
+    $('.variant-selector').on('change', function() {
+        const attributeName = $(this).data('attribute');
+        const selectedValue = $(this).val();
+        
+        if (selectedValue) {
+            selectedAttributes[attributeName] = selectedValue;
+        } else {
+            delete selectedAttributes[attributeName];
+        }
+        
+        updateVariantSelection();
+    });
+    
+    function updateVariantSelection() {
+        // Find matching variant based on selected attributes
+        const matchingVariant = findMatchingVariant();
+        
+        if (matchingVariant) {
+            // Show variant info
+            $('.selected-variant-info').show();
+            $('#variantPrice').text('Rp ' + new Intl.NumberFormat('id-ID').format(matchingVariant.price));
+            $('#variantStock').text(matchingVariant.stock);
+            $('#variantSku').text(matchingVariant.sku);
+            $('#selectedVariantId').val(matchingVariant.id);
+            
+            // Update main price display
+            $('.details-price span').text('Rp ' + new Intl.NumberFormat('id-ID').format(matchingVariant.price));
+            
+            // Enable/disable add to cart based on stock
+            const addToCartBtn = $('.quickview-btn-cart button');
+            if (matchingVariant.stock > 0) {
+                addToCartBtn.prop('disabled', false).text('add to cart');
+                $('.cart-plus-minus-box').attr('max', matchingVariant.stock);
+            } else {
+                addToCartBtn.prop('disabled', true).text('out of stock');
+                $('.cart-plus-minus-box').attr('max', 0);
+            }
+        } else {
+            $('.selected-variant-info').hide();
+            $('#selectedVariantId').val('');
+            $('.quickview-btn-cart button').prop('disabled', true).text('select variant');
+        }
+    }
+    
+    function findMatchingVariant() {
+        return productVariants.find(variant => {
+            return variant.variant_attributes.every(attr => {
+                return selectedAttributes[attr.attribute_name] === attr.attribute_value;
+            });
+        });
+    }
+    
+    // Form submission validation
+    $('#addToCartForm').on('submit', function(e) {
+        if ($('#selectedVariantId').val() === '' && productVariants.length > 0) {
+            e.preventDefault();
+            alert('Silakan pilih varian produk terlebih dahulu.');
+            return false;
+        }
+    });
+});
+</script>
+@endpush

@@ -270,7 +270,7 @@ body {
                 </div>
                 <div class="total-row">
                     <span>Unique Code:</span>
-                    <span>Rp {{ number_format(($order->grand_total - ($order->base_total_price + $order->shipping_cost)),0,",",".") }}</span>
+                    <span>Rp {{ number_format(0,0,",",".") }}</span>
                 </div>
                 <div class="total-row final-total">
                     <span>Total:</span>

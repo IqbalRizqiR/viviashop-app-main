@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Cviebrock\EloquentSluggable\Sluggable;
+use Carbon\Carbon;
 
 class Product extends Model
 {
@@ -66,9 +67,24 @@ class Product extends Model
 		return $this->belongsToMany(Category::class, 'product_categories');
 	}
 
+	public function brand()
+	{
+		return $this->belongsTo(Brand::class);
+	}
+
 	public function variants()
 	{
 		return $this->hasMany(Product::class, 'parent_id')->orderBy('price', 'ASC');
+	}
+
+	public function productVariants()
+	{
+		return $this->hasMany(ProductVariant::class)->orderBy('price', 'ASC');
+	}
+
+	public function activeVariants()
+	{
+		return $this->hasMany(ProductVariant::class)->where('is_active', true)->orderBy('price', 'ASC');
 	}
 
 	public function productInventory()
@@ -87,9 +103,28 @@ class Product extends Model
 			->where('parent_id', null);
 	}
 
+	public function scopeFeatured($query)
+	{
+		return $query->where('is_featured', true);
+	}
+
+	public function scopeWithStock($query)
+	{
+		return $query->where(function ($q) {
+			$q->where('type', 'simple')
+			  ->whereHas('productInventory', function ($inv) {
+				  $inv->where('qty', '>', 0);
+			  })
+			  ->orWhere('type', 'configurable')
+			  ->whereHas('productVariants', function ($variants) {
+				  $variants->where('stock', '>', 0)->where('is_active', true);
+			  });
+		});
+	}
+
 	public function scopePopular($query, $limit = 10)
 	{
-		$month = now()->format('m');
+		$month = Carbon::now()->format('m');
 
 		return $query->selectRaw('products.*, COUNT(order_items.id) as total_sold')
 			->join('order_items', 'order_items.product_id', '=', 'products.id')
@@ -108,7 +143,73 @@ class Product extends Model
 
 	public function priceLabel()
 	{
+		if ($this->type == 'configurable' && $this->productVariants->count() > 0) {
+			$minPrice = $this->productVariants->min('price');
+			$maxPrice = $this->productVariants->max('price');
+			
+			if ($minPrice == $maxPrice) {
+				return $minPrice;
+			}
+			
+			return "Mulai dari " . number_format($minPrice, 0, ',', '.');
+		}
+		
 		return ($this->variants->count() > 0) ? $this->variants->first()->price : $this->price;
+	}
+
+	public function getBasePriceAttribute()
+	{
+		if ($this->type == 'configurable' && $this->productVariants->count() > 0) {
+			return $this->productVariants->min('price');
+		}
+		
+		return $this->price;
+	}
+
+	public function getTotalStockAttribute()
+	{
+		if ($this->type == 'configurable') {
+			return $this->productVariants->sum('stock');
+		}
+		
+		return $this->productInventory?->qty ?? 0;
+	}
+
+	public function updateBasePrice()
+	{
+		if ($this->type == 'configurable' && $this->productVariants->count() > 0) {
+			$this->base_price = $this->productVariants->min('price');
+			$this->total_stock = $this->productVariants->sum('stock');
+			$this->save();
+		}
+	}
+
+	public function getVariantOptions()
+	{
+		if ($this->type != 'configurable') {
+			return collect();
+		}
+
+		$options = [];
+		$variants = $this->activeVariants()->with('variantAttributes')->get();
+		
+		foreach ($variants as $variant) {
+			foreach ($variant->variantAttributes as $attribute) {
+				if (!isset($options[$attribute->attribute_name])) {
+					$options[$attribute->attribute_name] = [];
+				}
+				
+				if (!in_array($attribute->attribute_value, $options[$attribute->attribute_name])) {
+					$options[$attribute->attribute_name][] = $attribute->attribute_value;
+				}
+			}
+		}
+		
+		foreach ($options as $key => $values) {
+			sort($options[$key]);
+		}
+		
+		return collect($options);
 	}
 
 	public function configurable()
@@ -124,5 +225,15 @@ class Product extends Model
 	public function productAttributeValues()
 	{
 		return $this->hasMany(ProductAttributeValue::class, 'parent_product_id');
+	}
+
+	public function variantAttributeValues()
+	{
+		return $this->hasMany(ProductAttributeValue::class, 'product_id');
+	}
+
+	public function configurableAttributes()
+	{
+		return Attribute::where('is_configurable', true)->with(['attribute_variants.attribute_options'])->get();
 	}
 }

@@ -5,33 +5,25 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Attribute;
 use Illuminate\Http\Request;
 use App\Models\AttributeOption;
+use App\Models\AttributeVariant;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AttributeOptionRequest;
 
 class AttributeOptionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         return view('admin.attribute_options.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(Attribute $attribute)
+    public function create(Attribute $attribute, AttributeVariant $attribute_variant)
     {
-        return view('admin.attribute_options.create', compact('attribute'));
+        return view('admin.attribute_options.create', compact('attribute', 'attribute_variant'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(AttributeOptionRequest $request, Attribute $attribute)
+    public function store(AttributeOptionRequest $request, Attribute $attribute, AttributeVariant $attribute_variant)
     {
-        $attribute->attribute_options()->create($request->validated());
+        $attribute_variant->attribute_options()->create($request->validated());
 
         return redirect()->route('admin.attributes.edit', $attribute)->with([
             'message' => 'Berhasil di buat !',
@@ -39,26 +31,17 @@ class AttributeOptionController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Attribute $attribute, AttributeOption $attribute_option)
+    public function edit(Attribute $attribute, AttributeVariant $attribute_variant, AttributeOption $attribute_option)
     {
-        return view('admin.attribute_options.edit',compact('attribute', 'attribute_option'));
+        return view('admin.attribute_options.edit',compact('attribute', 'attribute_variant', 'attribute_option'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(AttributeOptionRequest $request, Attribute $attribute,AttributeOption $attribute_option)
+    public function update(AttributeOptionRequest $request, Attribute $attribute, AttributeVariant $attribute_variant, AttributeOption $attribute_option)
     {
         $attribute_option->update($request->validated());
 
@@ -68,10 +51,7 @@ class AttributeOptionController extends Controller
         ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Attribute $attribute,AttributeOption $attribute_option)
+    public function destroy(Attribute $attribute, AttributeVariant $attribute_variant, AttributeOption $attribute_option)
     {
         $attribute_option->delete();
 

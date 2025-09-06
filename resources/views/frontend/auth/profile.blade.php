@@ -70,9 +70,10 @@
 									</div>
 
 									<div class="form-group row mb-4">
-										<div class="col-md-6">
+										<div class="col-md-4">
                                             <label>Provinsi<span class="required">*</span></label>
-                                            <select class="form-control" name="province_id" id="shipping-provinces">
+                                            <select class="form-control" name="province_id" id="shipping-province">
+                                                <option value="">-- Pilih Provinsi --</option>
                                                 @foreach($provinces as $id => $province)
                                                     <option value="{{ $id }}" {{ $id == auth()->user()->province_id ? 'selected' : '' }}>{{ $province }}</option>
                                                 @endforeach
@@ -83,14 +84,33 @@
 												</span>
 											@enderror
 										</div>
-										<div class="col-md-6">
+										<div class="col-md-4">
                                             <label>City<span class="required">*</span></label>
-                                            <select class="form-control" name="city_id" id="shipping-cities">
-                                                @foreach($cities as $id => $city)
-                                                    <option value="{{ $id }}" {{ $id == auth()->user()->city_id ? 'selected' : '' }}>{{ $city }}</option>
-                                                @endforeach
+                                            <select class="form-control" name="city_id" id="shipping-city">
+                                                <option value="">-- Pilih Kota --</option>
+                                                @if($cities)
+                                                    @foreach($cities as $id => $city)
+                                                        <option value="{{ $id }}" {{ $id == auth()->user()->city_id ? 'selected' : '' }}>{{ $city }}</option>
+                                                    @endforeach
+                                                @endif
                                             </select>
                                             @error('city_id')
+												<span class="invalid-feedback" role="alert">
+													<strong>{{ $message }}</strong>
+												</span>
+											@enderror
+										</div>
+										<div class="col-md-4">
+                                            <label>District<span class="required">*</span></label>
+                                            <select class="form-control" name="district_id" id="shipping-district">
+                                                <option value="">-- Pilih Kecamatan --</option>
+                                                @if($districts)
+                                                    @foreach($districts as $id => $district)
+                                                        <option value="{{ $id }}" {{ $id == auth()->user()->district_id ? 'selected' : '' }}>{{ $district }}</option>
+                                                    @endforeach
+                                                @endif
+                                            </select>
+                                            @error('district_id')
 												<span class="invalid-feedback" role="alert">
 													<strong>{{ $message }}</strong>
 												</span>
@@ -149,26 +169,109 @@
 
 @push('script-alt')
 	<script>
-		$("#shipping-provinces").on("change", function (e) {
-			var province_id = e.target.value;
-
-			$("#loader").show();
-			$.get("/orders/cities?province_id=" + province_id, function (data) {
-				console.log(data);
-				if (data) {
-					$("#loader").hide();
+		$(document).ready(function(){
+			console.log('Profile page initialized');
+			
+			// Setup CSRF token for all AJAX requests
+			$.ajaxSetup({
+				headers: {
+					'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
 				}
-				$("#shipping-cities").empty();
-				$("#shipping-cities").append(
-					"<option value>- Please Select -</option>"
-				);
-
-				$.each(data.cities, function (city_id, city) {
-					$("#shipping-cities").append(
-						'<option value="' + city_id + '">' + city + "</option>"
-					);
-				});
 			});
+			
+			// Remove any existing event handlers to prevent duplicates
+			$('#shipping-province').off('change');
+			$('#shipping-city').off('change');
+			
+			// Auto-load cities if province is selected
+			var userProvinceId = "{{ auth()->user()->province_id }}";
+			console.log('User province ID:', userProvinceId);
+			
+			if (userProvinceId) {
+				// Set the province dropdown value first
+				$('#shipping-province').val(userProvinceId);
+				// Then trigger change to load cities
+				$('#shipping-province').trigger('change');
+			}
 		});
+
+		$(document).on('change', '#shipping-province', function() {
+			var province_id = $(this).val();
+			console.log('Province changed to:', province_id);
+			
+			if (province_id) {
+				var cityUrl = "{{ url('api/cities') }}/" + province_id + '?t=' + Date.now();
+				console.log('Fetching cities from:', cityUrl);
+				
+				$.ajax({
+					url: cityUrl,
+					type: 'GET',
+					success: function(response) {
+						console.log('Cities loaded:', response.length, 'cities');
+						var options = '<option value="">-- Pilih Kota --</option>';
+						
+						if (response && Array.isArray(response)) {
+							$.each(response, function(index, city) {
+								var selected = city.id == '{{ auth()->user()->city_id }}' ? 'selected' : '';
+								options += '<option value="' + city.id + '" ' + selected + '>' + city.name + '</option>';
+							});
+						}
+						
+						$('#shipping-city').html(options);
+						$('#shipping-district').html('<option value="">-- Pilih Kecamatan --</option>');
+						
+						// Auto-load districts if city is selected
+						var selectedCityId = $('#shipping-city').val();
+						if (selectedCityId) {
+							console.log('Auto-loading districts for city:', selectedCityId);
+							loadDistricts(selectedCityId);
+						}
+					},
+					error: function(xhr, status, error) {
+						console.error('Error loading cities:', error);
+						$('#shipping-city').html('<option value="">Error loading cities</option>');
+					}
+				});
+			} else {
+				$('#shipping-city').html('<option value="">-- Pilih Kota --</option>');
+				$('#shipping-district').html('<option value="">-- Pilih Kecamatan --</option>');
+			}
+		});
+		
+		$(document).on('change', '#shipping-city', function() {
+			var city_id = $(this).val();
+			console.log('City changed to:', city_id);
+			loadDistricts(city_id);
+		});
+		
+		function loadDistricts(city_id) {
+			if (city_id) {
+				var districtUrl = "{{ url('api/districts') }}/" + city_id + '?t=' + Date.now();
+				console.log('Loading districts from:', districtUrl);
+				
+				$.ajax({
+					url: districtUrl,
+					type: 'GET',
+					success: function(response) {
+						console.log('Districts loaded:', response.length, 'districts');
+						var options = '<option value="">-- Pilih Kecamatan --</option>';
+						
+						if (response && Array.isArray(response)) {
+							$.each(response, function(index, district) {
+								var selected = district.id == '{{ auth()->user()->district_id }}' ? 'selected' : '';
+								options += '<option value="' + district.id + '" ' + selected + '>' + district.name + '</option>';
+							});
+						}
+						$('#shipping-district').html(options);
+					},
+					error: function(xhr, status, error) {
+						console.error('Error loading districts:', error);
+						$('#shipping-district').html('<option value="">Error loading districts</option>');
+					}
+				});
+			} else {
+				$('#shipping-district').html('<option value="">-- Pilih Kecamatan --</option>');
+			}
+		}
 	</script>
 @endpush

@@ -3,7 +3,11 @@
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Frontend\HomepageController;
-use App\Http\Controllers\Frontend\OrderController;
+
+Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderController::class, 'notificationHandler'])
+    ->name('payment.notification');
+
+// Auth guest routes App\Http\Controllers\Frontend\OrderController;
 use App\Http\Controllers\InstagramController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PembelianDetailController;
@@ -32,6 +36,133 @@ Auth::routes();
 
 // Route::get('/debug-midtrans', [OrderController::class, 'debug']);
 
+Route::get('/debug-midtrans', function() {
+    $midtransTest = 'Unknown';
+    try {
+        \Midtrans\Config::$serverKey = config('midtrans.serverKey');
+        $midtransTest = 'Midtrans Config set successfully';
+    } catch (Exception $e) {
+        $midtransTest = 'Error: ' . $e->getMessage();
+    }
+    
+    return [
+        'config' => [
+            'serverKey' => config('midtrans.serverKey') ? 'Set (hidden)' : 'Not set',
+            'clientKey' => config('midtrans.clientKey'),
+            'isProduction' => config('midtrans.isProduction'),
+            'isSanitized' => config('midtrans.isSanitized'),
+            'is3ds' => config('midtrans.is3ds'),
+        ],
+        'midtrans_test' => $midtransTest,
+    ];
+});
+
+Route::get('/test-payment-status/{orderId}', function($orderId) {
+    $order = App\Models\Order::where('code', $orderId)->first();
+    if (!$order) {
+        return ['error' => 'Order not found'];
+    }
+    
+    // Update payment status to simulate successful payment
+    $order->payment_status = 'paid';
+    $order->status = 'confirmed';
+    $order->approved_at = now();
+    $order->save();
+    
+    return [
+        'success' => true,
+        'message' => 'Payment status updated to paid',
+        'order_id' => $orderId,
+        'new_status' => $order->payment_status,
+        'redirect_url' => url("orders/received/{$order->id}")
+    ];
+});
+
+Route::get('/debug-order/{id}', function($id) {
+    $order = App\Models\Order::find($id);
+    if (!$order) {
+        return ['error' => 'Order not found'];
+    }
+    
+    return [
+        'order' => [
+            'id' => $order->id,
+            'code' => $order->code,
+            'customer_first_name' => $order->customer_first_name,
+            'customer_last_name' => $order->customer_last_name,
+            'customer_email' => $order->customer_email,
+            'customer_phone' => $order->customer_phone,
+            'grand_total' => $order->grand_total,
+            'payment_method' => $order->payment_method,
+            'payment_status' => $order->payment_status,
+        ]
+    ];
+});
+
+Route::get('/test-midtrans-token/{id}', function($id) {
+    $order = App\Models\Order::find($id);
+    if (!$order) {
+        return ['error' => 'Order not found'];
+    }
+    
+    try {
+        \Midtrans\Config::$serverKey = config('midtrans.serverKey');
+        \Midtrans\Config::$isProduction = config('midtrans.isProduction');
+        \Midtrans\Config::$isSanitized = config('midtrans.isSanitized');
+        \Midtrans\Config::$is3ds = config('midtrans.is3ds');
+        
+        // Disable SSL for testing
+        \Midtrans\Config::$curlOptions = [
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_HTTPHEADER => []
+        ];
+        
+        $params = [
+            'transaction_details' => [
+                'order_id' => 'TEST-' . time(),
+                'gross_amount' => 10000,
+            ],
+            'customer_details' => [
+                'first_name' => 'Test',
+                'last_name' => 'Customer',
+                'email' => 'test@example.com',
+                'phone' => '08123456789',
+            ],
+            'item_details' => [
+                [
+                    'id' => 'TEST-ITEM',
+                    'price' => 10000,
+                    'quantity' => 1,
+                    'name' => 'Test Item'
+                ]
+            ]
+        ];
+        
+        $snap = \Midtrans\Snap::createTransaction($params);
+        
+        return [
+            'success' => true,
+            'token' => $snap->token ?? 'No token',
+            'redirect_url' => $snap->redirect_url ?? 'No redirect URL',
+            'config' => [
+                'serverKey' => config('midtrans.serverKey') ? 'Set' : 'Not set',
+                'isProduction' => config('midtrans.isProduction'),
+            ]
+        ];
+        
+    } catch (Exception $e) {
+        return [
+            'success' => false,
+            'error' => $e->getMessage(),
+            'config' => [
+                'serverKey' => config('midtrans.serverKey') ? 'Set' : 'Not set',
+                'isProduction' => config('midtrans.isProduction'),
+            ]
+        ];
+    }
+});
+
 Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderController::class, 'notificationHandler'])
     ->name('payment.notification')
     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
@@ -47,6 +178,14 @@ Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderControl
 
     Route::get('payments/error', [App\Http\Controllers\Frontend\OrderController::class, 'errorRedirect'])
     ->name('payment.error');
+
+	// Customer invoice and order status routes
+	Route::get('orders/invoice/{id}', [App\Http\Controllers\Frontend\OrderController::class, 'invoice'])
+		->name('orders.invoice')
+		->middleware('auth');
+		
+	Route::get('orders/status/{id}', [App\Http\Controllers\Frontend\OrderController::class, 'getOrderStatus'])
+		->name('orders.status');
 
     Route::get('/instagram', [InstagramController::class, 'getInstagramData'])->name('admin.instagram.index');
     Route::get('/instagram/callback', [InstagramController::class, 'handleCallback'])
@@ -118,8 +257,17 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
     Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
     Route::resource('attributes', \App\Http\Controllers\Admin\AttributeController::class);
-    Route::resource('attributes.attribute_options', \App\Http\Controllers\Admin\AttributeOptionController::class);
+    Route::resource('attributes.attribute_variants', \App\Http\Controllers\Admin\AttributeVariantController::class);
+    Route::resource('attributes.attribute_variants.attribute_options', \App\Http\Controllers\Admin\AttributeOptionController::class);
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+    Route::get('/products/data/datatable', [ProductController::class, 'data'])->name('products.data');
+    Route::get('/products/{id}/attributes', [ProductController::class, 'getProductAttributes'])->name('products.attributes');
+    Route::post('/products/barcode/search', [ProductController::class, 'findByBarcode'])->name('products.findByBarcode');
+    Route::delete('/products/{id}/delete-variants', [ProductController::class, 'deleteVariants'])->name('products.deleteVariants');
+    Route::post('/variants/create', [\App\Http\Controllers\Admin\ProductVariantController::class, 'store'])->name('variants.create');
+    Route::get('/variants/{id}', [\App\Http\Controllers\Admin\ProductVariantController::class, 'show'])->name('variants.show');
+    Route::put('/variants/{id}', [\App\Http\Controllers\Admin\ProductVariantController::class, 'update'])->name('variants.update');
+    Route::delete('/variants/{id}', [\App\Http\Controllers\Admin\ProductVariantController::class, 'destroy'])->name('variants.destroy');
     Route::resource('products.product_images', \App\Http\Controllers\Admin\ProductImageController::class);
     Route::get('/products/generateAllBarcodes', [ProductController::class, 'generateBarcodeAll'])->name('products.generateAll');
     Route::get('/products/generateSingleBarcode/{id}', [ProductController::class, 'generateBarcodeSingle'])->name('products.generateSingle');
@@ -134,7 +282,15 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
      ->name('products.data');
     Route::post('ordersAdmin', [\App\Http\Controllers\Admin\OrderController::class , 'storeAdmin'])->name('orders.storeAdmin');
     Route::get('ordersAdmin', [\App\Http\Controllers\Admin\OrderController::class , 'checkPage'])->name('orders.checkPage');
+    Route::post('orders/payment-notification', [\App\Http\Controllers\Admin\OrderController::class , 'paymentNotification'])->name('orders.payment-notification');
+    Route::post('orders/{order}/generate-payment-token', [\App\Http\Controllers\Admin\OrderController::class , 'generatePaymentToken'])->name('orders.generate-payment-token');
     Route::post('orders/complete/{order}', [\App\Http\Controllers\Admin\OrderController::class , 'doComplete'])->name('orders.complete');
+    Route::post('orders/confirm-pickup/{order}', [\App\Http\Controllers\Admin\OrderController::class , 'confirmPickup'])->name('orders.confirmPickup');
+    
+    // Admin payment callback routes
+    Route::get('orders/payment/finish', [\App\Http\Controllers\Admin\OrderController::class, 'paymentFinishRedirect'])->name('payment.finish');
+    Route::get('orders/payment/unfinish', [\App\Http\Controllers\Admin\OrderController::class, 'paymentUnfinishRedirect'])->name('payment.unfinish');
+    Route::get('orders/payment/error', [\App\Http\Controllers\Admin\OrderController::class, 'paymentErrorRedirect'])->name('payment.error');
     Route::get('orders/{order:id}/cancel', [\App\Http\Controllers\Admin\OrderController::class , 'cancel'])->name('orders.cancels');
 	Route::put('orders/cancel/{order:id}', [\App\Http\Controllers\Admin\OrderController::class , 'doCancel'])->name('orders.cancel');
 	Route::put('orders/confirm/{id}', [\App\Http\Controllers\Frontend\OrderController::class , 'confirmPaymentAdmin'])->name('orders.confirmAdmin');
@@ -165,17 +321,17 @@ Route::group(['middleware' => 'auth'], function() {
 
 
 
-Route::get('/download-file/{id}', [OrderController::class, 'downloadFile'])->name('download-file');
+Route::get('/download-file/{id}', [\App\Http\Controllers\Frontend\OrderController::class, 'downloadFile'])->name('download-file');
     Route::get('orders/confirmPayment/{id}', [\App\Http\Controllers\Frontend\OrderController::class, 'confirmPaymentManual'])->name('orders.confirmation_payment');
     Route::put('orders/confirmPaymentManual/{id}', [\App\Http\Controllers\Frontend\OrderController::class, 'confirmPayment'])->name('orders.confirmPayment');
     Route::get('orders/checkout', [\App\Http\Controllers\Frontend\OrderController::class, 'checkout'])->middleware('auth');
     Route::post('orders/checkout', [\App\Http\Controllers\Frontend\OrderController::class, 'doCheckout'])->name('orders.checkout')->middleware('auth');
-    Route::get('orders/cities', [\App\Http\Controllers\Frontend\OrderController::class, 'cities'])->middleware('auth');
-    Route::post('orders/shipping-cost', [\App\Http\Controllers\Frontend\OrderController::class, 'shippingCost'])->middleware('auth');
+    Route::post('orders/shipping-cost', [\App\Http\Controllers\Frontend\OrderController::class, 'shippingCost'])->name('orders.shippingCost')->middleware('auth');
     Route::post('orders/set-shipping', [\App\Http\Controllers\Frontend\OrderController::class, 'setShipping'])->middleware('auth');
     Route::get('orders/received/{orderId}', [\App\Http\Controllers\Frontend\OrderController::class, 'received']);
     Route::get('orders/{orderId}', [\App\Http\Controllers\Frontend\OrderController::class, 'show'])->name('showUsersOrder');
     Route::resource('wishlists', \App\Http\Controllers\Frontend\WishListController::class)->only(['index','store','destroy']);
+    
     Route::resource('orders', \App\Http\Controllers\Frontend\OrderController::class)->only(['index','store','destroy']);
 
     // Midtrans routes
@@ -185,3 +341,12 @@ Route::get('/download-file/{id}', [OrderController::class, 'downloadFile'])->nam
     Route::put('profile', [\App\Http\Controllers\Auth\ProfileController::class, 'update']);
 
 });
+
+// Location endpoints (no auth required for dropdown data)
+Route::get('api/provinces', [\App\Http\Controllers\Frontend\OrderController::class, 'provinces']);
+Route::get('api/cities/{province_id}', [\App\Http\Controllers\Frontend\OrderController::class, 'cities']);
+Route::get('api/districts/{city_id}', [\App\Http\Controllers\Frontend\OrderController::class, 'districts']);
+Route::get('/api/attribute-options/{attributeId}/{variantId}', function($attributeId, $variantId) {
+    $options = \App\Models\AttributeOption::where('attribute_variant_id', $variantId)->get();
+    return response()->json(['options' => $options]);
+})->name('api.attribute-options');

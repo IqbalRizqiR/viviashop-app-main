@@ -1,0 +1,286 @@
+<?php
+
+namespace App\Http\Controllers\Frontend;
+
+use App\Models\Product;
+use App\Models\ProductVariant;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Models\Setting;
+use App\Services\ProductVariantService;
+use Gloudemans\Shoppingcart\Facades\Cart;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use Throwable;
+
+class CartController extends Controller
+{
+    protected $productVariantService;
+
+    public function __construct(ProductVariantService $productVariantService)
+    {
+        $this->productVariantService = $productVariantService;
+    }
+    public function index()
+    {
+		// Cart::destroy();
+		$items = Cart::content();
+		// dd($items);
+		$cart = Cart::content()->count();
+        $setting = Setting::first();
+        view()->share('setting', $setting);
+		view()->share('countCart', $cart);
+		// dd($items);
+
+		return view('frontend.carts.index', compact('items'));
+    }
+
+    private function _getItemQuantity($itemQty)
+	{
+		$items = Cart::content();
+		$itemQuantity = $itemQty;
+		if ($items) {
+			foreach ($items as $item) {
+				$itemQuantity += $item->qty;
+			}
+		}
+		return $itemQuantity;
+    }
+
+    public function store(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Please login to add items to cart'
+            ]);
+        }
+
+        $params = $request->except('_token');
+        $product = Product::findOrFail($params['product_id']);
+        
+        try {
+            if ($product->type === 'configurable') {
+                return $this->addConfigurableProductToCart($product, $params);
+            } else {
+                return $this->addSimpleProductToCart($product, $params);
+            }
+        } catch (Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to add product to cart: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    private function addConfigurableProductToCart(Product $product, array $params)
+    {
+        if (!isset($params['variant_id'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Please select product variant'
+            ]);
+        }
+
+        $variant = ProductVariant::where('id', $params['variant_id'])
+            ->where('product_id', $product->id)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$variant) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Selected variant not found or not available'
+            ]);
+        }
+
+        $requestedQty = (int) ($params['qty'] ?? 1);
+        $currentCartQty = $this->getVariantCartQuantity($variant->id);
+        $totalQty = $currentCartQty + $requestedQty;
+
+        if ($variant->stock < $totalQty) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Insufficient stock. Available: {$variant->stock}, Requested: {$totalQty}"
+            ]);
+        }
+
+        $cartItemId = $variant->id . '_variant';
+        
+        Cart::add([
+            'id' => $cartItemId,
+            'name' => $variant->name,
+            'price' => $variant->price,
+            'qty' => $requestedQty,
+            'weight' => $variant->weight ?? 0,
+            'options' => [
+                'product_id' => $product->id,
+                'variant_id' => $variant->id,
+                'type' => 'configurable',
+                'slug' => $product->slug,
+                'image' => $product->productImages->first()?->path ?? '',
+                'attributes' => $variant->variantAttributes->pluck('attribute_value', 'attribute_name')->toArray(),
+            ]
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Product added to cart successfully',
+            'cart_count' => Cart::content()->count()
+        ]);
+    }
+
+    private function addSimpleProductToCart(Product $product, array $params)
+    {
+        $requestedQty = (int) ($params['qty'] ?? 1);
+        $currentCartQty = $this->getProductCartQuantity($product->id);
+        $totalQty = $currentCartQty + $requestedQty;
+
+        $availableStock = $product->productInventory?->qty ?? 0;
+        
+        if ($availableStock < $totalQty) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Insufficient stock. Available: {$availableStock}, Requested: {$totalQty}"
+            ]);
+        }
+
+        Cart::add([
+            'id' => $product->id,
+            'name' => $product->name,
+            'price' => $product->price,
+            'qty' => $requestedQty,
+            'weight' => $product->weight ?? 0,
+            'options' => [
+                'product_id' => $product->id,
+                'variant_id' => null,
+                'type' => 'simple',
+                'slug' => $product->slug,
+                'image' => $product->productImages->first()?->path ?? '',
+            ]
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Product added to cart successfully',
+            'cart_count' => Cart::content()->count()
+        ]);
+    }
+
+    private function getVariantCartQuantity($variantId)
+    {
+        $cartItemId = $variantId . '_variant';
+        $item = Cart::content()->get($cartItemId);
+        return $item ? $item->qty : 0;
+    }
+
+    private function getProductCartQuantity($productId)
+    {
+        $item = Cart::content()->get($productId);
+        return $item ? $item->qty : 0;
+    }
+				// throw new \App\Exceptions\OutOfStockException('The product '. $product->sku .' is out of stock');
+				return response()->json([
+					'status' => 'stok_habis',
+				]);
+			} else {
+				Cart::add(
+					$product->id,
+					$productName,
+					(int)$params['qty'],
+					(float)$product->price,
+					['options' => $attributes]
+				)->associate('App\Models\Product');
+				// dd($cart);
+
+				return response()->json([
+					'status' => 'success',
+				]);
+			}
+		} else {
+			return redirect()->route('login');
+		}
+
+
+	}
+
+	public function update(Request $request)
+	{
+		$params = $request->except('_token');
+
+		Cart::update($request->productId, $request->qty);
+
+		Session::flash('success', 'The cart has been updated');
+		return redirect('carts');
+	}
+
+	public function destroy($id)
+	{
+		Cart::remove($id);
+
+		return redirect()->back()->with([
+			'message' => 'Produk berhasil di hapus !',
+			'alert-type' => 'danger'
+		]);
+	}
+
+	private function _findProductVariant($parentProductId, $selectedAttributes)
+	{
+		// Get all variants of the parent product
+		$variants = Product::where('parent_id', $parentProductId)
+			->with(['productAttributeValues.attribute_option'])
+			->get();
+
+		foreach ($variants as $variant) {
+			$variantMatches = true;
+			
+			// Check if this variant has all the selected attributes
+			foreach ($selectedAttributes as $variantId => $optionId) {
+				$hasAttribute = $variant->productAttributeValues->contains(function ($value) use ($optionId) {
+					return $value->attribute_option_id == $optionId;
+				});
+				
+				if (!$hasAttribute) {
+					$variantMatches = false;
+					break;
+				}
+			}
+			
+			if ($variantMatches) {
+				return $variant;
+			}
+		}
+
+		return null;
+	}
+
+	private function _findProductVariantByOptions($parentProductId, $selectedAttributes)
+	{
+		$variants = Product::where('parent_id', $parentProductId)
+			->with(['productAttributeValues.attribute_option'])
+			->get();
+
+		foreach ($variants as $variant) {
+			$variantMatches = true;
+			
+			foreach ($selectedAttributes as $attributeCode => $data) {
+				if (is_array($data) && isset($data['option_id'])) {
+					$hasAttribute = $variant->productAttributeValues->contains(function ($value) use ($data) {
+						return $value->attribute_option_id == $data['option_id'];
+					});
+					
+					if (!$hasAttribute) {
+						$variantMatches = false;
+						break;
+					}
+				}
+			}
+			
+			if ($variantMatches) {
+				return $variant;
+			}
+		}
+
+		return null;
+	}
+}

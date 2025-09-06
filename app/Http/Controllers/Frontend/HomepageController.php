@@ -24,14 +24,26 @@ class HomepageController extends Controller
 {
     public function index()
     {
-        $productActive = Product::where('type', 'simple')->get()->pluck('id');
+        $productActive = Product::where(function($query) {
+            $query->where('type', 'simple')
+                  ->whereNull('parent_id')
+                  ->orWhere('type', 'configurable');
+        })->get()->pluck('id');
         $productActives = array($productActive);
         $products = ProductCategory::with('categories', 'products')->limit(8)->whereIn('product_id', $productActives[0])->get();
         $categories = ProductCategory::with('products', 'categories')->whereIn('product_id', $productActives[0])->get();
         $categoriesCount = ProductCategory::with('products', 'categories')->whereIn('product_id', $productActives[0])->pluck('category_id');
         $categoriesName = Category::whereIn('id', $categoriesCount)->get();
-        $popular = Product::where('type', 'simple')->active()->limit(6)->get();
-        $totalProduct = Product::where('type', 'simple')->count();
+        $popular = Product::where(function($query) {
+            $query->where('type', 'simple')
+                  ->whereNull('parent_id')
+                  ->orWhere('type', 'configurable');
+        })->active()->limit(6)->get();
+        $totalProduct = Product::where(function($query) {
+            $query->where('type', 'simple')
+                  ->whereNull('parent_id')
+                  ->orWhere('type', 'configurable');
+        })->count();
         $totalOrder = Order::where('payment_status', 'paid')->count();
         $slides = Slide::active()->orderBy('position', 'ASC')->get();
         $cart = Cart::content()->count();
@@ -43,13 +55,44 @@ class HomepageController extends Controller
 
     public function detail($id)
     {
-        $product = ProductCategory::where('product_id', $id)->with('categories', 'products')->first();
-        $products = ProductCategory::with('categories', 'products')->get();
+        $product = Product::find($id);
+        
+        if (!$product) {
+            abort(404);
+        }
+        
+        if ($product->parent_id) {
+            return redirect()->route('shop-detail', $product->parent_id);
+        }
+        
+        $parentProduct = Product::with(['productInventory', 'variants.productInventory'])->find($id);
+        
+        if (!$parentProduct) {
+            abort(404);
+        }
+        
+        $productCategory = ProductCategory::where('product_id', $parentProduct->id)->with('categories')->first();
+        
+        $configurable_attributes = collect();
+        if ($parentProduct->type == 'configurable') {
+            $configurable_attributes = \App\Models\Attribute::where('is_configurable', true)
+                ->with(['attribute_variants.attribute_options'])
+                ->get();
+        }
+        
+        $variants = $parentProduct->variants()->with(['productInventory'])->get();
+        
+        foreach ($variants as $variant) {
+            $variant->product_attribute_values = \App\Models\ProductAttributeValue::where('product_id', $variant->id)
+                ->with(['attribute', 'attribute_variant', 'attribute_option'])
+                ->get();
+        }
+        
         $cart = Cart::content()->count();
         $setting = Setting::first();
         view()->share('setting', $setting);
         view()->share('countCart', $cart);
-        return view('frontend.shop.detail', compact('product', 'products'));
+        return view('frontend.shop.detail', compact('parentProduct', 'productCategory', 'configurable_attributes', 'variants'));
     }
 
     public function reports(Request $request)
@@ -177,7 +220,11 @@ class HomepageController extends Controller
 
     public function shop(Request $request)
     {
-        $produk = Product::where('type', 'simple')->get()->pluck('id');
+        $produk = Product::where(function($query) {
+            $query->where('type', 'simple')
+                  ->whereNull('parent_id')
+                  ->orWhere('type', 'configurable');
+        })->get()->pluck('id');
         $produkss = array($produk);
         $products = ProductCategory::with(['products', 'categories'])->whereIn('product_id', $produkss[0])->get();
         $producteds = ProductCategory::with(['products', 'categories'])->whereIn('product_id', $produkss[0])->get();
@@ -187,24 +234,33 @@ class HomepageController extends Controller
         view()->share('countCart', $cart);
         $categories = Category::all();
 
-        if (count($products) <= 1) {
-            if (request()->has('search')) {
-                $products = $products[0]->products->where('name', 'like', '%' . request()->get('search', ''). '%')->where('type', 'simple')->first();
-                $product = Product::where('id', $products->id)->first();
-                $products->productImages = $product->productImages;
-            }
-        } else {
-            if (request()->has('search')) {
-                foreach ($products as $row) {
-                    $products = $row->products->where('name', 'like', '%' . request()->get('search', ''). '%')->where('type', 'simple')->get();
-                    $product = Product::where('id', $row->products->id)->first();
-                    $products->productImages = $product->productImages;
+        if ($request->has('search')) {
+            $searchTerm = $request->get('search', '');
+            $filteredProducts = collect();
+            
+            foreach ($products as $row) {
+                if ($row->products && stripos($row->products->name, $searchTerm) !== false) {
+                    if ($row->products->parent_id) {
+                        $parentProduct = Product::find($row->products->parent_id);
+                        if ($parentProduct) {
+                            $existingProduct = $filteredProducts->first(function($item) use ($parentProduct) {
+                                return $item->products && $item->products->id === $parentProduct->id;
+                            });
+                            
+                            if (!$existingProduct) {
+                                $parentProductCategory = ProductCategory::where('product_id', $parentProduct->id)->first();
+                                if ($parentProductCategory) {
+                                    $filteredProducts->push($parentProductCategory);
+                                }
+                            }
+                        }
+                    } else {
+                        $filteredProducts->push($row);
+                    }
                 }
             }
-        }
-
-        if (request()->has('search')) {
-            $producted = $products;
+            
+            $producted = $filteredProducts;
         } else {
             $producted = $producteds;
         }

@@ -27,7 +27,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <form action="{{ route('admin.orders.storeAdmin') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.orders.storeAdmin') }}" method="POST" enctype="multipart/form-data" id="order-form" onsubmit="return handleFormSubmit(event)">
                     @csrf
                     <div class="box box-primary">
                         <div class="box-header with-border">
@@ -36,16 +36,15 @@
                         <div class="box-body">
                             <div class="form-group">
                                 <label for="first_name">First Name</label>
-                                <input type="text" readonly name="first_name" value="Admin" class="form-control" value="{{ old('first_name') }}" required>
+                                <input type="text" readonly name="first_name" value="Admin" class="form-control" required>
                             </div>
                             <div class="form-group">
-
                                  <label for="last_name">Last Name</label>
-                                <input type="text" readonly name="last_name" value="Toko" class="form-control" value="{{ old('last_name') }}" required>
+                                <input type="text" readonly name="last_name" value="Toko" class="form-control" required>
                             </div>
                             <div class="form-group">
                                 <label for="address1">Address Line 1</label>
-                                <input type="text" readonly name="address1" value="Cukir, Jombang" class="form-control" value="{{ old('address1') }}" required>
+                                <input type="text" readonly name="address1" value="Cukir, Jombang" class="form-control" required>
                             </div>
                             {{--  <div class="form-group">
                                 <label for="province_id">Province</label>
@@ -65,15 +64,15 @@
                             </div>  --}}
                             <div class="form-group">
                                 <label for="postcode">Postcode</label>
-                                <input type="text" readonly name="postcode" value="102112" class="form-control" value="{{ old('postcode') }}" required>
+                                <input type="text" readonly name="postcode" value="102112" class="form-control" required>
                             </div>
                             <div class="form-group">
                                 <label for="phone">Phone</label>
-                                <input type="text" readonly name="phone" value="9121240210" class="form-control" value="{{ old('phone') }}" required>
+                                <input type="text" readonly name="phone" value="9121240210" class="form-control" required>
                             </div>
                             <div class="form-group">
                                 <label for="email">Email</label>
-                                <input type="email" readonly name="email" value="admin@gmail.com" class="form-control" value="{{ old('email') }}" required>
+                                <input type="email" readonly name="email" value="admin@gmail.com" class="form-control" required>
                             </div>
                         </div>
                     </div>
@@ -108,6 +107,18 @@
                             <div id="order-items"></div>
                             <div class="form-group">
                                 <input type="text" name="note" class="form-control" placeholder="Notes if exist">
+                            </div>
+                            <div class="form-group">
+                                <label for="payment_method">Payment Method</label>
+                                <select name="payment_method" class="form-control" id="payment_method">
+                                    <option value="toko">Bayar di Toko</option>
+                                    <option value="qris">QRIS</option>
+                                    <option value="midtrans">Midtrans Gateway</option>
+                                    <option value="transfer">Transfer Bank</option>
+                                </select>
+                            </div>
+                            <div id="payment-gateway-section" style="display: none;">
+                                <button type="button" id="pay-button" class="btn btn-success btn-lg">Process Payment</button>
                             </div>
                             <div class="form-group">
                                 <input type="file" name="attachments" id="image" class="form-control">
@@ -145,7 +156,7 @@
                     </div>
 
                     <div class="box-footer">
-                        <button type="submit" class="btn btn-success">Create Order</button>
+                        <button type="submit" class="btn btn-success" id="create-order-btn">Create Order</button>
                     </div>
                     <!-- Barcode Scanner Modal -->
                     <div class="modal fade" id="barcodeModal" tabindex="-1">
@@ -177,6 +188,14 @@
 @push('scripts')
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<script type="text/javascript" 
+    @if(config('midtrans.isProduction'))
+        src="https://app.midtrans.com/snap/snap.js"
+    @else
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
+    @endif
+    data-client-key="{{ config('midtrans.clientKey') }}">
+</script>
 
 <script>
 let isScanning = false;
@@ -303,17 +322,21 @@ function findAndAddProduct(barcode) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Product found
-            addProductToOrder(data.product);
-            document.getElementById('result').innerHTML = '<div class="alert alert-success">✓ Product added: <strong>' + data.product.name + '</strong></div>';
+            const product = data.product;
+            addProductToOrder({
+                id: product.id,
+                name: product.name,
+                sku: product.sku,
+                price: product.price,
+                type: product.type || 'simple'
+            });
+            document.getElementById('result').innerHTML = '<div class="alert alert-success">✓ Product added: <strong>' + product.name + '</strong></div>';
 
-            // Close modal after success
             setTimeout(function() {
                 $('#barcodeModal').modal('hide');
             }, 2000);
 
         } else {
-            // Product not found
             document.getElementById('result').innerHTML = '<div class="alert alert-warning">✗ Product not found: <strong>' + barcode + '</strong><br><button onclick="initializeScanner()" class="btn btn-primary btn-sm mt-2">Scan Again</button></div>';
         }
     })
@@ -323,38 +346,7 @@ function findAndAddProduct(barcode) {
     });
 }
 
-function addProductToOrder(product) {
-    const orderItems = document.getElementById('order-items');
-    const itemIndex = orderItems.children.length;
 
-    const productHtml = `
-        <div class="order-item card mb-2 p-3">
-            <div class="row">
-                <div class="col-md-6">
-                    <label>Product</label>
-                    <input type="text" class="form-control" value="${product.name} (${product.sku})" readonly>
-                    <input type="hidden" name="product_id[]" value="${product.id}">
-                </div>
-                <div class="col-md-3">
-                    <label>Qty</label>
-                    <input type="number" name="qty[]" class="form-control" value="1" min="1" required>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="button" class="btn btn-danger btn-sm remove-item">Remove</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    orderItems.insertAdjacentHTML('beforeend', productHtml);
-}
-
-// Remove item functionality
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('remove-item')) {
-        e.target.closest('.order-item').remove();
-    }
-});
 </script>
 <script>
     function addModal() {
@@ -384,19 +376,112 @@ $(function(){
 $('#product-table').on('click', '.select-product', function(){
     const id   = $(this).data('id'),
           sku  = $(this).data('sku'),
-          name = $(this).data('name');
+          name = $(this).data('name'),
+          type = $(this).data('type'),
+          price = $(this).data('price');
 
-    // append to your form (example)
+    addProductToOrder({id, name, sku, price, type});
+    $('#modalProduct').modal('hide');
+});
+
+function loadAttributesForProduct(productId, itemIndex) {
+    $.ajax({
+        url: `/admin/products/${productId}/attributes`,
+        type: 'GET',
+        success: function(response) {
+            if (response.attributes && response.attributes.length > 0) {
+                renderAttributeOptions(response.attributes, itemIndex);
+            } else {
+                $(`#attribute-section-${itemIndex}`).html('<p class="text-muted"><small>No attributes available for this product</small></p>');
+            }
+        },
+        error: function() {
+            $(`#attribute-section-${itemIndex}`).html('<p class="text-danger"><small>Error loading attributes</small></p>');
+        }
+    });
+}
+
+function renderAttributeOptions(attributes, itemIndex) {
+    let attributeHtml = '<div class="border-top pt-3"><h6>Product Options:</h6>';
+    
+    attributes.forEach(attribute => {
+        attributeHtml += `
+            <div class="form-group mb-3">
+                <label class="font-weight-bold">${attribute.name}:</label>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>Pilih Varian:</label>
+                        <select class="form-control variant-select" data-attribute-code="${attribute.code}" data-item-index="${itemIndex}">
+                            <option value="">Pilih Varian</option>
+        `;
+        
+        attribute.attribute_variants.forEach(variant => {
+            attributeHtml += `<option value="${variant.id}">${variant.name}</option>`;
+        });
+        
+        attributeHtml += `
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Pilih Jenis:</label>
+                        <select class="form-control option-select" name="attributes[${itemIndex}][${attribute.code}]" data-attribute-code="${attribute.code}" data-item-index="${itemIndex}">
+                            <option value="">Pilih jenis terlebih dahulu varian</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    attributeHtml += '</div>';
+    
+    $(`#attribute-section-${itemIndex}`).html(attributeHtml);
+    
+    $(`.variant-select[data-item-index="${itemIndex}"]`).on('change', function() {
+        const variantId = $(this).val();
+        const attributeCode = $(this).data('attribute-code');
+        const optionSelect = $(this).closest('.row').find('.option-select');
+        
+        if (variantId) {
+            $.ajax({
+                url: `/api/attribute-options/0/${variantId}`,
+                method: 'GET',
+                success: function(data) {
+                    optionSelect.empty();
+                    optionSelect.append('<option value="">Pilih Jenis</option>');
+                    data.options.forEach(function(option) {
+                        optionSelect.append(new Option(option.name, option.id));
+                    });
+                }
+            });
+        } else {
+            optionSelect.empty();
+            optionSelect.append('<option value="">Pilih jenis terlebih dahulu varian</option>');
+        }
+    });
+}
+
+function addProductToOrder(product) {
     const orderItems = document.getElementById('order-items');
     const itemIndex = orderItems.children.length;
+    
+    let attributeSection = '';
+    if (product.type === 'configurable') {
+        attributeSection = `
+            <div id="attribute-section-${itemIndex}" class="attribute-section mt-3">
+                <p class="text-info"><small>Loading attributes...</small></p>
+            </div>
+        `;
+    }
 
     const productHtml = `
-        <div class="order-item card mb-2 p-3">
+        <div class="order-item card mb-2 p-3" data-index="${itemIndex}">
             <div class="row">
                 <div class="col-md-6">
                     <label>Product</label>
-                    <input type="text" class="form-control" value="${name} (${sku})" readonly>
-                    <input type="hidden" name="product_id[]" value="${id}">
+                    <input type="text" class="form-control" value="${product.name} (${product.sku})" readonly>
+                    <input type="hidden" name="product_id[]" value="${product.id}">
+                    <input type="hidden" name="product_type[]" value="${product.type || 'simple'}">
                 </div>
                 <div class="col-md-3">
                     <label>Qty</label>
@@ -406,18 +491,25 @@ $('#product-table').on('click', '.select-product', function(){
                     <button type="button" class="btn btn-danger btn-sm remove-item">Remove</button>
                 </div>
             </div>
+            ${attributeSection}
         </div>
     `;
 
     orderItems.insertAdjacentHTML('beforeend', productHtml);
+    
+    if (product.type === 'configurable') {
+        loadAttributesForProduct(product.id, itemIndex);
+    }
+}
 
-    $('#productModal').modal('hide');
-    $('#productModal').removeClass('show');
-  });
-
-  // remove item
   $('#order-items').on('click','.remove-item', function(){
     $(this).closest('.order-item').remove();
+  });
+
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('remove-item')) {
+        e.target.closest('.order-item').remove();
+    }
   });
 </script>
 <script>
@@ -442,6 +534,16 @@ $("#image").on("change", function () {
 
 $(document).ready(function() {
     let productIndex = 1;
+
+    // Initialize button visibility based on default payment method
+    const initialPaymentMethod = $('#payment_method').val();
+    if (initialPaymentMethod === 'qris' || initialPaymentMethod === 'midtrans') {
+        $('#payment-gateway-section').show();
+        $('#create-order-btn').hide();
+    } else {
+        $('#payment-gateway-section').hide();
+        $('#create-order-btn').show();
+    }
 
     $('.add-item').click(function() {
         const newItem = `
@@ -476,5 +578,156 @@ $(document).ready(function() {
         });
     });
 });
+
+function handleFormSubmit(event) {
+    const paymentMethod = $('#payment_method').val();
+    
+    if (paymentMethod === 'qris' || paymentMethod === 'midtrans') {
+        event.preventDefault();
+        processPaymentGateway();
+        return false;
+    }
+    
+    return validateForm();
+}
+
+function validateForm() {
+    const orderItems = document.getElementById('order-items');
+    if (orderItems.children.length === 0) {
+        alert('Please add at least one product to the order');
+        return false;
+    }
+    return true;
+}
+
+$('#payment_method').change(function() {
+    const paymentMethod = $(this).val();
+    if (paymentMethod === 'qris' || paymentMethod === 'midtrans') {
+        $('#payment-gateway-section').show();
+        $('#create-order-btn').hide();
+    } else {
+        $('#payment-gateway-section').hide();
+        $('#create-order-btn').show();
+    }
+});
+
+$('#pay-button').click(function() {
+    const paymentMethod = $('#payment_method').val();
+    
+    if (paymentMethod === 'qris' || paymentMethod === 'midtrans') {
+        processPaymentGateway();
+    }
+});
+
+function processPaymentGateway() {
+    // Validate that products are added
+    const orderItems = document.getElementById('order-items');
+    if (orderItems.children.length === 0) {
+        alert('Please add at least one product to the order');
+        return;
+    }
+    
+    // Show loading state
+    const payButton = $('#pay-button');
+    const originalText = payButton.text();
+    payButton.prop('disabled', true).text('Processing...');
+    
+    const formData = new FormData($('#order-form')[0]);
+    
+    console.log('Form data being sent:');
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+    
+    console.log('Making AJAX request to:', '{{ route("admin.orders.storeAdmin") }}');
+    
+    $.ajax({
+        url: '{{ route("admin.orders.storeAdmin") }}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            console.log('AJAX Response:', response);
+            
+            // Reset button state
+            const payButton = $('#pay-button');
+            payButton.prop('disabled', false).text('Process Payment');
+            
+            if (response.success) {
+                if (response.payment_token) {
+                    // Payment gateway order created, process payment immediately
+                    let orderCode = response.order_code || 'ORD-' + response.order_id;
+                    
+                    // Add a small delay to ensure the page is ready
+                    setTimeout(function() {
+                        if (typeof snap === 'undefined') {
+                            alert('Payment gateway not loaded. Please refresh the page and try again.');
+                            window.location.reload();
+                            return;
+                        }
+                        
+                        snap.pay(response.payment_token, {
+                            onSuccess: function(result) {
+                                alert('Payment successful!');
+                                window.location.href = '{{ route("admin.payment.finish") }}?order_id=' + orderCode;
+                            },
+                            onPending: function(result) {
+                                alert('Payment pending. Please complete your payment.');
+                                window.location.href = '{{ route("admin.payment.unfinish") }}?order_id=' + orderCode;
+                            },
+                            onError: function(result) {
+                                alert('Payment failed. Please try again.');
+                                window.location.href = '{{ route("admin.payment.error") }}?order_id=' + orderCode;
+                            },
+                            onClose: function() {
+                                console.log('Payment window closed');
+                                window.location.href = '{{ route("admin.orders.show", ":id") }}'.replace(':id', response.order_id);
+                            }
+                        });
+                    }, 100);
+                } else {
+                    // Regular order created without payment
+                    alert('Order created successfully!');
+                    window.location.href = '{{ route("admin.orders.show", ":id") }}'.replace(':id', response.order_id);
+                }
+            } else {
+                alert('Error: ' + (response.message || 'Unknown error occurred'));
+            }
+        },
+        error: function(xhr) {
+            console.error('AJAX Error:', xhr);
+            
+            // Reset button state
+            const payButton = $('#pay-button');
+            payButton.prop('disabled', false).text('Process Payment');
+            
+            let errorMessage = 'Error creating order. Please try again.';
+            
+            if (xhr.responseJSON) {
+                if (xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseJSON.errors) {
+                    const errors = Object.values(xhr.responseJSON.errors).flat();
+                    errorMessage = errors.join(', ');
+                }
+            } else if (xhr.responseText) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.message) {
+                        errorMessage = response.message;
+                    }
+                } catch (e) {
+                    console.log('Could not parse error response');
+                }
+            }
+            
+            alert(errorMessage);
+        }
+    });
+}
 </script>
 @endpush

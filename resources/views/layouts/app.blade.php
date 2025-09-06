@@ -54,6 +54,13 @@
             transform: translate(0, 0)
         }
 
+        .modal.show .modal-dialog {
+            -webkit-transform: translate(0, 0);
+            -ms-transform: translate(0, 0);
+            -o-transform: translate(0, 0);
+            transform: translate(0, 0)
+        }
+
         .modal-open .modal {
             overflow-x: hidden;
             overflow-y: auto
@@ -180,9 +187,10 @@
 
         <!-- Right navbar links -->
         <ul class="navbar-nav ml-auto">
+            @auth
             <li class="nav-item dropdown">
                 <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
-                    {{ auth()->user()->first_name . auth()->user()->last_name }}
+                    {{ auth()->user()->first_name ?? '' }} {{ auth()->user()->last_name ?? '' }}
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" style="left: inherit; right: 0px;">
                     <a href="{{ route('admin.profile.show') }}" class="dropdown-item">
@@ -200,6 +208,7 @@
                     </form>
                 </div>
             </li>
+            @endauth
         </ul>
     </nav>
     <!-- /.navbar -->
@@ -219,7 +228,7 @@
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
-        @if(count($errors) > 0 )
+        @if(isset($errors) && $errors->any())
         <div class="content-header mb-0 pb-0">
             <div class="container-fluid">
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">

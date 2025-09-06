@@ -10,32 +10,36 @@
 
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Data Attribute Option</h3>
-                <a href="{{ route('admin.attributes.attribute_options.create', $attribute) }}" class="btn btn-success shadow-sm float-right"> <i class="fa fa-plus"></i> Tambah</a>
+                <h3 class="card-title">Data Attribute Variants</h3>
+                <a href="{{ route('admin.attributes.attribute_variants.create', $attribute) }}" class="btn btn-success shadow-sm float-right"> <i class="fa fa-plus"></i> Tambah Variant</a>
               </div>
-              <!-- /.card-header -->
               <div class="card-body">
                 <div class="table-responsive">
-                    <table id="data-table" class="table table-bordered table-striped">
+                    <table id="variants-table" class="table table-bordered table-striped">
                     <thead>
                     <tr>
                         <th>No</th>
-                        <th>Nama</th>
+                        <th>Nama Variant</th>
+                        <th>Jumlah Options</th>
                         <th>Action</th>
                     </tr>
                     </thead>
                     <tbody>
-                        @forelse($attribute->attribute_options as $attribute_option)
+                        @forelse($attribute->attribute_variants as $variant)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td>{{ $attribute_option->name }}</td>
+                                <td>{{ $variant->name }}</td>
+                                <td>{{ $variant->attribute_options->count() }}</td>
                                 <td>
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('admin.attributes.attribute_options.edit', [$attribute, $attribute_option]) }}" class="btn btn-sm btn-primary">
+                                    <a href="{{ route('admin.attributes.attribute_variants.edit', [$attribute, $variant]) }}" class="btn btn-sm btn-primary">
                                         <i class="fa fa-edit"></i>
                                     </a>
-                                    <form onclick="return confirm('are you sure !')" action="{{ route('admin.attributes.attribute_options.destroy', [$attribute,$attribute_option]) }}"
-                                        method="POST">
+                                    <a href="#" onclick="showOptions({{ $variant->id }})" class="btn btn-sm btn-info">
+                                        <i class="fa fa-eye"></i> Options
+                                    </a>
+                                    <form onclick="return confirm('are you sure !')" action="{{ route('admin.attributes.attribute_variants.destroy', [$attribute, $variant]) }}"
+                                        method="POST" style="display: inline;">
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-sm btn-danger" type="submit"><i class="fa fa-trash"></i></button>
@@ -43,15 +47,99 @@
                                 </div>
                                 </td>
                             </tr>
+                            <tr id="options-{{ $variant->id }}" style="display: none;">
+                                <td colspan="4">
+                                    <div class="ml-4">
+                                        <h6>Options untuk {{ $variant->name }}:</h6>
+                                        <a href="{{ route('admin.attributes.attribute_variants.attribute_options.create', [$attribute, $variant]) }}" class="btn btn-sm btn-success mb-2">
+                                            <i class="fa fa-plus"></i> Tambah Option
+                                        </a>
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Nama Option</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse($variant->attribute_options as $option)
+                                                    <tr>
+                                                        <td>{{ $loop->iteration }}</td>
+                                                        <td>{{ $option->name }}</td>
+                                                        <td>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ route('admin.attributes.attribute_variants.attribute_options.edit', [$attribute, $variant, $option]) }}" class="btn btn-sm btn-primary">
+                                                                    <i class="fa fa-edit"></i>
+                                                                </a>
+                                                                <form onclick="return confirm('are you sure !')" action="{{ route('admin.attributes.attribute_variants.attribute_options.destroy', [$attribute, $variant, $option]) }}"
+                                                                    method="POST" style="display: inline;">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button class="btn btn-sm btn-danger" type="submit"><i class="fa fa-trash"></i></button>
+                                                                </form>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="3" class="text-center">Belum ada options</td>
+                                                    </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
                         @empty
                             <tr>
                                 <td colspan="4" class="text-center">Data Kosong !</td>
                             </tr>
                         @endforelse
+                    </tbody>
                     </table>
                 </div>
               </div>
-              <!-- /.card-body -->
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Data Attribute Options (Legacy)</h3>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Info:</strong> Ini adalah data lama yang akan dipindahkan ke struktur baru secara bertahap.
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama</th>
+                        <th>Variant</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $legacyOptions = \App\Models\AttributeOption::whereHas('attribute_variant', function($q) use ($attribute) {
+                                $q->where('attribute_id', $attribute->id);
+                            })->get();
+                        @endphp
+                        @forelse($legacyOptions as $option)
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $option->name }}</td>
+                                <td>{{ $option->attribute_variant->name }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="text-center">Data Kosong !</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                    </table>
+                </div>
+              </div>
             </div>
             <div class="card">
               <div class="card-header">
@@ -187,6 +275,15 @@
     </script>
     <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
     <script>
-    $("#data-table").DataTable();
+    $("#variants-table").DataTable();
+    
+    function showOptions(variantId) {
+        var row = document.getElementById('options-' + variantId);
+        if (row.style.display === 'none') {
+            row.style.display = 'table-row';
+        } else {
+            row.style.display = 'none';
+        }
+    }
     </script>
 @endpush

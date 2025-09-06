@@ -15,4 +15,41 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function productVariant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'variant_id');
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function getProductName()
+    {
+        if ($this->variant_id && $this->productVariant) {
+            return $this->productVariant->name;
+        }
+        
+        return $this->product?->name;
+    }
+
+    public function getProductPrice()
+    {
+        if ($this->variant_id && $this->productVariant) {
+            return $this->productVariant->price;
+        }
+        
+        return $this->product?->price;
+    }
+
+    public function getProductSku()
+    {
+        if ($this->variant_id && $this->productVariant) {
+            return $this->productVariant->sku;
+        }
+        
+        return $this->product?->sku;
+    }
 }

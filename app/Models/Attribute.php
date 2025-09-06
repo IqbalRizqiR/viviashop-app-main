@@ -44,6 +44,11 @@ class Attribute extends Model
 
     public function attribute_options()
     {
-        return $this->hasMany(AttributeOption::class);
+        return $this->hasManyThrough(AttributeOption::class, AttributeVariant::class);
+    }
+
+    public function attribute_variants()
+    {
+        return $this->hasMany(AttributeVariant::class);
     }
 }

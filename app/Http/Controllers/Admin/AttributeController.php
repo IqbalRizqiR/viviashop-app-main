@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Attribute;
+use App\Models\AttributeOption;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AttributeRequest;
@@ -12,7 +13,7 @@ class AttributeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $attributes = Attribute::orderBy('name', 'ASC')->get();
 
@@ -47,7 +48,7 @@ class AttributeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Attribute $attribute)
     {
         //
     }
@@ -72,8 +73,8 @@ class AttributeController extends Controller
         $attribute->update($request->validated());
 
         return redirect()->route('admin.attributes.index')->with([
-            'message' => 'Berhasil di edit !',
-            'alert-type' => 'info'
+            'message' => 'berhasil di update !',
+            'alert-type' => 'success'
         ]);
     }
 
@@ -85,7 +86,7 @@ class AttributeController extends Controller
         $attribute->delete();
 
         return redirect()->back()->with([
-            'message' => 'Berhasil di hapus',
+            'message' => 'berhasil di hapus !',
             'alert-type' => 'danger'
         ]);
     }
