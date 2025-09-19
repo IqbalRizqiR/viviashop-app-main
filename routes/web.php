@@ -6,8 +6,7 @@ use App\Http\Controllers\Admin\StockCardController;
 use App\Http\Controllers\Admin\SmartPrintConverterController;
 use App\Http\Controllers\Frontend\HomepageController;
 
-Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderController::class, 'notificationHandler'])
-    ->name('payment.notification');
+
 
 // Auth guest routes App\Http\Controllers\Frontend\OrderController;
 use App\Http\Controllers\InstagramController;
@@ -41,7 +40,8 @@ Auth::routes();
 Route::get('/test-bootstrap3-modal', function () {
     return view('test-bootstrap3-modal');
 });
-
+Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderController::class, 'notificationHandler'])
+    ->name('payment.notification');
 Route::get('/test-employee-performance-final', function () {
     $admin = \App\Models\User::where('is_admin', 1)->first();
     if (!$admin) {
