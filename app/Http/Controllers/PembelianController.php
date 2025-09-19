@@ -31,7 +31,7 @@ class PembelianController extends Controller
         // dd($pembelian_detail);
 
         $pdf  = Pdf::loadView('admin.orders.invoicesBeli', compact('pembelian', 'pembelian_detail'))->setOptions(['defaultFont' => 'sans-serif']);
-        $customPaper = array(0, 0, 2, 2);
+        $customPaper = array(0, 0, (58 * 2.83), 30000);
         $pdf->setPaper($customPaper);
         return $pdf->stream('invoice.pdf');
     }
