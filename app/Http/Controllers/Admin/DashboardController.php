@@ -76,7 +76,7 @@ class DashboardController extends Controller
 
         $revenueThisMonth = Order::where('created_at', '>=', $thisMonth)
             ->where('payment_status', Order::PAID)
-            ->sum('grand_total');
+            ->sum('base_total_price');
 
         $revenueThisYear = Order::where('created_at', '>=', $thisYear)
             ->where('payment_status', Order::PAID)
