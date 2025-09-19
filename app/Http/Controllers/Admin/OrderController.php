@@ -137,20 +137,23 @@ class OrderController extends Controller
 {
     $order = Order::where('id', $id)->first();
     
+    // Hitung estimasi tinggi berdasarkan jumlah items
+    $baseHeight = 200; // Base height untuk header, customer info, dll
+    $itemHeight = 20; // Height per item
+    $totalItems = $order->orderItems->count();
+    $estimatedHeight = $baseHeight + ($totalItems * $itemHeight * 2); // x2 untuk qty dan total
+    
     $pdf = Pdf::loadView('admin.orders.invoices', compact('order'))
         ->setOptions([
             'defaultFont' => 'sans-serif',
             'isHtml5ParserEnabled' => true,
             'isPhpEnabled' => true,
             'dpi' => 96,
-            'enable_javascript' => false,
-            'enable_remote' => false,
-            'debugKeepTemp' => false,
         ]);
     
-    // Set ukuran kertas thermal 58mm dengan auto height
-    // 58mm = 164.4 points, auto height akan menyesuaikan konten
-    $pdf->setPaper([0, 0, 164.4, 'auto'], 'portrait');
+    // Gunakan tinggi yang dihitung
+    $customPaper = [0, 0, 164.4, $estimatedHeight];
+    $pdf->setPaper($customPaper, 'portrait');
     
     return $pdf->stream('invoice.pdf');
 }
