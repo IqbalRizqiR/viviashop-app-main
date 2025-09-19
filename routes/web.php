@@ -783,6 +783,9 @@ Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderControl
     Route::match(['get','post'], '/instagram/webhook', [InstagramController::class, 'webhook'])
         ->name('instagram.webhook');
 
+    Route::get('/orders/invoices/{id}', [\App\Http\Controllers\Admin\OrderController::class, 'invoices'])
+     ->name('orders.invoices');
+
 
 
 
