@@ -91,7 +91,9 @@ class DashboardController extends Controller
         $totalPurchases = OrderItem::query()
                 ->whereIn('order_items.order_id', $orderIdTotalNeed)
                 ->join('products', 'order_items.product_id', '=', 'products.id')
-                ->selectRaw('SUM(order_items.qty * products.price) as total_value');
+                ->selectRaw('SUM(order_items.qty * products.price) as total_value')
+                ->value('total_value');
+        dd($totalPurchases);
         $netProfit = $revenueThisMonth - $totalPurchases;
 
         $lastMonthRevenue = Order::whereBetween('created_at', [
