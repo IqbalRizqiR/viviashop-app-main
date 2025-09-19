@@ -21,12 +21,18 @@
         font-family: 'Courier New', monospace;
         font-size: 8pt;
         line-height: 1.2;
+        width: 58mm;
+        box-sizing: border-box;
     }
 
     .receipt-container {
         width: 100%;
         padding: 1mm;
         box-sizing: border-box;
+        page-break-inside: avoid;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
 
     .header {
@@ -61,6 +67,7 @@
 
     .items-section {
         margin-bottom: 2mm;
+        flex-grow: 1;
     }
 
     .item-row {
@@ -73,6 +80,8 @@
     .item-name {
         flex: 1;
         margin-right: 2mm;
+        word-wrap: break-word;
+        word-break: break-word;
     }
 
     .item-qty-price {
@@ -84,6 +93,7 @@
         border-top: 1px dashed #000;
         padding-top: 2mm;
         font-size: 7pt;
+        margin-top: auto;
     }
 
     .total-row {
@@ -115,8 +125,19 @@
     }
 
     @media print {
-        body { background: #fff !important; }
-        .receipt-container { padding: 0; }
+        body { 
+            background: #fff !important;
+            width: 58mm;
+        }
+        .receipt-container { 
+            padding: 0;
+            page-break-inside: avoid;
+            page-break-after: always;
+        }
+        @page {
+            size: 58mm auto;
+            margin: 1mm;
+        }
     }
 </style>
 
