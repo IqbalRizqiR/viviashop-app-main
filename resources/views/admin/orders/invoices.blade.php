@@ -9,7 +9,7 @@
 <body>
 <style>
     @page {
-        size: 58mm auto;
+        size: 58mm 40mm;
         margin: 2mm;
     }
 
@@ -21,15 +21,12 @@
         font-family: 'Courier New', monospace;
         font-size: 8pt;
         line-height: 1.2;
-        width: 58mm;
-        box-sizing: border-box;
     }
 
     .receipt-container {
         width: 100%;
         padding: 1mm;
         box-sizing: border-box;
-        page-break-inside: avoid;
     }
 
     .header {
@@ -76,8 +73,6 @@
     .item-name {
         flex: 1;
         margin-right: 2mm;
-        word-wrap: break-word;
-        word-break: break-word;
     }
 
     .item-qty-price {
@@ -120,19 +115,8 @@
     }
 
     @media print {
-        body { 
-            background: #fff !important;
-            width: 58mm;
-        }
-        .receipt-container { 
-            padding: 0;
-            page-break-inside: avoid;
-            page-break-after: always;
-        }
-        @page {
-            size: 58mm auto;
-            margin: 1mm;
-        }
+        body { background: #fff !important; }
+        .receipt-container { padding: 0; }
     }
 </style>
 
