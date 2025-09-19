@@ -30,9 +30,6 @@
         padding: 1mm;
         box-sizing: border-box;
         page-break-inside: avoid;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
     }
 
     .header {
@@ -67,7 +64,6 @@
 
     .items-section {
         margin-bottom: 2mm;
-        flex-grow: 1;
     }
 
     .item-row {
@@ -93,7 +89,6 @@
         border-top: 1px dashed #000;
         padding-top: 2mm;
         font-size: 7pt;
-        margin-top: auto;
     }
 
     .total-row {
