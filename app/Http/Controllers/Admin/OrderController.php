@@ -137,7 +137,8 @@ class OrderController extends Controller
     {
         $order = Order::where('id', $id)->first();
         $pdf  = Pdf::loadView('admin.orders.invoices', compact('order'))->setOptions(['defaultFont' => 'sans-serif']);
-        $pdf->setPaper('a4', 'potrait');
+        $customPaper = array(0, 0, 2, 2);
+        $pdf->setPaper($customPaper);
         return $pdf->stream('invoice.pdf');
     }
 
