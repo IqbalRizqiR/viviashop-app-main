@@ -142,7 +142,7 @@ class OrderController extends Controller
         'isHtml5ParserEnabled' => true,
         'isPhpEnabled' => true,
     ]);
-		$customPaper = array(0, 0, (58 * 2.83), 0);
+		$customPaper = array(0, 0, (58 * 2.83), 2000);
         $pdf->setPaper($customPaper, 'portrait');
         return $pdf->stream('invoice.pdf');
     }
