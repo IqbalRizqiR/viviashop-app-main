@@ -9,8 +9,13 @@
 <body>
 <style>
     @page {
-        size: 58mm;
-        margin: 2mm;
+        size: 58mm auto; /* Auto height sesuai konten */
+        margin: 1mm;
+    }
+
+    * {
+        box-sizing: border-box;
+        page-break-inside: avoid;
     }
 
     body {
@@ -19,104 +24,139 @@
         background: #fff;
         color: #000;
         font-family: 'Courier New', monospace;
-        font-size: 8pt;
-        line-height: 1.2;
+        font-size: 7pt;
+        line-height: 1.1;
+        width: 56mm; /* Fixed width */
+        overflow: hidden;
     }
 
     .receipt-container {
         width: 100%;
-        padding: 1mm;
-        box-sizing: border-box;
+        padding: 0;
+        min-height: auto;
     }
 
     .header {
         text-align: center;
         border-bottom: 1px dashed #000;
-        padding-bottom: 2mm;
-        margin-bottom: 2mm;
+        padding-bottom: 1mm;
+        margin-bottom: 1mm;
     }
 
     .store-name {
-        font-size: 10pt;
+        font-size: 9pt;
         font-weight: bold;
-        margin-bottom: 1mm;
+        margin-bottom: 0.5mm;
     }
 
     .invoice-info {
-        font-size: 7pt;
-        margin-bottom: 1mm;
+        font-size: 6pt;
+        margin-bottom: 0.3mm;
     }
 
     .order-details {
-        margin-bottom: 2mm;
-        font-size: 7pt;
+        margin-bottom: 1mm;
+        font-size: 6pt;
+        line-height: 1.2;
     }
 
     .customer-info {
-        margin-bottom: 2mm;
-        font-size: 7pt;
+        margin-bottom: 1mm;
+        font-size: 6pt;
         border-bottom: 1px dashed #000;
-        padding-bottom: 2mm;
+        padding-bottom: 1mm;
+        line-height: 1.2;
+    }
+
+    .customer-info div {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
     }
 
     .items-section {
-        margin-bottom: 2mm;
+        margin-bottom: 1mm;
     }
 
     .item-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 1mm;
-        font-size: 7pt;
+        margin-bottom: 0.3mm;
+        font-size: 6pt;
+        align-items: flex-start;
     }
 
     .item-name {
         flex: 1;
         margin-right: 2mm;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        max-width: 35mm;
     }
 
     .item-qty-price {
         text-align: right;
         white-space: nowrap;
+        min-width: 15mm;
     }
 
     .totals-section {
         border-top: 1px dashed #000;
-        padding-top: 2mm;
-        font-size: 7pt;
+        padding-top: 1mm;
+        font-size: 6pt;
     }
 
     .total-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 1mm;
+        margin-bottom: 0.3mm;
     }
 
     .final-total {
         font-weight: bold;
         border-top: 1px solid #000;
-        padding-top: 1mm;
-        margin-top: 1mm;
+        padding-top: 0.5mm;
+        margin-top: 0.5mm;
     }
 
     .footer {
         text-align: center;
-        font-size: 6pt;
-        margin-top: 2mm;
+        font-size: 5pt;
+        margin-top: 1mm;
         border-top: 1px dashed #000;
-        padding-top: 2mm;
+        padding-top: 1mm;
     }
 
     .status {
         text-align: center;
         font-weight: bold;
-        font-size: 8pt;
-        margin: 1mm 0;
+        font-size: 6pt;
+        margin: 0.3mm 0;
+    }
+
+    /* Ensure no page breaks */
+    .receipt-container,
+    .header,
+    .order-details,
+    .customer-info,
+    .items-section,
+    .totals-section,
+    .footer {
+        page-break-inside: avoid;
+        break-inside: avoid;
     }
 
     @media print {
-        body { background: #fff !important; }
-        .receipt-container { padding: 0; }
+        body { 
+            background: #fff !important;
+            -webkit-print-color-adjust: exact;
+        }
+        
+        * {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
     }
 </style>
 
@@ -139,7 +179,7 @@
     <div class="customer-info">
         <div><strong>{{ $order->customer_full_name }}</strong></div>
         <div>{{ $order->customer_phone }}</div>
-        <div>{{ Str::limit($order->customer_address1, 25) }}</div>
+        <div>{{ $order->customer_address1 }}</div>
     </div>
 
     <!-- Items -->
@@ -147,7 +187,7 @@
         @if ($order->orderItems->count() > 1)
             @foreach ($order->orderItems as $item)
                 <div class="item-row">
-                    <div class="item-name">{{ Str::limit($item->product_name, 15) }}</div>
+                    <div class="item-name">{{ $item->product_name }}</div>
                     <div class="item-qty-price">{{ $item->qty }}x{{ number_format($item->price, 0, ',', '.') }}</div>
                 </div>
                 <div class="item-row">
@@ -156,13 +196,16 @@
                 </div>
             @endforeach
         @else
+            @php
+                $singleItem = $order->orderItems[0];
+            @endphp
             <div class="item-row">
-                <div class="item-name">{{ Str::limit($order->orderItems[0]->name ?? $order->orderItems[0]->product_name, 15) }}</div>
-                <div class="item-qty-price">{{ $order->orderItems[0]->qty }}x{{ number_format($order->orderItems[0]->base_price ?? $order->orderItems[0]->price, 0, ',', '.') }}</div>
+                <div class="item-name">{{ $singleItem->name ?? $singleItem->product_name }}</div>
+                <div class="item-qty-price">{{ $singleItem->qty }}x{{ number_format($singleItem->base_price ?? $singleItem->price, 0, ',', '.') }}</div>
             </div>
             <div class="item-row">
                 <div class="item-name"></div>
-                <div class="item-qty-price">{{ number_format($order->orderItems[0]->sub_total ?? $order->orderItems[0]->total, 0, ',', '.') }}</div>
+                <div class="item-qty-price">{{ number_format($singleItem->sub_total ?? $singleItem->total, 0, ',', '.') }}</div>
             </div>
         @endif
     </div>
