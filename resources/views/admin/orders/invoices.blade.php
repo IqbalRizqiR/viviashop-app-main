@@ -11,7 +11,7 @@
     /* Optimal print style for A4 portrait, minimal margins and high-contrast text */
 
 @page {
-    size: A4 portrait;
+    size: 50mm 80mm;  /* A4 size in portrait */
     margin: 10mm;            /* small page margins */
 }
 
