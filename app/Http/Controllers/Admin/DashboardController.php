@@ -86,7 +86,13 @@ class DashboardController extends Controller
             ->orWhere('payment_status', Order::UNPAID)
             ->sum('grand_total');
 
-        $totalPurchases = Pembelian::sum('total_harga');
+        $orderIdTotalNeed = Order::where('created_at', '>=', $thisMonth)
+            ->where('payment_status', Order::PAID)->get('id');
+        $totalPurchases = OrderItem::query()
+                ->join('products', 'order_items.product_id', '=', 'products.id')
+                ->selectRaw('SUM(order_items.qty * products.price) as total_value')
+                ->value('total_value');
+        dd($totalPurchases);
         $netProfit = $revenueThisMonth - $totalPurchases;
 
         $lastMonthRevenue = Order::whereBetween('created_at', [
