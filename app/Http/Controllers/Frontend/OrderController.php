@@ -1263,7 +1263,7 @@ view()->share('setting', $setting);
 		
 		$pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.orders.invoices', compact('order'))
 			->setOptions(['defaultFont' => 'sans-serif']);
-		$customPaper = array(0, 0, (58 * 2.83), 30000);
+		$customPaper = array(0, 0, (58 * 2.83), auto);
         $pdf->setPaper($customPaper);
 		
 		return $pdf->stream('invoice-' . $order->code . '.pdf');

@@ -2,12 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Invoice - {{ $order->code }}</title>
     <style>
         @page {
-            size: 58mm auto; /* Lebar fix 58mm, tinggi menyesuaikan isi */
+            size: 58mm auto; /* Lebar fix 58mm, tinggi mengikuti isi */
             margin: 2mm;
         }
 
@@ -21,6 +19,8 @@
             line-height: 1.2;
             width: 58mm;
             max-width: 58mm;
+            word-wrap: break-word;   /* teks panjang otomatis turun */
+            white-space: normal;     /* teks wrap */
         }
 
         .receipt-container {
@@ -28,9 +28,6 @@
             max-width: 58mm;
             padding: 1mm;
             box-sizing: border-box;
-            page-break-before: avoid;
-            page-break-after: avoid;
-            page-break-inside: avoid;
         }
 
         .header {
@@ -68,6 +65,8 @@
             font-size: 7pt;
             border-bottom: 1px dashed #000;
             padding-bottom: 2mm;
+            word-wrap: break-word;
+            white-space: normal;
         }
 
         .items-section {
@@ -79,12 +78,13 @@
             justify-content: space-between;
             margin-bottom: 1mm;
             font-size: 7pt;
-            page-break-inside: avoid; /* jangan split item */
         }
 
         .item-name {
             flex: 1;
             margin-right: 2mm;
+            word-wrap: break-word;
+            white-space: normal;
         }
 
         .item-qty-price {
@@ -102,7 +102,6 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 1mm;
-            page-break-inside: avoid;
         }
 
         .final-total {
@@ -118,11 +117,6 @@
             margin-top: 2mm;
             border-top: 1px dashed #000;
             padding-top: 2mm;
-        }
-
-        @media print {
-            body { background: #fff !important; }
-            .receipt-container { padding: 0; }
         }
     </style>
 </head>
@@ -146,32 +140,21 @@
     <div class="customer-info">
         <div><strong>{{ $order->customer_full_name }}</strong></div>
         <div>{{ $order->customer_phone }}</div>
-        <div>{{ Str::limit($order->customer_address1, 25) }}</div>
+        <div>{{ $order->customer_address1 }}</div>
     </div>
 
     <!-- Items -->
     <div class="items-section">
-        @if ($order->orderItems->count() > 1)
-            @foreach ($order->orderItems as $item)
-                <div class="item-row">
-                    <div class="item-name">{{ Str::limit($item->product_name, 15) }}</div>
-                    <div class="item-qty-price">{{ $item->qty }}x{{ number_format($item->price, 0, ',', '.') }}</div>
-                </div>
-                <div class="item-row">
-                    <div class="item-name"></div>
-                    <div class="item-qty-price">{{ number_format($item->total, 0, ',', '.') }}</div>
-                </div>
-            @endforeach
-        @else
+        @foreach ($order->orderItems as $item)
             <div class="item-row">
-                <div class="item-name">{{ Str::limit($order->orderItems[0]->name ?? $order->orderItems[0]->product_name, 15) }}</div>
-                <div class="item-qty-price">{{ $order->orderItems[0]->qty }}x{{ number_format($order->orderItems[0]->base_price ?? $order->orderItems[0]->price, 0, ',', '.') }}</div>
+                <div class="item-name">{{ $item->product_name }}</div>
+                <div class="item-qty-price">{{ $item->qty }}x{{ number_format($item->price, 0, ',', '.') }}</div>
             </div>
             <div class="item-row">
                 <div class="item-name"></div>
-                <div class="item-qty-price">{{ number_format($order->orderItems[0]->sub_total ?? $order->orderItems[0]->total, 0, ',', '.') }}</div>
+                <div class="item-qty-price">{{ number_format($item->total, 0, ',', '.') }}</div>
             </div>
-        @endif
+        @endforeach
     </div>
 
     <!-- Totals -->
