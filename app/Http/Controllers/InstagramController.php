@@ -82,9 +82,9 @@ class InstagramController extends Controller
             'access_token' => $instagramUser->token,
         ]);
 
-        dd(Log::info('Instagram Token Exchange Response', [
+        Log::info('Instagram Token Exchange Response', [
             'response' => $response->json(),
-        ]));
+        ]);
 
         $longLived = $response->json()['access_token'];
 
