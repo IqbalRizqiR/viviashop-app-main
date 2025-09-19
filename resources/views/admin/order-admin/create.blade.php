@@ -192,6 +192,10 @@
         }
     }
 
+    .padding-normal {
+        padding: 15px;
+    }
+
     /* Alert styling */
     .alert {
         border-radius: 6px;
@@ -225,7 +229,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <form action="{{ route('admin.orders.storeAdmin') }}" method="POST" enctype="multipart/form-data" id="order-form" onsubmit="return handleFormSubmit(event)">
+                <form action="{{ route('admin.orders.storeAdmin') }}" class="padding-normal" method="POST" enctype="multipart/form-data" id="order-form" onsubmit="return handleFormSubmit(event)">
                     @csrf
                     <div class="box box-primary">
                         <div class="box-header with-border">
