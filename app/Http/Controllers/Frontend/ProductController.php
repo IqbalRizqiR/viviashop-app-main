@@ -151,7 +151,6 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        // Load relationships for new variant system
         $product->load(['productVariants.variantAttributes', 'productImages', 'categories']);
 
         return view('frontend.products.show', compact('product'));
@@ -163,8 +162,7 @@ class ProductController extends Controller
             return view('frontend.products.quick_view', compact('product'));
         }
 
-        $colors = ProductAttributeValue::getAttributeOptions($product, 'color')->pluck('text_value', 'text_value');
-        $sizes = ProductAttributeValue::getAttributeOptions($product, 'size')->pluck('text_value', 'text_value');
-        return view('frontend.products.quick_view', compact('product', 'sizes', 'colors'));
+        $product->load(['productVariants.variantAttributes']);
+        return view('frontend.products.quick_view', compact('product'));
 	}
 }

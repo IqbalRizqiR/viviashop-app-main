@@ -8,6 +8,7 @@ use App\Models\Shipment;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use App\Models\ProductInventory;
+use App\Services\StockService;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
@@ -116,7 +117,30 @@ view()->share('setting', $setting);
 		$items = Cart::content();
 
 		foreach ($items as $item) {
-			$totalWeight += ($item->qty * ($item->model->weight));
+			$itemWeight = 0;
+			
+			if (isset($item->options['type']) && $item->options['type'] === 'configurable') {
+				$itemWeight = $item->weight ?? 0;
+			} else {
+				// For simple products
+				if ($item->model) {
+					$itemWeight = $item->model->weight ?? 0;
+				} else {
+					// Fallback: use weight from cart item or load from product
+					$itemWeight = $item->weight ?? 0;
+					if ($itemWeight <= 0 && isset($item->options['product_id'])) {
+						$product = \App\Models\Product::find($item->options['product_id']);
+						$itemWeight = $product ? ($product->weight ?? 100) : 100; // Default 100g if no weight
+					}
+				}
+			}
+			
+			// Ensure minimum weight
+			if ($itemWeight <= 0) {
+				$itemWeight = 100; // Default 100 grams
+			}
+			
+			$totalWeight += ($item->qty * $itemWeight);
 		}
 
 		return $totalWeight;
@@ -230,14 +254,16 @@ view()->share('setting', $setting);
                 try {
                     $shippingOptions = $rajaOngkir->calculateShippingCost($origin, $destination, $weight, $courier);
                     
-                    if (!empty($shippingOptions)) {
+                    if (is_array($shippingOptions) && !empty($shippingOptions)) {
                         foreach ($shippingOptions as $option) {
-                            $results[] = [
-                                'service' => strtoupper($courier) . ' - ' . $option['service'],
-                                'cost' => $option['cost'],
-                                'etd' => $option['etd'],
-                                'courier' => $courier,
-                            ];
+                            if (is_array($option) && isset($option['service'], $option['cost'])) {
+                                $results[] = [
+                                    'service' => strtoupper($courier) . ' - ' . $option['service'],
+                                    'cost' => $option['cost'],
+                                    'etd' => $option['etd'] ?? '',
+                                    'courier' => $courier,
+                                ];
+                            }
                         }
                     }
                 } catch (\Exception $e) {
@@ -284,34 +310,37 @@ view()->share('setting', $setting);
         $shippingOptions = $this->_getShippingCost($destination, $this->_getTotalWeight());
 
         // Log all available shipping options
-        Log::info('Available shipping options count: ' . count($shippingOptions['results']));
+        $resultsCount = is_array($shippingOptions['results']) ? count($shippingOptions['results']) : 0;
+        Log::info('Available shipping options count: ' . $resultsCount);
 
         $selectedShipping = null;
 
-        if (count($shippingOptions['results']) == 0) {
+        if ($resultsCount == 0) {
             // No shipping options available
             Log::error('No shipping options available for destination: ' . $destination);
-        } else if (count($shippingOptions['results']) == 1) {
+        } else if ($resultsCount == 1) {
             // Only one option, select it
-            $selectedShipping = $shippingOptions['results'][0];
+            $selectedShipping = is_array($shippingOptions['results']) && isset($shippingOptions['results'][0]) ? $shippingOptions['results'][0] : null;
             Log::info('Selected the only shipping option available', $selectedShipping);
         } else {
             // Multiple options, find the requested one
-            foreach ($shippingOptions['results'] as $shippingOption) {
-                // Compare with and without spaces to be more flexible
-                if (str_replace(' ', '', $shippingOption['service']) == str_replace(' ', '', $shippingService)) {
-                    $selectedShipping = $shippingOption;
-                    Log::info('Found matching shipping option', $selectedShipping);
-                    break;
+            if (is_array($shippingOptions['results'])) {
+                foreach ($shippingOptions['results'] as $shippingOption) {
+                    // Compare with and without spaces to be more flexible
+                    if (str_replace(' ', '', $shippingOption['service']) == str_replace(' ', '', $shippingService)) {
+                        $selectedShipping = $shippingOption;
+                        Log::info('Found matching shipping option', $selectedShipping);
+                        break;
+                    }
                 }
-            }
 
-            // If no match found, log the issue
-            if (!$selectedShipping) {
-                Log::warning('Requested shipping service not found', [
-                    'requested' => $shippingService,
-                    'available' => array_column($shippingOptions['results'], 'service')
-                ]);
+                // If no match found, log the issue
+                if (!$selectedShipping) {
+                    Log::warning('Requested shipping service not found', [
+                        'requested' => $shippingService,
+                        'available' => array_column($shippingOptions['results'], 'service')
+                    ]);
+                }
             }
         }
 
@@ -392,6 +421,27 @@ view()->share('setting', $setting);
 
 			Log::info('Checkout validation passed');
 
+			// Add detailed cart validation
+			if (Cart::count() <= 0) {
+				Log::error('Checkout failed: Cart is empty');
+				return redirect('carts')->with('error', 'Your cart is empty');
+			}
+
+			$cartItems = Cart::content();
+			Log::info('Cart items for checkout', [
+				'count' => $cartItems->count(),
+				'items' => $cartItems->map(function($item) {
+					return [
+						'id' => $item->id,
+						'name' => $item->name,
+						'qty' => $item->qty,
+						'price' => $item->price,
+						'type' => $item->options['type'] ?? 'unknown',
+						'model_exists' => $item->model ? true : false
+					];
+				})->toArray()
+			]);
+
 			$params = $request->except('_token');
 			$params['attachments'] = $request->file('attachments');
 			$params['payment_slip'] = $request->file('payment_slip');
@@ -432,6 +482,12 @@ view()->share('setting', $setting);
 				// Add success message
 				Session::flash('success', 'Thank you! Your order has been received!');
 
+				Log::info('Checkout successful, redirecting to order received page', [
+					'order_id' => $order->id,
+					'order_code' => $order->code,
+					'redirect_url' => 'orders/received/' . $order->id
+				]);
+
 				// Redirect to order received page
 				return redirect('orders/received/' . $order->id);
 
@@ -439,14 +495,21 @@ view()->share('setting', $setting);
 				// Rollback transaction on error
 				DB::rollBack();
 
-				Log::error('Checkout Error: ' . $e->getMessage());
+				Log::error('Checkout Error: ' . $e->getMessage(), [
+					'file' => $e->getFile(),
+					'line' => $e->getLine(),
+					'trace' => $e->getTraceAsString()
+				]);
 
 				// Redirect back with error message
 				return redirect()->back()->withInput()->with('error', 'There was an error processing your order: ' . $e->getMessage());
 			}
 		} catch (\Exception $e) {
-			Log::error('Checkout Input Validation Error: ' . $e->getMessage());
-			Log::error('Request data: ', $request->all());
+			Log::error('Checkout Input Validation Error: ' . $e->getMessage(), [
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+				'request_data' => $request->all()
+			]);
 
 			return redirect()->back()->withInput()->withErrors($e->getMessage())->with('error', 'Please check your input: ' . $e->getMessage());
 		}
@@ -470,13 +533,17 @@ view()->share('setting', $setting);
 			}
 		}
 		
-		if (count($shippingOptions['results']) <= 1) {
-			$selectedShipping = $shippingOptions['results'][0] ?? null;
-		} elseif(count($shippingOptions['results']) > 1) {
-			foreach ($shippingOptions['results'] as $shippingOption) {
-				if (str_replace(' ', '', $shippingOption['service']) == str_replace(' ', '', $shippingService)) {
-					$selectedShipping = $shippingOption;
-					break;
+		$resultsCount = is_array($shippingOptions['results']) ? count($shippingOptions['results']) : 0;
+		
+		if ($resultsCount <= 1) {
+			$selectedShipping = ($resultsCount > 0 && isset($shippingOptions['results'][0])) ? $shippingOptions['results'][0] : null;
+		} elseif($resultsCount > 1) {
+			if (is_array($shippingOptions['results'])) {
+				foreach ($shippingOptions['results'] as $shippingOption) {
+					if (str_replace(' ', '', $shippingOption['service']) == str_replace(' ', '', $shippingService)) {
+						$selectedShipping = $shippingOption;
+						break;
+					}
 				}
 			}
 		}
@@ -549,12 +616,20 @@ view()->share('setting', $setting);
 			'city_id' => $params['delivery_method'] == 'courier' ? ($params['shipping_city_id'] ?? auth()->user()->city_id) : auth()->user()->city_id,
 			'postcode' => $params['postcode'],
 			'phone' => $params['phone'],
-			'email' => $params['email'],
 		];
 
-		auth()->user()->update($user_profile);
+		if ($params['email'] !== auth()->user()->email) {
+			$existingUser = DB::table('users')->where('email', $params['email'])->where('id', '!=', auth()->id())->first();
+			if (!$existingUser) {
+				$user_profile['email'] = $params['email'];
+			}
+		}
 
-		if ($params['attachments'] != null || isset($params['payment_slip'])) {
+		DB::table('users')
+			->where('id', auth()->id())
+			->update($user_profile);
+
+		if (isset($params['attachments']) && $params['attachments'] != null || isset($params['payment_slip']) && $params['payment_slip'] != null) {
 			$orderParams = [
 				'user_id' => auth()->id(),
 				'code' => Order::generateCode(),
@@ -562,7 +637,7 @@ view()->share('setting', $setting);
 				'order_date' => $orderDate,
 				'payment_due' => $paymentDue,
 				'payment_status' => Order::UNPAID,
-				'attachments' => $params['attachments'] ? $params['attachments']->store('assets/slides', 'public') : null,
+				'attachments' => isset($params['attachments']) && $params['attachments'] ? $params['attachments']->store('assets/slides', 'public') : null,
 				'payment_slip' => isset($params['payment_slip']) ? $params['payment_slip']->store('assets/payment_slips', 'public') : null,
 				'base_total_price' => $baseTotalPrice,
 				'tax_amount' => $taxAmount,
@@ -634,31 +709,75 @@ view()->share('setting', $setting);
 				$itemBaseTotal = $item->qty * $item->price;
 				$itemSubTotal = $itemBaseTotal + $itemTaxAmount - $itemDiscountAmount;
 
-				$product = isset($item->model->parent) ? $item->model->parent : $item->model;
+				// Handle both simple and variant items
+				if (isset($item->options['type']) && $item->options['type'] === 'configurable') {
+					// Variant item
+					$product = \App\Models\Product::find($item->options['product_id']);
+					$productId = $item->options['variant_id']; // Store variant ID as product_id for order item
+					$sku = $item->options['sku'] ?? 'VAR-' . $item->options['variant_id'];
+					$weight = $item->weight ?? 0;
+				} else {
+					// Simple item
+					if ($item->model) {
+						$product = isset($item->model->parent) ? $item->model->parent : $item->model;
+						$productId = $item->model->id;
+						$sku = $item->model->sku ?? '';
+						$weight = $item->model->weight ?? 0;
+					} else {
+						// Fallback for when model is null (load from options)
+						$product = \App\Models\Product::find($item->options['product_id'] ?? $item->id);
+						$productId = $item->options['product_id'] ?? $item->id;
+						$sku = $product ? $product->sku : '';
+						$weight = $product ? $product->weight : 0;
+					}
+				}
 
 				$orderItemParams = [
 					'order_id' => $order->id,
-					'product_id' => $item->model->id,
+					'product_id' => $productId,
 					'qty' => $item->qty,
 					'base_price' => $item->price,
 					'base_total' => $itemBaseTotal,
 					'tax_amount' => $itemTaxAmount,
 					'tax_percent' => $itemTaxPercent,
 					'discount_amount' => $itemDiscountAmount,
-					// 'attachments' => $order->
 					'discount_percent' => $itemDiscountPercent,
 					'sub_total' => $itemSubTotal,
-					'sku' => $item->model->sku,
-					'type' => $product->type,
+					'sku' => $sku,
+					'type' => $product ? $product->type : 'simple',
 					'name' => $item->name,
-					'weight' => $item->model->weight / 1000,
+					'weight' => $weight / 1000,
 					'attributes' => json_encode($item->options),
 				];
 
 				$orderItem = OrderItem::create($orderItemParams);
 
 				if ($orderItem) {
-					ProductInventory::reduceStock($orderItem->product_id, $orderItem->qty);
+					// Handle stock reduction for different item types using StockService
+					if (isset($item->options['type']) && $item->options['type'] === 'configurable') {
+						// For variant items, record stock movement
+						$variant = \App\Models\ProductVariant::find($item->options['variant_id']);
+						if ($variant) {
+							app(StockService::class)->recordMovement(
+								$variant->id, // variant_id
+								\App\Models\StockMovement::MOVEMENT_OUT, // movement_type
+								$orderItem->qty, // quantity
+								'Frontend Sale', // reference_type
+								$order->id, // reference_id
+								"Order #{$order->code}" // reason
+							);
+						}
+					} else {
+						// For simple items, use recordSimpleProductMovement
+						app(StockService::class)->recordSimpleProductMovement(
+							$orderItem->product_id, // product_id
+							\App\Models\StockMovement::MOVEMENT_OUT, // movement_type
+							$orderItem->qty, // quantity
+							'Frontend Sale', // reference_type
+							$order->id, // reference_id
+							"Order #{$order->code}" // reason
+						);
+					}
 				}
 			}
 		}
@@ -816,7 +935,26 @@ view()->share('setting', $setting);
 	private function _restoreStock($order)
 	{
 		foreach ($order->orderItems as $item) {
-			ProductInventory::increaseStock($item->product_id, $item->qty);
+			// Check if item has variant
+			if ($item->product_variant_id) {
+				app(StockService::class)->recordMovement(
+					$item->product_id,
+					$item->product_variant_id,
+					$item->qty,
+					'in',
+					'Stock Restoration',
+					"Cancelled Order #{$order->order_code}"
+				);
+			} else {
+				app(StockService::class)->recordMovement(
+					$item->product_id,
+					null,
+					$item->qty,
+					'in',
+					'Stock Restoration',
+					"Cancelled Order #{$order->order_code}"
+				);
+			}
 		}
 	}
 	public function notificationHandler(Request $request)
@@ -1004,7 +1142,7 @@ view()->share('setting', $setting);
 		$shipmentParams = [
 			'user_id' => auth()->id(),
 			'order_id' => $order->id,
-			'status' => Shipment::PENDING,
+			'status' => 'pending', // Use string instead of constant for safety
 			'total_qty' => $totalQty,
 			'total_weight' => $this->_getTotalWeight(),
 			'name' => $shippingName,
@@ -1212,6 +1350,70 @@ view()->share('setting', $setting);
 			]);
 			throw $e;
 		}
+	}
+
+	public function complete(Order $order)
+	{
+		// Ensure user can only complete their own orders
+		if ($order->customer_email !== auth()->user()->email) {
+			abort(403, 'Unauthorized');
+		}
+
+		// Check if order can be completed
+		if ($order->isCancelled()) {
+			Session::flash('error', 'Cannot complete a cancelled order.');
+			return redirect()->route('orders.show', $order->id);
+		}
+
+		if ($order->isCompleted()) {
+			Session::flash('info', 'Order is already completed.');
+			return redirect()->route('orders.show', $order->id);
+		}
+
+		if (!$order->isDelivered()) {
+			Session::flash('error', 'Order cannot be completed until it has been delivered.');
+			return redirect()->route('orders.show', $order->id);
+		}
+
+		// Automatically complete the order since it meets all requirements
+		return $this->doComplete(request(), $order);
+	}
+
+	public function doComplete(Request $request, Order $order)
+	{
+		// Ensure user can only complete their own orders
+		if ($order->customer_email !== auth()->user()->email) {
+			abort(403, 'Unauthorized');
+		}
+
+		// Check if order can be completed
+		if ($order->isCancelled()) {
+			Session::flash('error', 'Cannot complete a cancelled order.');
+			return redirect()->route('orders.show', $order->id);
+		}
+
+		if ($order->isCompleted()) {
+			Session::flash('info', 'Order is already completed.');
+			return redirect()->route('orders.show', $order->id);
+		}
+
+		if (!$order->isDelivered()) {
+			Session::flash('error', 'Order cannot be completed until it has been delivered.');
+			return redirect()->route('orders.show', $order->id);
+		}
+
+		// Mark order as completed
+		$order->status = Order::COMPLETED;
+		$order->completed_at = now();
+		$order->notes = $order->notes . "\nOrder marked as completed by customer";
+
+		if ($order->save()) {
+			Session::flash('success', 'Order has been marked as completed successfully!');
+		} else {
+			Session::flash('error', 'Failed to complete the order. Please try again.');
+		}
+
+		return redirect()->route('orders.show', $order->id);
 	}
 
 }

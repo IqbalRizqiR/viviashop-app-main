@@ -7,10 +7,12 @@ use App\Models\OrderItem;
 use App\Models\Shipment;
 use Illuminate\Http\Request;
 use App\Models\ProductInventory;
+use App\Services\StockService;
 use App\Http\Controllers\Controller;
 use App\Exceptions\OutOfStockException;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\EmployeePerformance;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -44,11 +46,11 @@ class OrderController extends Controller
         MidtransConfig::$isProduction = $this->isProduction;
         MidtransConfig::$isSanitized = $this->isSanitized;
         MidtransConfig::$is3ds = $this->is3ds;
-
-        $isLocalhost = in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1']) ||
+        
+        $isLocalhost = in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1']) || 
                        str_contains(request()->getHost(), '.local') ||
                        str_contains(request()->getHost(), 'laragon');
-
+        
         if ($isLocalhost) {
             MidtransConfig::$curlOptions = [
                 CURLOPT_SSL_VERIFYPEER => false,
@@ -115,7 +117,7 @@ class OrderController extends Controller
     public function show($id)
 	{
 		$order = Order::withTrashed()->with('shipment')->findOrFail($id);
-
+		
 		// Prepare payment data for Midtrans
 		$paymentData = [
 			'midtransClientKey' => config('midtrans.clientKey'),
@@ -124,8 +126,11 @@ class OrderController extends Controller
 				? 'https://app.midtrans.com/snap/snap.js'
 				: 'https://app.sandbox.midtrans.com/snap/snap.js'
 		];
-
-		return view('admin.orders.show', compact('order', 'paymentData'));
+		
+		// Get employee list for dropdown
+		$employees = EmployeePerformance::getEmployeeList();
+		
+		return view('admin.orders.show', compact('order', 'paymentData', 'employees'));
 	}
 
     public function invoices($id)
@@ -210,8 +215,9 @@ class OrderController extends Controller
 				'qty' => 'required|array|min:1',
 				'qty.*' => 'required|integer|min:1',
 				'payment_method' => 'nullable|string|in:qris,midtrans,toko,transfer',
-				'attributes' => 'nullable|array',
-				'attributes.*' => 'nullable|array',
+				'variant_id' => 'nullable|array',
+				'variant_id.*' => 'nullable',
+				'variant_attributes' => 'nullable|array',
 			]);
 
 			if (count($validated['product_id']) !== count($validated['qty'])) {
@@ -229,24 +235,51 @@ class OrderController extends Controller
 				}
 
 				$qty = $validated['qty'][$i];
-				$itemTotal = $product->price * $qty;
+				$price = $product->price;
+				$productSku = $product->sku ?? '';
+				$productName = $product->name;
+
+				$variantId = null;
+				if ($request->has('variant_id') && is_array($request->input('variant_id'))) {
+					$variantIdValue = $request->input('variant_id')[$i] ?? null;
+					
+					if ($variantIdValue) {
+						// Handle simple products with format 'simple_123'
+						if (is_string($variantIdValue) && strpos($variantIdValue, 'simple_') === 0) {
+							// For simple products, we don't need to find variant, just use product data
+							$variantId = null;
+						} else if (is_numeric($variantIdValue) && $product->configurable()) {
+							// Handle configurable products with actual variant IDs
+							$variantId = intval($variantIdValue);
+							$variant = \App\Models\ProductVariant::find($variantId);
+							if ($variant && $variant->product_id == $product->id) {
+								$price = $variant->price;
+								$productSku = $variant->sku;
+								$productName = $variant->name;
+							}
+						}
+					}
+				}
+
+				$itemTotal = $price * $qty;
 				$totalPrice += $itemTotal;
 
 				$attributes = $this->_collectProductAttributes($product, $request, $i);
 
 				$orderItems[] = [
 					'product_id' => $product->id,
+					'variant_id' => $variantId,
 					'qty' => $qty,
-					'base_price' => $product->price,
+					'base_price' => $price,
 					'base_total' => $itemTotal,
 					'tax_amount' => 0,
 					'tax_percent' => 0,
 					'discount_amount' => 0,
 					'discount_percent' => 0,
 					'sub_total' => $itemTotal,
-					'sku' => $product->sku ?? '',
+					'sku' => $productSku,
 					'type' => $product->type ?? 'simple',
-					'name' => $product->name,
+					'name' => $productName,
 					'weight' => (string)($product->weight ?? 0),
 					'attributes' => json_encode($attributes),
 				];
@@ -292,11 +325,38 @@ class OrderController extends Controller
 			foreach ($orderItems as $itemData) {
 				$itemData['order_id'] = $order->id;
 				$orderItem = OrderItem::create($itemData);
-
+				
 				if ($orderItem) {
 					try {
-						ProductInventory::reduceStock($itemData['product_id'], $itemData['qty']);
+						// Only validate stock availability, don't reduce it yet
+						// Stock will be reduced when order is completed/confirmed
+						if ($itemData['variant_id']) {
+							$variant = \App\Models\ProductVariant::find($itemData['variant_id']);
+							if ($variant) {
+								if ($variant->stock < $itemData['qty']) {
+									throw new OutOfStockException('The variant ' . $variant->sku . ' is out of stock. Available: ' . $variant->stock . ', Requested: ' . $itemData['qty']);
+								}
+								// Don't reduce stock here - will be done on completion
+							} else {
+								throw new \Exception('Variant not found: ' . $itemData['variant_id']);
+							}
+						} else {
+							// For simple products, check ProductInventory stock availability
+							$inventory = ProductInventory::where('product_id', $itemData['product_id'])->first();
+							if ($inventory && $inventory->qty < $itemData['qty']) {
+								$product = Product::findOrFail($itemData['product_id']);
+								throw new OutOfStockException('The product '. $product->sku .' is out of stock. Available: ' . $inventory->qty . ', Requested: ' . $itemData['qty']);
+							}
+							// Don't reduce stock here - will be done on completion
+						}
 					} catch (\Exception $e) {
+						Log::error('Stock validation failed', [
+							'product_id' => $itemData['product_id'],
+							'variant_id' => $itemData['variant_id'],
+							'qty' => $itemData['qty'],
+							'error' => $e->getMessage()
+						]);
+						throw $e;
 					}
 				}
 			}
@@ -350,17 +410,17 @@ class OrderController extends Controller
 
 		Session::flash('success', 'Order has been created successfully!');
 		return redirect()->route('admin.orders.show', $order->id);
-
+		
 		} catch (\Exception $e) {
 			Log::error('Order creation error: ' . $e->getMessage());
-
+			
 			if ($request->ajax() || $request->expectsJson()) {
 				return response()->json([
 					'success' => false,
 					'message' => 'Error creating order: ' . $e->getMessage()
 				], 500);
 			}
-
+			
 			return redirect()->back()->withErrors(['error' => 'Error creating order. Please try again.'])->withInput();
 		}
 	}
@@ -374,9 +434,9 @@ class OrderController extends Controller
 
 			$transactionStatus = $notification->transaction_status;
 			$orderCode = $notification->order_id;
-
+			
 			$order = Order::where('code', $orderCode)->first();
-
+			
 			if (!$order) {
 				return response()->json(['status' => 'error', 'message' => 'Order not found'], 404);
 			}
@@ -423,12 +483,12 @@ class OrderController extends Controller
 		}
 
 		$paymentResponse = $this->_generatePaymentToken($order);
-
+		
 		if ($paymentResponse['success']) {
 			$order->payment_token = $paymentResponse['token'];
 			$order->payment_url = $paymentResponse['redirect_url'];
 			$order->save();
-
+			
 			if (request()->expectsJson()) {
 				return response()->json([
 					'success' => true,
@@ -437,14 +497,14 @@ class OrderController extends Controller
 					'message' => 'Payment token generated successfully.'
 				]);
 			}
-
+			
 			return redirect()->back()->with('success', 'Payment token generated successfully. You can now process the payment.');
 		}
-
+		
 		if (request()->expectsJson()) {
 			return response()->json(['success' => false, 'message' => 'Failed to generate payment token: ' . $paymentResponse['message']]);
 		}
-
+		
 		return redirect()->back()->with('error', 'Failed to generate payment token: ' . $paymentResponse['message']);
 	}
 
@@ -452,18 +512,18 @@ class OrderController extends Controller
 	{
 		$orderId = $request->get('order_id');
 		$order = Order::where('code', $orderId)->first();
-
+		
 		if (!$order) {
 			return redirect()->route('admin.orders.index')->with('error', 'Order not found.');
 		}
-
+		
 		// Update payment status to paid
 		$order->payment_status = Order::PAID;
 		$order->status = Order::CONFIRMED;
 		$order->approved_at = now();
 		$order->notes = $order->notes . "\nPayment completed successfully via " . $order->payment_method;
 		$order->save();
-
+		
 		return redirect()->route('admin.orders.show', $order->id)->with('success', 'Payment successful! Order has been confirmed.');
 	}
 
@@ -471,16 +531,16 @@ class OrderController extends Controller
 	{
 		$orderId = $request->get('order_id');
 		$order = Order::where('code', $orderId)->first();
-
+		
 		if (!$order) {
 			return redirect()->route('admin.orders.index')->with('error', 'Order not found.');
 		}
-
+		
 		// Update payment status to waiting/pending
 		$order->payment_status = Order::WAITING;
 		$order->notes = $order->notes . "\nPayment pending via " . $order->payment_method;
 		$order->save();
-
+		
 		return redirect()->route('admin.orders.show', $order->id)->with('warning', 'Payment pending. Please complete your payment or wait for payment confirmation.');
 	}
 
@@ -488,88 +548,45 @@ class OrderController extends Controller
 	{
 		$orderId = $request->get('order_id');
 		$order = Order::where('code', $orderId)->first();
-
+		
 		if (!$order) {
 			return redirect()->route('admin.orders.index')->with('error', 'Order not found.');
 		}
-
+		
 		// Keep payment status as unpaid for error
 		$order->notes = $order->notes . "\nPayment failed via " . $order->payment_method;
 		$order->save();
-
+		
 		return redirect()->route('admin.orders.show', $order->id)->with('error', 'Payment failed. Please try again or contact support.');
 	}
 
 	private function _collectProductAttributes($product, $request, $itemIndex = null)
 	{
 		$attributes = [];
-
+		
 		if ($product->configurable()) {
-			$configurableAttributes = $product->configurableAttributes();
-
-			// Handle both old and new attribute structure
-			if ($itemIndex !== null && $request->has('attributes') && ($request->input('attributes')[$itemIndex] ?? null)) {
-				// New structure from modal (2-level)
-				$itemAttributes = $request->input('attributes')[$itemIndex];
-				foreach ($itemAttributes as $attributeCode => $optionId) {
-					if ($optionId) {
-						$option = \App\Models\AttributeOption::find($optionId);
-						if ($option) {
-							$variant = $option->attribute_variant;
-							$attribute = $variant->attribute;
-							$attributes[] = [
-								'attribute' => $attribute->name,
-								'variant' => $variant->name,
-								'option' => $option->name,
-							];
+			if ($itemIndex !== null && $request->has('variant_id') && is_array($request->input('variant_id'))) {
+				$variantId = $request->input('variant_id')[$itemIndex] ?? null;
+				if ($variantId) {
+					$variant = \App\Models\ProductVariant::with('variantAttributes')->find($variantId);
+					if ($variant && $variant->product_id == $product->id) {
+						foreach ($variant->variantAttributes as $variantAttribute) {
+							$attributes[$variantAttribute->attribute_name] = $variantAttribute->attribute_value;
 						}
 					}
 				}
-			} else {
-				// Check if direct attribute codes are present (new 2-level structure)
-				$hasDirectAttributes = false;
-				foreach ($configurableAttributes as $attribute) {
-					if ($request->has($attribute->code)) {
-						$hasDirectAttributes = true;
-						$optionId = $request->get($attribute->code);
-						if ($optionId) {
-							$option = \App\Models\AttributeOption::find($optionId);
-							if ($option) {
-								$variant = $option->attribute_variant;
-								$attributes[] = [
-									'attribute' => $attribute->name,
-									'variant' => $variant->name,
-									'option' => $option->name,
-								];
-							}
-						}
-					}
-				}
-
-				// Old structure for backward compatibility
-				if (!$hasDirectAttributes) {
-					foreach ($configurableAttributes as $attribute) {
-						foreach ($attribute->attribute_variants as $variant) {
-							$fieldName = $attribute->code . '_' . $variant->id;
-							if ($request->has($fieldName)) {
-								$optionId = $request->get($fieldName);
-								if ($optionId) {
-									$option = \App\Models\AttributeOption::find($optionId);
-									if ($option) {
-										$attributes[] = [
-											'attribute' => $attribute->name,
-											'variant' => $variant->name,
-											'option' => $option->name,
-										];
-									}
-								}
-							}
+			} elseif ($request->has('variant_attributes') && is_array($request->input('variant_attributes'))) {
+				$variantAttributesInput = $request->input('variant_attributes');
+				if (isset($variantAttributesInput[$itemIndex]) && is_array($variantAttributesInput[$itemIndex])) {
+					foreach ($variantAttributesInput[$itemIndex] as $attributeName => $attributeValue) {
+						if ($attributeValue) {
+							$attributes[$attributeName] = $attributeValue;
 						}
 					}
 				}
 			}
 		}
-
+		
 		return $attributes;
 	}
 
@@ -671,7 +688,7 @@ class OrderController extends Controller
 				'file' => $e->getFile(),
 				'line' => $e->getLine()
 			]);
-
+			
 			// Check if it's a specific Midtrans error
 			$errorMessage = $e->getMessage();
 			if (strpos($errorMessage, 'Undefined array key') !== false) {
@@ -681,7 +698,7 @@ class OrderController extends Controller
 			} elseif (strpos($errorMessage, 'ServerKey') !== false || strpos($errorMessage, 'ClientKey') !== false) {
 				$errorMessage = 'Payment gateway authentication error. Please contact administrator.';
 			}
-
+			
 			return [
 				'success' => false,
 				'message' => $errorMessage,
@@ -724,14 +741,51 @@ class OrderController extends Controller
 		return redirect('admin/orders');
 	}
 
+	public function complete(Order $order)
+	{
+		// Check if order can be completed
+		if ($order->isCancelled()) {
+			Alert::error('Error', 'Cannot complete a cancelled order.');
+			return redirect()->route('admin.orders.show', $order->id);
+		}
+
+		if ($order->isCompleted()) {
+			Alert::info('Info', 'Order is already completed.');
+			return redirect()->route('admin.orders.show', $order->id);
+		}
+
+		if (!$order->isPaid()) {
+			Alert::error('Error', 'Order cannot be completed because it has not been paid yet.');
+			return redirect()->route('admin.orders.show', $order->id);
+		}
+
+		if ($order->use_employee_tracking && empty($order->handled_by)) {
+			Alert::error('Error', 'Employee name must be filled before completing the order.');
+			return redirect()->route('admin.orders.show', $order->id);
+		}
+
+		// Automatically complete the order since it meets all requirements
+		return $this->doComplete(request(), $order);
+	}
+
     public function doComplete(Request $request,Order $order)
 	{
+		if ($order->use_employee_tracking && empty($order->handled_by)) {
+			Alert::error('Error', 'Employee name must be filled before completing the order.');
+			return redirect()->back();
+		}
+
 		// For offline store orders (toko) - can be completed directly after payment
 		if ($order->isOfflineStoreOrder() && $order->isPaid()) {
 			$order->status = Order::COMPLETED;
 			$order->approved_by = auth()->id();
 			$order->approved_at = now();
 			$order->notes = $order->notes . "\nOrder completed for offline store purchase";
+
+			// Record stock movements for order completion
+			$this->recordOrderStockMovements($order, 'Admin Offline Sale');
+
+			$this->saveEmployeePerformance($order);
 
 			if ($order->save()) {
 				Alert::success('Success', 'Offline store order has been completed successfully!');
@@ -745,6 +799,11 @@ class OrderController extends Controller
 			$order->approved_at = now();
 			$order->notes = $order->notes . "\nCOD order completed after payment confirmation";
 
+			// Record stock movements for order completion
+			$this->recordOrderStockMovements($order, 'Admin COD Sale');
+
+			$this->saveEmployeePerformance($order);
+
 			if ($order->save()) {
 				Alert::success('Success', 'COD order has been completed successfully!');
 				return redirect()->back();
@@ -755,6 +814,11 @@ class OrderController extends Controller
 			$order->status = Order::COMPLETED;
 			$order->approved_by = auth()->id();
 			$order->approved_at = now();
+
+			// Record stock movements for order completion
+			$this->recordOrderStockMovements($order, 'Admin Sale');
+
+			$this->saveEmployeePerformance($order);
 
 			if ($order->save()) {
 				Alert::success('Success', 'Order has been completed successfully!');
@@ -808,6 +872,11 @@ class OrderController extends Controller
 
 	public function confirmPickup(Request $request, Order $order)
 	{
+		if ($order->use_employee_tracking && empty($order->handled_by)) {
+			Alert::error('Error', 'Employee name must be filled before confirming pickup.');
+			return redirect()->back();
+		}
+
 		if ($order->shipping_service_name == 'Self Pickup' && $order->isPaid()) {
 			if ($order->shipment) {
 				$order->shipment->status = Shipment::SHIPPED;
@@ -815,11 +884,16 @@ class OrderController extends Controller
 				$order->shipment->shipped_at = now();
 				$order->shipment->save();
 			}
-
+			
 			$order->status = Order::COMPLETED;
 			$order->approved_by = auth()->id();
 			$order->approved_at = now();
 			$order->notes = $order->notes . "\nSelf pickup confirmed by admin - customer has collected items from store";
+
+			// Record stock movements for pickup completion
+			$this->recordOrderStockMovements($order, 'Admin Self Pickup Sale');
+
+			$this->saveEmployeePerformance($order);
 
 			if ($order->save()) {
 				Alert::success('Success', 'Self pickup confirmed! Order marked as completed.');
@@ -829,5 +903,179 @@ class OrderController extends Controller
 
 		Alert::error('Error', 'Cannot confirm pickup for this order.');
 		return redirect()->back();
+	}
+
+	public function updateEmployeeTracking(Request $request, Order $order)
+	{
+		$request->validate([
+			'handled_by' => 'nullable|string|max:255',
+		]);
+
+		$handledBy = $request->handled_by;
+		$useTracking = !empty($handledBy);
+
+		$order->update([
+			'handled_by' => $handledBy,
+			'use_employee_tracking' => $useTracking
+		]);
+
+		if ($order->status === 'completed' && $useTracking && $handledBy) {
+			$this->saveEmployeePerformance($order);
+		}
+
+		return response()->json([
+			'success' => true,
+			'message' => 'Employee name updated successfully',
+			'use_employee_tracking' => $useTracking
+		]);
+	}
+
+	public function toggleEmployeeTracking(Request $request, Order $order)
+	{
+		$request->validate([
+			'use_employee_tracking' => 'required|boolean',
+		]);
+
+		$useTracking = $request->use_employee_tracking;
+
+		$order->update([
+			'use_employee_tracking' => $useTracking,
+			'handled_by' => $useTracking ? $order->handled_by : null
+		]);
+
+		return response()->json([
+			'success' => true,
+			'message' => 'Employee tracking status updated successfully'
+		]);
+	}
+
+	private function saveEmployeePerformance(Order $order)
+	{
+		if ($order->use_employee_tracking && !empty($order->handled_by)) {
+			EmployeePerformance::updateOrCreate(
+				['order_id' => $order->id],
+				[
+					'employee_name' => $order->handled_by,
+					'transaction_value' => $order->grand_total,
+					'completed_at' => now()
+				]
+			);
+		}
+	}
+
+	public function adjustShipping(Request $request)
+	{
+		try {
+			$request->validate([
+				'order_id' => 'required|integer|exists:orders,id',
+				'new_shipping_cost' => 'required|numeric|min:0',
+				'new_shipping_courier' => 'required|string|max:255',
+				'new_shipping_service' => 'required|string|max:255',
+				'adjustment_note' => 'nullable|string|max:1000'
+			]);
+
+			$order = Order::findOrFail($request->order_id);
+
+			if ($order->isCancelled()) {
+				return response()->json([
+					'success' => false,
+					'message' => 'Cannot adjust shipping for cancelled orders'
+				], 400);
+			}
+
+			$success = $order->adjustShippingCost(
+				$request->new_shipping_cost,
+				$request->new_shipping_courier,
+				$request->new_shipping_service,
+				$request->adjustment_note,
+				auth()->id()
+			);
+
+			if ($success) {
+				return response()->json([
+					'success' => true,
+					'message' => 'Shipping cost updated successfully',
+					'new_shipping_cost' => $order->shipping_cost,
+					'new_courier' => $order->shipping_courier,
+					'new_service' => $order->shipping_service_name,
+					'new_grand_total' => $order->grand_total,
+					'adjustment_note' => $order->shipping_adjustment_note,
+					'adjusted_at' => $order->shipping_adjusted_at?->format('Y-m-d H:i:s'),
+					'adjusted_by' => $order->shippingAdjustedBy?->name
+				]);
+			} else {
+				return response()->json([
+					'success' => false,
+					'message' => 'Failed to update shipping cost'
+				], 500);
+			}
+
+		} catch (\Illuminate\Validation\ValidationException $e) {
+			return response()->json([
+				'success' => false,
+				'message' => 'Validation failed',
+				'errors' => $e->errors()
+			], 422);
+		} catch (\Exception $e) {
+			Log::error('Shipping adjustment failed: ' . $e->getMessage(), [
+				'order_id' => $request->order_id,
+				'new_cost' => $request->new_shipping_cost,
+				'trace' => $e->getTraceAsString()
+			]);
+
+			return response()->json([
+				'success' => false,
+				'message' => 'An error occurred while updating shipping cost'
+			], 500);
+		}
+	}
+
+	/**
+	 * Record stock movements for order items when order is completed
+	 */
+	private function recordOrderStockMovements($order, $description = 'Admin Sale')
+	{
+		// Check if stock movements have already been recorded for this order
+		$existingMovements = \App\Models\StockMovement::where('reference_type', 'order')
+			->where('reference_id', $order->id)
+			->exists();
+		
+		if ($existingMovements) {
+			// Stock movements already recorded, skip to avoid double deduction
+			\Illuminate\Support\Facades\Log::info("Stock movements already recorded for order {$order->id}, skipping duplicate recording");
+			return;
+		}
+
+		foreach ($order->orderItems as $orderItem) {
+			try {
+				// Check if item has variant
+				if ($orderItem->product_variant_id) {
+					// For variant products, use StockService directly (it handles both stock update and movement recording)
+					app(StockService::class)->recordMovement(
+						$orderItem->product_variant_id, // variantId
+						'out',                           // movementType
+						$orderItem->qty,                 // quantity
+						'order',                         // referenceType
+						$order->id,                      // referenceId
+						$description,                    // reason
+						"Order #{$order->code}"          // notes
+					);
+				} else {
+					// For simple products without variants, use the simple product method
+					app(StockService::class)->recordSimpleProductMovement(
+						$orderItem->product_id,          // productId
+						'out',                           // movementType
+						$orderItem->qty,                 // quantity
+						'order',                         // referenceType
+						$order->id,                      // referenceId
+						$description,                    // reason
+						"Order #{$order->code}"          // notes
+					);
+				}
+			} catch (\Exception $e) {
+				// Log the error but don't stop the completion process
+				\Illuminate\Support\Facades\Log::warning("Failed to record stock movement for order item {$orderItem->id}: " . $e->getMessage());
+			}
+		}
 	}
 }

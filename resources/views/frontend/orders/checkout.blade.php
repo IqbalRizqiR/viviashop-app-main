@@ -1,5 +1,145 @@
 @extends('frontend.layouts')
 @section('content')
+    <style>
+        /* Checkout page scoped styles - pro e-commerce (green theme) */
+        .checkout-card {
+            background: #fff;
+            border: 1px solid #eef7ef;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(14,81,54,0.06);
+            padding: 26px;
+        }
+
+        .page-header {
+            background: linear-gradient(90deg,#16a34a,#059669);
+            color: #fff;
+            border-radius: 10px;
+            margin-bottom: 22px;
+            padding: 28px 18px;
+        }
+
+        .page-header h1 { font-weight: 800; letter-spacing: 0.4px; margin-bottom:6px; font-size: 34px }
+
+        /* center breadcrumb and make it compact */
+        .breadcrumb {
+            justify-content: center !important;
+            background: transparent;
+            padding: 0;
+            margin-top: 6px;
+            color: rgba(255,255,255,0.92);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-item label {
+            font-weight: 700;
+            color: #0b3b2b;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #e6f2ea;
+            padding: 14px 16px;
+            background: #ffffff;
+            transition: box-shadow .12s, border-color .12s, transform .06s;
+            font-size: 15px;
+            line-height: 1.3;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 8px 24px rgba(16,185,129,0.12);
+            border-color: #10b981;
+            transform: translateY(-1px);
+        }
+
+        .table thead th {
+            background: transparent;
+            border-bottom: 2px solid rgba(16,185,129,0.06);
+            color: #0b3b2b;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .table tbody tr th img {
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #f0fbf3;
+            width: 120px; height: 120px;
+        }
+
+    .summary-panel { background:#fbfffb; border-radius:10px; padding:18px; border:1px solid #eef7ef }
+
+        .total-amount {
+            font-size: 26px;
+            font-weight: 900;
+            color: #0f5134;
+        }
+
+        .total-amount small { color: #2f7f5a; }
+
+        .payment-option + .form-check-label {
+            font-weight: 700;
+            color: #0e5136;
+        }
+
+        #place-order-btn {
+            background: linear-gradient(90deg,#16a34a,#059669);
+            color: #fff !important;
+            border: 0;
+            border-radius: 10px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            padding: 16px 20px;
+            box-shadow: 0 14px 36px rgba(5,150,105,0.14);
+            font-size: 16px;
+        }
+
+        #place-order-btn:disabled {
+            opacity: 0.6;
+        }
+
+        .summary-note {
+            background: #f8fffb;
+            border-left: 4px solid #d7f6df;
+            padding: 12px 14px;
+            border-radius: 8px;
+            color: #0e5136;
+            font-size: 13px;
+        }
+
+        .info-badge {
+            display:inline-block;
+            background:#ecfdf5;
+            color:#065f46;
+            border-radius:999px;
+            padding:6px 12px;
+            font-weight:700;
+            font-size:13px;
+            margin-left:6px;
+            border:1px solid #d1fae5;
+        }
+
+        /* subtle divider */
+        .section-divider { height:1px; background: linear-gradient(90deg, rgba(0,0,0,0), rgba(14,81,54,0.06), rgba(0,0,0,0)); margin:18px 0; }
+
+        /* Responsive tweaks */
+        @media (max-width: 991px) {
+            .table thead { display: none; }
+            .table tbody td, .table tbody th { display: block; width: 100%; }
+            .table tbody tr { margin-bottom: 14px; border-bottom: 1px dashed #eef7ef; padding-bottom: 8px; }
+            .page-header { padding: 18px 12px; }
+            .table tbody tr th img { width: 86px; height: 86px }
+            .page-header h1 { font-size: 22px }
+            .form-control { font-size: 15px; padding: 12px }
+            #place-order-btn { font-size: 15px; padding: 12px }
+        }
+    </style>
+
     <div class="container-fluid page-header py-5">
         <h1 class="text-center text-white display-6">Checkout</h1>
         <ol class="breadcrumb justify-center mb-0">
@@ -14,7 +154,7 @@
     <div class="container-fluid py-5">
         <div class="container py-5">
             <h1 class="mb-4">Billing details</h1>
-            <form action="{{ route('orders.checkout') }}" method="post" enctype="multipart/form-data" onsubmit="return handleFormSubmit(event)">
+            <form action="{{ route('orders.checkout') }}" method="post" enctype="multipart/form-data" id="checkout-form" onsubmit="return handleFormSubmit(event)">
                 @csrf
                 <div class="row g-5">
                     <div class="col-md-12 col-lg-6 col-xl-7">
@@ -90,8 +230,36 @@
                                 <tbody>
                                     @forelse ($items as $item)
                                     @php
-                                        $product = isset($item->model->parent) ? $item->model->parent : $item->model;
-                                        $image = !empty($product->productImages->first()) ? asset('storage/'.$product->productImages->first()->path) : asset('themes/ezone/assets/img/cart/3.jpg')
+                                        if (isset($item->options['type']) && $item->options['type'] === 'configurable') {
+                                            $product = \App\Models\Product::find($item->options['product_id']);
+                                            $image = !empty($item->options['image']) ? asset('storage/' . $item->options['image']) : asset('themes/ezone/assets/img/cart/3.jpg');
+                                            $displayName = $item->name;
+                                            if (isset($item->options['attributes']) && !empty($item->options['attributes'])) {
+                                                $attributes = [];
+                                                foreach ($item->options['attributes'] as $attr => $value) {
+                                                    $attributes[] = $attr . ': ' . $value;
+                                                }
+                                                $displayName .= ' (' . implode(', ', $attributes) . ')';
+                                            }
+                                        } else {
+                                            // For simple products, load from product_id if model is null
+                                            $product = $item->model;
+                                            if (!$product && isset($item->options['product_id'])) {
+                                                $product = \App\Models\Product::find($item->options['product_id']);
+                                            }
+                                            if (!$product) {
+                                                $product = \App\Models\Product::find($item->id);
+                                            }
+                                            
+                                            $image = asset('themes/ezone/assets/img/cart/3.jpg'); // default
+                                            if ($product && $product->productImages->isNotEmpty()) {
+                                                $image = asset('storage/'.$product->productImages->first()->path);
+                                            } elseif (!empty($item->options['image'])) {
+                                                $image = asset('storage/' . $item->options['image']);
+                                            }
+                                            
+                                            $displayName = $product ? $product->name : $item->name;
+                                        }
                                     @endphp
                                         <tr>
                                             <th scope="row">
@@ -99,8 +267,8 @@
                                                     <img src="{{ $image }}" class="img-fluid rounded" style="width: 90px; height: 90px;" alt="">
                                                 </div>
                                             </th>
-                                            <td class="py-5">{{ $product->name }}</td>
-                                            <td class="py-5">Rp. {{ number_format($product->price) }}</td>
+                                            <td class="py-5">{{ $displayName }}</td>
+                                            <td class="py-5">Rp. {{ number_format($item->price) }}</td>
                                             <td class="py-5">{{ $item->qty }}</td>
                                             <td class="py-5">Rp. {{ number_format($item->price * $item->qty) }}</td>
                                         </tr>
@@ -175,11 +343,7 @@
                                                 <p class="mb-0 text-dark total-amount">{{ number_format((int)Cart::subtotal(0,'','')) }}</p>
                                             </div>
                                             <p>harap tunggu nominal berubah sesuai dengan total sebelum checkout</p>
-                                            <!-- Debug buttons for testing -->
-                                            <div style="margin-top: 10px;">
-                                                <button type="button" id="test-update-total" class="btn btn-sm btn-info">🔄 Test Update Total</button>
-                                                <button type="button" id="show-debug" class="btn btn-sm btn-warning">🐛 Show Debug</button>
-                                            </div>
+                                            <!-- debug buttons removed for production UI -->
                                         </td>
                                     </tr>
                                 </tbody>
@@ -191,7 +355,7 @@
                                     <input type="radio" class="form-check-input payment-option bg-primary border-0" id="Transfer-1" name="payment_method" value="manual" checked>
                                     <label class="form-check-label" for="Transfer-1">Direct Bank Transfer</label>
                                 </div>
-                                <p class="text-start text-dark">You can pay to us via : <br> 1. BCA : 01401840112(Ahmad Sambudi) <br> 2. BCA : 01401840112(Ahmad Sambudi)</p>
+                                <p class="text-start text-dark">You can pay to us via : <br> 1. BCA : 01401840112(Ahmad Sambudi) <br> 2. BCA : 01401840112(Ahmad Sambudi)<br><small class="text-muted">You will be able to upload payment proof after order confirmation.</small></p>
                             </div>
                         </div>
                         <div class="row g-4 text-center align-items-center justify-content-center border-bottom py-3">
@@ -221,18 +385,15 @@
                                 <p class="text-start text-dark">Datang langsung ke toko untuk melakukan pembayaran</p>
                             </div>
                         </div>
-                        <div class="row g-4 text-center align-items-center justify-content-center border-bottom py-3" id="payment-slip-section" style="display: none;">
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label for="payment-slip" class="form-label">Upload Payment Slip / Screenshot:</label>
-                                    <input type="file" class="form-control" id="payment-slip" name="payment_slip" accept="image/*">
-                                    <small class="text-muted">Upload your payment slip or transfer screenshot</small>
-                                </div>
-                            </div>
-                        </div>
                         <div class="row g-4 text-center align-items-center justify-content-center pt-4">
                             <input type="hidden" name="total_amount" class="total-amount-input" value="{{ (int)Cart::subtotal(0,'','') }}">
-                            <button type="submit" class="btn border-secondary py-3 px-4 text-uppercase w-100 text-primary">Place Order</button>
+                            <button type="submit" id="place-order-btn" class="btn border-secondary py-3 px-4 text-uppercase w-100 text-primary">Place Order</button>
+                            <div id="loading-indicator" style="display: none;" class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Processing...</span>
+                                </div>
+                                <p class="mt-2">Processing your order...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -494,6 +655,20 @@
         }
 
         $(document).ready(function(){
+            console.log('🚀 CHECKOUT PAGE INITIALIZED');
+            
+            // Setup error handlers
+            window.addEventListener('error', function(e) {
+                console.error('💥 JavaScript Error:', e.error);
+                console.error('Message:', e.message);
+                console.error('Filename:', e.filename);
+                console.error('Line:', e.lineno);
+            });
+            
+            window.addEventListener('unhandledrejection', function(e) {
+                console.error('💥 Unhandled Promise Rejection:', e.reason);
+            });
+            
             // Setup CSRF token for all AJAX requests
             $.ajaxSetup({
                 headers: {
@@ -501,6 +676,15 @@
                 }
             });
             
+            // Ensure form exists
+            if ($('#checkout-form').length === 0) {
+                console.error('❌ Checkout form not found!');
+                return;
+            }
+            
+            console.log('✅ Checkout form found');
+            
+            // Initialize form state
             $('#shipping-row').hide();
             $('.address-fields').hide();
             $('#shipping-cost-option').html('<option value="">-- Select Delivery Method First --</option>');
@@ -528,6 +712,8 @@
             console.log('Shipping cost option element exists:', $('#shipping-cost-option').length > 0);
             console.log('Delivery method elements count:', $('input[name="delivery_method"]').length);
             console.log('Currently selected delivery method:', $('input[name="delivery_method"]:checked').val());
+            console.log('Payment method elements count:', $('input[name="payment_method"]').length);
+            console.log('Currently selected payment method:', $('input[name="payment_method"]:checked').val());
             console.log('============================');
             
             $('#shipping-province').on('change', function() {
@@ -629,12 +815,6 @@
                 
                 $('.payment-option').not(this).prop('checked', false);
                 $(this).prop('checked', true);
-                
-                if (selectedPayment === 'manual') {
-                    $('#payment-slip-section').show();
-                } else {
-                    $('#payment-slip-section').hide();
-                }
             });
             
             // Debug test buttons
@@ -662,21 +842,71 @@
        });
        
        function handleFormSubmit(event) {
-           if (!validateForm()) {
+           console.log('🔍 FORM SUBMIT STARTED');
+           console.log('Event:', event);
+           console.log('Form action:', $('#checkout-form').attr('action'));
+           console.log('Form method:', $('#checkout-form').attr('method'));
+           
+           // Prevent double submission
+           var submitButton = $('#place-order-btn');
+           if (submitButton.prop('disabled')) {
+               console.log('❌ FORM ALREADY SUBMITTING - preventing double submit');
                event.preventDefault();
                return false;
            }
+           
+           // Validate form first
+           if (!validateForm()) {
+               console.log('❌ FORM VALIDATION FAILED - preventing submit');
+               event.preventDefault();
+               return false;
+           }
+           
+           console.log('✅ FORM VALIDATION PASSED');
+           
+           // Disable submit button to prevent double submission
+           var submitButton = $('#place-order-btn');
+           var loadingIndicator = $('#loading-indicator');
+           
+           submitButton.prop('disabled', true).hide();
+           loadingIndicator.show();
            
            var deliveryMethod = $('input[name="delivery_method"]:checked').val();
            console.log('Form submit - delivery method:', deliveryMethod);
            
            if (deliveryMethod === 'self') {
+               // Remove address field names for self pickup to avoid validation issues
                $('#shipping-province').removeAttr('name');
                $('#shipping-city').removeAttr('name');
                $('#shipping-district').removeAttr('name');
                $('#shipping-cost-option').removeAttr('name');
                console.log('Self pickup - removed address field names');
            }
+           
+           // Ensure all required hidden fields exist
+           if (!$('input[name="unique_code"]').length) {
+               $('<input>').attr({
+                   type: 'hidden',
+                   name: 'unique_code',
+                   value: '0'
+               }).appendTo('#checkout-form');
+               console.log('Added missing unique_code field');
+           }
+           
+           // Log all form data before submit
+           var formData = new FormData($('#checkout-form')[0]);
+           console.log('📝 FINAL FORM DATA:');
+           for (var pair of formData.entries()) {
+               console.log(pair[0] + ': ' + pair[1]);
+           }
+           
+           console.log('🚀 ALLOWING FORM SUBMIT');
+           
+           // Re-enable button after some time in case of errors (fallback)
+           setTimeout(function() {
+               submitButton.prop('disabled', false).show();
+               loadingIndicator.hide();
+           }, 15000);
            
            return true;
        }
@@ -685,55 +915,122 @@
            var deliveryMethod = $('input[name="delivery_method"]:checked').val();
            var paymentMethod = $('input[name="payment_method"]:checked').val();
            
-           console.log('Validating form...');
+           console.log('🔍 VALIDATING FORM...');
            console.log('Delivery method:', deliveryMethod);
            console.log('Payment method:', paymentMethod);
-           console.log('Name:', $('input[name="name"]').val());
-           console.log('Address1:', $('input[name="address1"]').val());
-           console.log('Phone:', $('input[name="phone"]').val());
-           console.log('Email:', $('input[name="email"]').val());
-           console.log('Postcode:', $('input[name="postcode"]').val());
+           
+           var name = $('input[name="name"]').val();
+           var address1 = $('input[name="address1"]').val();
+           var phone = $('input[name="phone"]').val();
+           var email = $('input[name="email"]').val();
+           var postcode = $('input[name="postcode"]').val();
+           
+           console.log('Form data:', {
+               name: name,
+               address1: address1,
+               phone: phone,
+               email: email,
+               postcode: postcode
+           });
+           
+           // Check for empty or whitespace-only values
+           if (!name || name.trim() === '') {
+               alert('❌ Please enter your name');
+               $('input[name="name"]').focus();
+               return false;
+           }
+           
+           if (!address1 || address1.trim() === '') {
+               alert('❌ Please enter your address');
+               $('input[name="address1"]').focus();
+               return false;
+           }
+           
+           if (!phone || phone.trim() === '') {
+               alert('❌ Please enter your phone number');
+               $('input[name="phone"]').focus();
+               return false;
+           }
+           
+           if (!email || email.trim() === '') {
+               alert('❌ Please enter your email address');
+               $('input[name="email"]').focus();
+               return false;
+           }
+           
+           // Simple email validation
+           var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+           if (!emailRegex.test(email.trim())) {
+               alert('❌ Please enter a valid email address');
+               $('input[name="email"]').focus();
+               return false;
+           }
+           
+           if (!postcode || postcode.trim() === '') {
+               alert('❌ Please enter your postcode');
+               $('input[name="postcode"]').focus();
+               return false;
+           }
            
            if (!deliveryMethod) {
-               alert('Please select a delivery method');
+               alert('❌ Please select a delivery method');
                return false;
            }
            
            if (!paymentMethod) {
-               alert('Please select a payment method');
+               alert('❌ Please select a payment method');
                return false;
            }
            
+           // Validate courier delivery specific fields
            if (deliveryMethod === 'courier') {
-               console.log('Province:', $('#shipping-province').val());
-               console.log('City:', $('#shipping-city').val());
-               console.log('District:', $('#shipping-district').val());
-               console.log('Shipping service:', $('#shipping-cost-option').val());
+               console.log('Validating courier delivery fields...');
                
-               if (!$('#shipping-province').val() || $('#shipping-province').val() === '') {
-                   alert('Please select a province for courier delivery');
+               var province = $('#shipping-province').val();
+               var city = $('#shipping-city').val();
+               var district = $('#shipping-district').val();
+               var shippingService = $('#shipping-cost-option').val();
+               
+               console.log('Courier fields:', {
+                   province: province,
+                   city: city,
+                   district: district,
+                   shippingService: shippingService
+               });
+               
+               if (!province || province === '') {
+                   alert('❌ Please select a province for courier delivery');
+                   $('#shipping-province').focus();
                    return false;
                }
-               if (!$('#shipping-city').val() || $('#shipping-city').val() === '') {
-                   alert('Please select a city for courier delivery');
+               
+               if (!city || city === '') {
+                   alert('❌ Please select a city for courier delivery');
+                   $('#shipping-city').focus();
                    return false;
                }
-               if (!$('#shipping-district').val() || $('#shipping-district').val() === '') {
-                   alert('Please select a district for courier delivery');
+               
+               if (!district || district === '') {
+                   alert('❌ Please select a district for courier delivery');
+                   $('#shipping-district').focus();
                    return false;
                }
-               if (!$('#shipping-cost-option').val() || $('#shipping-cost-option').val() === '') {
-                   alert('Please select a shipping service for courier delivery');
+               
+               if (!shippingService || shippingService === '') {
+                   alert('❌ Please select a shipping service for courier delivery');
+                   $('#shipping-cost-option').focus();
                    return false;
                }
            } else {
                console.log('Self pickup selected - skipping address validation');
            }
            
+           // Update total amount one final time
            updateTotalAmount();
            
-           console.log('Form validation passed');
+           console.log('✅ FORM VALIDATION PASSED');
            console.log('Final total amount:', $('.total-amount-input').val());
+           
            return true;
        }
     </script>

@@ -30,6 +30,7 @@
                             @auth
                                 <a href="{{ url('carts') }}" class="nav-item {{ Request::is('carts*') ? 'active' : '' }} nav-link">Carts</a>
                                 <a href="{{ url('orders') }}" class="nav-item {{ Request::is('orders*') ? 'active' : '' }} nav-link">Orders</a>
+                                <a href="{{ route('frontend.print-service') }}" class="nav-item {{ Request::is('smart-print*') ? 'active' : '' }} nav-link">Smart Print</a>
                             @endauth
                         </div>
                         <div class="d-flex m-3 me-0">

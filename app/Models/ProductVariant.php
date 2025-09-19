@@ -41,6 +41,11 @@ class ProductVariant extends Model
         return $this->hasMany(OrderItem::class, 'variant_id');
     }
 
+    public function productInventory()
+    {
+        return $this->hasOne(ProductInventory::class, 'product_id', 'product_id');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

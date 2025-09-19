@@ -62,9 +62,63 @@
                             <br> Payment Status: {{ $order->payment_status }}
                             <br> Payment Method: {{ $order->payment_method }}
                             <br> Shipped by: {{ $order->shipping_service_name }}
+                            @if($order->handled_by)
+                                <br> Handled by: {{ $order->handled_by }}
+                            @endif
                         </address>
                     </div>
                 </div>
+                
+                <!-- Employee Tracking Section -->
+                <div class="row pt-3 mb-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Employee Performance Tracking</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Checkbox to enable/disable tracking -->
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" class="form-check-input" id="useEmployeeTracking" 
+                                           {{ $order->use_employee_tracking ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="useEmployeeTracking">
+                                        Gunakan Employee Tracking (untuk bonus & performance)
+                                    </label>
+                                </div>
+                                
+                                <!-- Employee name input (conditional) -->
+                                <div id="employeeNameSection" style="display: {{ $order->use_employee_tracking ? 'block' : 'none' }}">
+                                    <div class="form-group">
+                                        <label for="employeeName">Nama Karyawan/Admin yang Handle:</label>
+                                        
+                                        <!-- Dropdown for existing employees -->
+                                        <select id="employeeDropdown" class="form-control mb-2">
+                                            <option value="">-- Pilih Karyawan Terdaftar --</option>
+                                            @foreach($employees as $employee)
+                                                <option value="{{ $employee }}" {{ $order->handled_by == $employee ? 'selected' : '' }}>
+                                                    {{ $employee }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        
+                                        <!-- Manual input for new employees -->
+                                        <div class="mt-2">
+                                            <label for="employeeName" class="small text-muted">Atau tambah karyawan baru:</label>
+                                            <input type="text" id="employeeName" class="form-control" 
+                                                   value="{{ !in_array($order->handled_by, $employees->toArray()) ? $order->handled_by : '' }}" 
+                                                   placeholder="Masukkan nama karyawan baru">
+                                        </div>
+                                        
+                                        <small class="text-danger" id="employeeNameError" style="display: none;">
+                                            Nama karyawan harus diisi untuk menyelesaikan transaksi
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="table-responsive">
                     <table id="data-table" class="table table-bordered table-striped">
                         <thead>
@@ -88,7 +142,7 @@
                                     if ($attributes) {
                                         $showAttributes .= '<ul class="item-attributes list-unstyled">';
                                         foreach ($attributes as $key => $attribute) {
-                                            if(count($attribute) != 0){
+                                            if(is_array($attribute) && count($attribute) != 0){
                                                 foreach($attribute as $value => $attr){
                                                     $showAttributes .= '<li>'.$value . ': <span>' . $attr . '</span><li>';
                                                 }
@@ -135,8 +189,30 @@
                                     <span class="d-inline-block float-right text-default">Rp{{ number_format($order->tax_amount,0,",",".") }}</span>
                                 </li>
                                 <li class="mid pb-3 text-dark">Shipping Cost
-                                    <span class="d-inline-block float-right text-default">Rp{{ number_format($order->shipping_cost,0,",",".") }}</span>
+                                    <span class="d-inline-block float-right text-default">
+                                        <span id="shipping-cost-display">Rp{{ number_format($order->shipping_cost,0,",",".") }}</span>
+                                        @if($order->isShippingCostAdjusted())
+                                            <small class="text-info d-block">
+                                                <i class="fa fa-edit"></i> Adjusted 
+                                                @if($order->hasOriginalShippingData())
+                                                    (Original: Rp{{ number_format($order->original_shipping_cost,0,",",".") }})
+                                                @endif
+                                            </small>
+                                        @endif
+                                    </span>
                                 </li>
+                                @if($order->needsShipment() && $order->shipping_courier)
+                                <li class="mid pb-3 text-dark">Shipped by
+                                    <span class="d-inline-block float-right text-default">
+                                        <span id="shipping-courier-display">{{ strtoupper($order->shipping_courier) }} - {{ $order->shipping_service_name }}</span>
+                                        @if($order->isShippingCostAdjusted() && $order->hasOriginalShippingData())
+                                            <small class="text-info d-block">
+                                                (Original: {{ strtoupper($order->original_shipping_courier) }} - {{ $order->original_shipping_service_name }})
+                                            </small>
+                                        @endif
+                                    </span>
+                                </li>
+                                @endif
                                 <li class="pb-3 text-dark">Unique Code
                                     <span class="d-inline-block float-right">Rp{{ number_format(0,0,",",".") }}</span>
                                 </li>
@@ -144,6 +220,81 @@
                                     <span class="d-inline-block float-right">Rp{{ number_format($order->grand_total,0,",",".") }}</span>
                                 </li>
                             </ul>
+                            
+                            @if($order->needsShipment() && !$order->isCancelled() && $order->isPaid())
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <input type="checkbox" id="shipping-adjustment-toggle" class="mr-2">
+                                        Adjust Shipping Cost & Courier
+                                    </h6>
+                                </div>
+                                <div class="card-body" id="shipping-adjustment-form" style="display: none;">
+                                    <form id="shipping-adjustment-form-data">
+                                        @csrf
+                                        <input type="hidden" name="order_id" value="{{ $order->id }}">
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="new_shipping_cost">New Shipping Cost</label>
+                                                    <input type="number" class="form-control" id="new_shipping_cost" name="new_shipping_cost" 
+                                                           value="{{ $order->shipping_cost }}" min="0" step="100">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="new_shipping_courier">Courier</label>
+                                                    <select class="form-control" id="new_shipping_courier" name="new_shipping_courier">
+                                                        <option value="jne" {{ $order->shipping_courier == 'jne' ? 'selected' : '' }}>JNE</option>
+                                                        <option value="tiki" {{ $order->shipping_courier == 'tiki' ? 'selected' : '' }}>TIKI</option>
+                                                        <option value="pos" {{ $order->shipping_courier == 'pos' ? 'selected' : '' }}>POS Indonesia</option>
+                                                        <option value="sicepat" {{ $order->shipping_courier == 'sicepat' ? 'selected' : '' }}>SiCepat</option>
+                                                        <option value="jnt" {{ $order->shipping_courier == 'jnt' ? 'selected' : '' }}>J&T Express</option>
+                                                        <option value="anteraja" {{ $order->shipping_courier == 'anteraja' ? 'selected' : '' }}>AnterAja</option>
+                                                        <option value="spx" {{ $order->shipping_courier == 'spx' ? 'selected' : '' }}>Shopee Express</option>
+                                                        <option value="other" {{ !in_array($order->shipping_courier, ['jne','tiki','pos','sicepat','jnt','anteraja','spx']) ? 'selected' : '' }}>Other</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="new_shipping_service">Service Name</label>
+                                            <input type="text" class="form-control" id="new_shipping_service" name="new_shipping_service" 
+                                                   value="{{ $order->shipping_service_name }}" placeholder="e.g., REG, YES, Express">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="adjustment_note">Adjustment Note</label>
+                                            <textarea class="form-control" id="adjustment_note" name="adjustment_note" rows="2" 
+                                                      placeholder="Reason for adjustment (e.g., Field rate different from API)">{{ $order->shipping_adjustment_note }}</textarea>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Current Total</label>
+                                                    <input type="text" class="form-control" id="current-total" 
+                                                           value="Rp{{ number_format($order->grand_total,0,",",".") }}" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>New Total</label>
+                                                    <input type="text" class="form-control" id="new-total" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <button type="button" class="btn btn-warning btn-block" id="update-shipping-btn">
+                                            <i class="fa fa-sync"></i> Update Shipping Information
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            @endif
+                            
                             @if (!$order->trashed())
                                     @if ($order->isPaid() && $order->isConfirmed() && $order->needsShipment())
                                         {{-- Orders that need shipment (online orders with courier delivery) --}}
@@ -454,6 +605,256 @@
                 }, 10000); // 10 second timeout for snap loading
             });
         @endif
+        
+        // Employee tracking functionality
+        $('#useEmployeeTracking').change(function() {
+            const isChecked = $(this).is(':checked');
+            $('#employeeNameSection').toggle(isChecked);
+            
+            // If disabled, clear both inputs
+            if (!isChecked) {
+                $('#employeeDropdown').val('');
+                $('#employeeName').val('');
+                updateEmployeeName('');
+            }
+            
+            // AJAX call to update order tracking status
+            updateTrackingStatus(isChecked);
+        });
+
+        // Handle dropdown selection
+        $('#employeeDropdown').change(function() {
+            const selectedEmployee = $(this).val();
+            if (selectedEmployee) {
+                $('#employeeName').val('');
+                updateEmployeeName(selectedEmployee);
+            }
+        });
+
+        // Handle manual input
+        $('#employeeName').on('input', function() {
+            const manualInput = $(this).val().trim();
+            if (manualInput) {
+                $('#employeeDropdown').val('');
+            }
+        });
+
+        // Validate before order completion
+        function validateEmployeeTracking() {
+            const useTracking = $('#useEmployeeTracking').is(':checked');
+            const dropdownValue = $('#employeeDropdown').val().trim();
+            const manualValue = $('#employeeName').val().trim();
+            const employeeName = dropdownValue || manualValue;
+            
+            if (useTracking && !employeeName) {
+                $('#employeeNameError').show();
+                return false;
+            }
+            
+            $('#employeeNameError').hide();
+            return true;
+        }
+
+        // Update employee name on blur
+        $('#employeeName').on('blur', function() {
+            const manualValue = $(this).val().trim();
+            const dropdownValue = $('#employeeDropdown').val().trim();
+            const finalName = dropdownValue || manualValue;
+            
+            if (manualValue && !dropdownValue) {
+                updateEmployeeName(manualValue);
+            }
+        });
+
+        // Update completion forms to validate employee tracking
+        $('form[action*="complete"], form[action*="confirmPickup"]').on('submit', function(e) {
+            if (!validateEmployeeTracking()) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ensure the final employee name is set before submission
+            const dropdownValue = $('#employeeDropdown').val().trim();
+            const manualValue = $('#employeeName').val().trim();
+            const finalName = dropdownValue || manualValue;
+            
+            if (finalName && $('#useEmployeeTracking').is(':checked')) {
+                updateEmployeeName(finalName);
+            }
+        });
+
+        // AJAX functions
+        function updateTrackingStatus(enabled) {
+            $.ajax({
+                url: '{{ route("admin.orders.toggleEmployeeTracking", $order->id) }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    use_employee_tracking: enabled
+                },
+                success: function(response) {
+                    console.log('Tracking status updated');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating tracking status:', error);
+                }
+            });
+        }
+
+        function updateEmployeeName(name) {
+            $.ajax({
+                url: '{{ route("admin.orders.updateEmployeeTracking", $order->id) }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    handled_by: name
+                },
+                success: function(response) {
+                    console.log('Employee name updated');
+                    
+                    // Auto-sync checkbox based on employee name
+                    const hasName = name.trim() !== '';
+                    const checkbox = $('#useEmployeeTracking');
+                    const nameSection = $('#employeeNameSection');
+                    
+                    if (response.use_employee_tracking !== checkbox.is(':checked')) {
+                        checkbox.prop('checked', response.use_employee_tracking);
+                        nameSection.toggle(response.use_employee_tracking);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating employee name:', error);
+                }
+            });
+        }
+        
+        // Shipping cost adjustment functionality
+        $('#shipping-adjustment-toggle').change(function() {
+            const isChecked = $(this).is(':checked');
+            $('#shipping-adjustment-form').toggle(isChecked);
+            
+            if (isChecked) {
+                calculateNewTotal();
+            }
+        });
+        
+        // Calculate new total when shipping cost changes
+        $('#new_shipping_cost').on('input', function() {
+            calculateNewTotal();
+        });
+        
+        function calculateNewTotal() {
+            const currentShippingCost = {{ $order->shipping_cost }};
+            const baseTotal = {{ $order->grand_total }} - currentShippingCost;
+            const newShippingCost = parseFloat($('#new_shipping_cost').val()) || 0;
+            const newTotal = baseTotal + newShippingCost;
+            
+            $('#new-total').val('Rp' + number_format(newTotal, 0, ',', '.'));
+        }
+        
+        function number_format(number, decimals, decPoint, thousandsSep) {
+            decimals = decimals || 0;
+            number = parseFloat(number);
+            
+            if (!decPoint || !thousandsSep) {
+                decPoint = '.';
+                thousandsSep = ',';
+            }
+            
+            var roundedNumber = Math.round(Math.abs(number) * ('1e' + decimals)) + '';
+            var numbersString = decimals ? (roundedNumber.slice(0, decimals * -1) || 0) : roundedNumber;
+            var decimalsString = decimals ? roundedNumber.slice(decimals * -1) : '';
+            var formattedNumber = '';
+            
+            while (numbersString.length > 3) {
+                formattedNumber = thousandsSep + numbersString.slice(-3) + formattedNumber;
+                numbersString = numbersString.slice(0, -3);
+            }
+            
+            if (numbersString) {
+                formattedNumber = numbersString + formattedNumber;
+            }
+            
+            formattedNumber = decimals ? formattedNumber + decPoint + decimalsString : formattedNumber;
+            
+            return (number < 0 ? '-' : '') + formattedNumber;
+        }
+        
+        // Handle shipping adjustment form submission
+        $('#update-shipping-btn').click(function() {
+            const button = $(this);
+            const originalText = button.html();
+            
+            // Basic validation
+            const newCost = parseFloat($('#new_shipping_cost').val());
+            const newCourier = $('#new_shipping_courier').val();
+            const newService = $('#new_shipping_service').val().trim();
+            
+            if (isNaN(newCost) || newCost < 0) {
+                alert('Please enter a valid shipping cost');
+                return;
+            }
+            
+            if (!newCourier || !newService) {
+                alert('Please fill in courier and service name');
+                return;
+            }
+            
+            button.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
+            
+            const formData = {
+                order_id: {{ $order->id }},
+                new_shipping_cost: newCost,
+                new_shipping_courier: newCourier,
+                new_shipping_service: newService,
+                adjustment_note: $('#adjustment_note').val().trim(),
+                _token: '{{ csrf_token() }}'
+            };
+            
+            $.ajax({
+                url: '{{ route("admin.orders.adjustShipping") }}',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        // Update display values
+                        $('#shipping-cost-display').text('Rp' + number_format(response.new_shipping_cost, 0, ',', '.'));
+                        $('#shipping-courier-display').text(response.new_courier.toUpperCase() + ' - ' + response.new_service);
+                        $('#current-total').val('Rp' + number_format(response.new_grand_total, 0, ',', '.'));
+                        
+                        // Show success message
+                        alert('Shipping cost updated successfully');
+                        
+                        // Refresh page to show all changes
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        alert('Error: ' + (response.message || 'Failed to update shipping cost'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    let errorMessage = 'Failed to update shipping cost';
+                    
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        try {
+                            const errorResponse = JSON.parse(xhr.responseText);
+                            errorMessage = errorResponse.message || errorMessage;
+                        } catch (e) {
+                            errorMessage = xhr.responseText;
+                        }
+                    }
+                    
+                    alert(errorMessage);
+                },
+                complete: function() {
+                    button.prop('disabled', false).html(originalText);
+                }
+            });
+        });
     });
     </script>
 @endpush

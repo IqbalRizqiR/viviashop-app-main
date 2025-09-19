@@ -65,6 +65,12 @@
                             <p>Produk</p>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.smart-print-converter.index') }}" class="nav-link">
+                            <i class="fa fa-magic nav-icon"></i>
+                            <p>Smart Print Converter</p>
+                        </a>
+                    </li>
                 </ul>
             </li>
             <li class="nav-item">
@@ -147,6 +153,38 @@
                         </a>
                     </li>
                 </ul>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.employee-performance.index') }}" class="nav-link">
+                    <i class="nav-icon fas fa-chart-line"></i>
+                    <p>
+                        Employee Performance
+                    </p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.print-service.index') }}" class="nav-link">
+                    <i class="nav-icon fas fa-print"></i>
+                    <p>
+                        Smart Print Service
+                    </p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.smart-print-variant.index') }}" class="nav-link">
+                    <i class="nav-icon fas fa-magic"></i>
+                    <p>
+                        Smart Print Variant Manager
+                    </p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.stock.index') }}" class="nav-link">
+                    <i class="nav-icon fas fa-chart-area"></i>
+                    <p>
+                        Kartu Stok
+                    </p>
+                </a>
             </li>
         </ul>
     </nav>

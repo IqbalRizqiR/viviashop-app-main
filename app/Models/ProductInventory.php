@@ -32,4 +32,9 @@ class ProductInventory extends Model
 		$inventory->qty = $inventory->qty + $qty;
 		$inventory->save();
 	}
+
+	public function product()
+	{
+		return $this->belongsTo(Product::class);
+	}
 }

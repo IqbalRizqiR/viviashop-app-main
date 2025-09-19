@@ -11,13 +11,58 @@ class Pembelian extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'waktu' => 'datetime',
+        'total_item' => 'integer',
+        'total_harga' => 'integer',
+        'diskon' => 'integer',
+        'bayar' => 'integer',
+    ];
+
+    const STATUS_PENDING = 'pending';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+
     public function details()
     {
-        return $this->hasMany(PembelianDetail::class, 'id', 'id_pembelian');
+        return $this->hasMany(PembelianDetail::class, 'id_pembelian', 'id');
     }
 
     public function supplier()
     {
-        return $this->hasOne(Supplier::class, 'id', 'id_supplier');
+        return $this->belongsTo(Supplier::class, 'id_supplier', 'id');
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class, 'reference_id', 'id')
+                    ->where('reference_type', 'purchase');
+    }
+
+    public function scopePending($query)
+    {
+        return $query->whereNull('waktu');
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->whereNotNull('waktu');
+    }
+
+    public function getTotalHargaAfterDiskonAttribute()
+    {
+        $total = $this->total_harga;
+        if ($this->diskon > 0) {
+            $total = $total - ($total * $this->diskon / 100);
+        }
+        return $total;
+    }
+
+    public function getStatusAttribute()
+    {
+        if (is_null($this->waktu)) {
+            return self::STATUS_PENDING;
+        }
+        return self::STATUS_COMPLETED;
     }
 }

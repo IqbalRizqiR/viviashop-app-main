@@ -110,7 +110,7 @@ class CartController extends Controller
             'name' => $variant->name,
             'price' => $variant->price,
             'qty' => $requestedQty,
-            'weight' => $variant->weight ?? 0,
+            'weight' => $variant->weight ?? 100,
             'options' => [
                 'product_id' => $product->id,
                 'variant_id' => $variant->id,
@@ -118,8 +118,9 @@ class CartController extends Controller
                 'slug' => $product->slug,
                 'image' => $product->productImages->first()?->path ?? '',
                 'attributes' => $variant->variantAttributes->pluck('attribute_value', 'attribute_name')->toArray(),
+                'sku' => $variant->sku ?? $product->sku ?? 'NO-SKU',
             ]
-        ]);
+        ])->associate(Product::class);
 
         return response()->json([
             'status' => 'success',
@@ -148,15 +149,16 @@ class CartController extends Controller
             'name' => $product->name,
             'price' => $product->price,
             'qty' => $requestedQty,
-            'weight' => $product->weight ?? 0,
+            'weight' => $product->weight ?? 50,
             'options' => [
                 'product_id' => $product->id,
                 'variant_id' => null,
                 'type' => 'simple',
                 'slug' => $product->slug,
                 'image' => $product->productImages->first()?->path ?? '',
+                'sku' => $product->sku ?? 'NO-SKU',
             ]
-        ]);
+        ])->associate(Product::class);
 
         return response()->json([
             'status' => 'success',
@@ -195,9 +197,9 @@ class CartController extends Controller
     {
         Cart::remove($id);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Item removed from cart'
+        return redirect()->route('carts.index')->with([
+            'message' => 'Item removed from cart successfully',
+            'alert-type' => 'success'
         ]);
     }
 }

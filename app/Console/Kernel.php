@@ -12,6 +12,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        // Auto-fix print file storage every hour (commented for production)
+        // $schedule->command('print:fix-storage')->hourly();
+        
         // $schedule->command('inspire')->hourly();
     }
 

@@ -13,7 +13,11 @@
                 <h3 class="card-title">Data Produk</h3>
                 <div class="">
                     <a href="{{ route('admin.products.create')}}" class="btn btn-info shadow-sm float-right ml-2"> <i class="fa fa-plus"></i> Tambah </a>
-                    <a href="{{ route('admin.barcode.download')}}" class="btn btn-info shadow-sm float-right ml-2"> <i class="fa fa-plus"></i> Download Barcode </a>
+                    <a href="{{ route('admin.barcode.preview')}}" class="btn btn-info shadow-sm float-right ml-2"> <i class="fa fa-eye"></i> Preview Barcode </a>
+                    <form method="POST" action="{{ route('admin.products.generateAll') }}" style="display: inline;" onsubmit="return confirmGenerate(this)">
+                        @csrf
+                        <button type="submit" class="btn btn-warning shadow-sm float-right ml-2" id="generateBarcodeBtn"> <i class="fa fa-barcode"></i> Generate All Barcode </button>
+                    </form>
                     <button onclick="addForm();" class="btn btn-success shadow-sm float-right ml-2"> <i class="fa fa-plus"></i> Excel </button>
                 </div>
               </div>
@@ -73,6 +77,9 @@
                                     <a href="{{ route('admin.products.generateSingle', $product->id) }}" class="btn btn-sm btn-success">
                                         <i class="fa fa-barcode"></i>
                                     </a>
+                                    <a href="{{ route('admin.stock.product', $product->id) }}" class="btn btn-sm btn-info" title="Kartu Stok">
+                                        <i class="fa fa-chart-line"></i>
+                                    </a>
                                     <form onclick="return confirm('are you sure !')" action="{{ route('admin.products.destroy', $product) }}"
                                         method="POST">
                                         @csrf
@@ -118,6 +125,16 @@
     function addForm() {
         $('#modal-supplier').modal('show');
         $('#modal-supplier').addClass('show');
+    }
+    
+    function confirmGenerate(form) {
+        if (confirm('Generate barcode untuk semua produk yang belum memiliki barcode? Proses ini tidak dapat dibatalkan.')) {
+            const btn = form.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Generating...';
+            return true;
+        }
+        return false;
     }
     </script>
 @endpush

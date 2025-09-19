@@ -148,7 +148,7 @@ class CartController extends Controller
             'name' => $product->name,
             'price' => $product->price,
             'qty' => $requestedQty,
-            'weight' => $product->weight ?? 0,
+            'weight' => $product->weight ?? 50,
             'options' => [
                 'product_id' => $product->id,
                 'variant_id' => null,
@@ -156,7 +156,7 @@ class CartController extends Controller
                 'slug' => $product->slug,
                 'image' => $product->productImages->first()?->path ?? '',
             ]
-        ]);
+        ], $product);
 
         return response()->json([
             'status' => 'success',

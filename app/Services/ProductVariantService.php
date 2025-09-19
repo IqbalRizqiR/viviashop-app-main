@@ -48,6 +48,10 @@ class ProductVariantService
             'link2' => $data['link2'] ?? null,
             'link3' => $data['link3'] ?? null,
             'is_featured' => $data['is_featured'] ?? false,
+            'is_print_service' => $data['is_print_service'] ?? false,
+            'is_smart_print_enabled' => $data['is_smart_print_enabled'] ?? false,
+            'harga_beli' => $data['harga_beli'] ?? null,
+            'barcode' => $data['barcode'] ?? null,
         ]);
 
         if (isset($data['category_id'])) {

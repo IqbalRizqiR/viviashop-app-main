@@ -11,13 +11,48 @@ class PembelianDetail extends Model
 
     protected $guarded = ['id'];
 
-    public function products()
+    protected $casts = [
+        'harga_beli' => 'integer',
+        'jumlah' => 'integer',
+        'subtotal' => 'integer',
+    ];
+
+    public function pembelian()
     {
-        return $this->hasOne(Product::class, 'id', 'id_produk');
+        return $this->belongsTo(Pembelian::class, 'id_pembelian', 'id');
     }
 
-    public function parent()
+    public function product()
     {
-        return $this->hasOne(Pembelian::class);
+        return $this->belongsTo(Product::class, 'id_produk', 'id');
+    }
+
+    public function products()
+    {
+        return $this->belongsTo(Product::class, 'id_produk', 'id');
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'variant_id', 'id');
+    }
+
+    public function getFormattedHargaBeliAttribute()
+    {
+        return 'Rp. ' . number_format($this->harga_beli, 0, ',', '.');
+    }
+
+    public function getFormattedSubtotalAttribute()
+    {
+        return 'Rp. ' . number_format($this->subtotal, 0, ',', '.');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            $model->subtotal = $model->harga_beli * $model->jumlah;
+        });
     }
 }

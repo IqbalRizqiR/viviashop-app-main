@@ -13,6 +13,11 @@ class Product extends Model
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
+    protected $casts = [
+        'is_smart_print_enabled' => 'boolean',
+        'is_print_service' => 'boolean',
+    ];
+
     public const DRAFT = 0;
 	public const ACTIVE = 1;
 	public const INACTIVE = 2;
@@ -106,6 +111,11 @@ class Product extends Model
 	public function scopeFeatured($query)
 	{
 		return $query->where('is_featured', true);
+	}
+
+	public function scopeSmartPrintEnabled($query)
+	{
+		return $query->where('is_smart_print_enabled', true);
 	}
 
 	public function scopeWithStock($query)

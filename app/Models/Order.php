@@ -15,6 +15,10 @@ class Order extends Model
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
+    protected $casts = [
+        'shipping_adjusted_at' => 'datetime',
+    ];
+
     public const CREATED = 'created';
 	public const CONFIRMED = 'confirmed';
 	public const DELIVERED = 'delivered';
@@ -116,9 +120,24 @@ class Order extends Model
 		return $this->belongsTo(User::class);
 	}
 
+	public function shippingAdjustedBy()
+	{
+		return $this->belongsTo(User::class, 'shipping_adjusted_by');
+	}
+
 	public function scopeForUser($query, $user)
 	{
 		return $query->where('user_id', $user->id);
+	}
+
+	public function employeePerformance()
+	{
+		return $this->hasOne(EmployeePerformance::class);
+	}
+
+	public function isHandledByEmployee()
+	{
+		return $this->use_employee_tracking && !empty($this->handled_by);
 	}
 
 	public function isOfflineStoreOrder()
@@ -130,12 +149,54 @@ class Order extends Model
 
 	public function needsShipment()
 	{
-		// Offline store orders (created by admin) never need shipment
 		if ($this->isOfflineStoreOrder()) {
 			return false;
 		}
 
-		// Online orders need shipment unless they are self pickup
 		return $this->shipping_service_name !== 'Self Pickup';
+	}
+
+	public function isShippingCostAdjusted()
+	{
+		return $this->shipping_cost_adjusted;
+	}
+
+	public function hasOriginalShippingData()
+	{
+		return !is_null($this->original_shipping_cost) && 
+			   !is_null($this->original_shipping_courier) && 
+			   !is_null($this->original_shipping_service_name);
+	}
+
+	public function adjustShippingCost($newCost, $newCourier, $newServiceName, $note = null, $adjustedBy = null)
+	{
+		if (!$this->hasOriginalShippingData()) {
+			$this->original_shipping_cost = $this->shipping_cost;
+			$this->original_shipping_courier = $this->shipping_courier;
+			$this->original_shipping_service_name = $this->shipping_service_name;
+		}
+
+		$oldGrandTotal = $this->grand_total;
+		$shippingDifference = $newCost - $this->shipping_cost;
+
+		$this->shipping_cost = $newCost;
+		$this->shipping_courier = $newCourier;
+		$this->shipping_service_name = $newServiceName;
+		$this->grand_total = $oldGrandTotal + $shippingDifference;
+		$this->shipping_cost_adjusted = true;
+		$this->shipping_adjustment_note = $note;
+		$this->shipping_adjusted_at = now();
+		$this->shipping_adjusted_by = $adjustedBy;
+
+		return $this->save();
+	}
+
+	public function getShippingCostDifference()
+	{
+		if (!$this->hasOriginalShippingData()) {
+			return 0;
+		}
+		
+		return $this->shipping_cost - $this->original_shipping_cost;
 	}
 }

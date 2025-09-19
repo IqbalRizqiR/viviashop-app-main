@@ -18,6 +18,7 @@ use App\Http\Requests\Admin\ProductRequest;
 use App\Services\ProductVariantService;
 use App\Imports\ProdukImport;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
 use RealRashid\SweetAlert\Facades\Alert;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductTemplateExport;
@@ -91,23 +92,49 @@ class ProductController extends Controller
 		return $result;
     }
 
-    public function downloadBarcode()
+    public function previewBarcode()
     {
-        $data = Product::all();
-        $pdf  = Pdf::loadView('admin.barcode', compact('data'));
-        $pdf->setPaper('a4', 'landscape');
-        return $pdf->stream('barcode.pdf');
-        // return view('admin.barcode', compact('data'));
+        $data = Product::whereNotNull('barcode')->get();
+        return view('admin.barcode_preview_menu', compact('data'));
+    }
+
+    public function previewBarcodeLandscape()
+    {
+        $data = Product::whereNotNull('barcode')->get();
+        return view('admin.barcode_preview_landscape', compact('data'));
+    }
+
+    public function previewBarcodePortrait()
+    {
+        $data = Product::whereNotNull('barcode')->get();
+        return view('admin.barcode_preview_portrait', compact('data'));
+    }
+
+    public function printBarcodeLandscape()
+    {
+        $data = Product::whereNotNull('barcode')->get();
+        return view('admin.barcode_landscape', compact('data'));
+    }
+
+    public function printBarcodePortrait()
+    {
+        $data = Product::whereNotNull('barcode')->get();
+        return view('admin.barcode_portrait', compact('data'));
     }
 
     public function downloadSingleBarcode($id)
     {
-        $dataSingle = Product::where('id', $id)->first();
-        // dd($data->barcode);
-        $pdf  = Pdf::loadView('admin.barcodeSingle', compact('dataSingle'));
+        $dataSingle = Product::where('id', $id)->whereNotNull('barcode')->first();
+        
+        if (!$dataSingle) {
+            Alert::error('Error', 'Produk tidak ditemukan atau barcode belum dibuat.');
+            return redirect()->back();
+        }
+        
+        $pdf = Pdf::loadView('admin.barcodeSingle', compact('dataSingle'));
         $pdf->setPaper('a4', 'landscape');
-        return $pdf->stream('barcode.pdf');
-        // return view('admin.barcode', compact('data'));
+        $filename = 'barcode-' . $dataSingle->sku . '.pdf';
+        return $pdf->stream($filename);
     }
 
     public function generateBarcodeAll()
@@ -211,17 +238,29 @@ class ProductController extends Controller
     public function store(ProductRequest $request)
     {
         try {
+            // Ensure checkbox values are properly handled
+            $data = $request->validated();
+            
+            // CRITICAL FIX: Force checkbox handling regardless of form submission
+            $data['is_print_service'] = $request->has('is_print_service') || $request->get('is_print_service') == '1' || $request->get('is_print_service') === 'on';
+            $data['is_smart_print_enabled'] = $request->has('is_smart_print_enabled') || $request->get('is_smart_print_enabled') == '1' || $request->get('is_smart_print_enabled') === 'on';
+            
             if ($request->type === 'configurable' && !empty($request->variants)) {
                 $result = $this->productVariantService->createConfigurableProduct(
-                    $request->validated(),
+                    $data,
                     $request->variants
                 );
                 $product = $result['product'];
             } else {
-                $product = $this->productVariantService->createBaseProduct($request->validated());
+                $product = $this->productVariantService->createBaseProduct($data);
                 
                 if ($request->type === 'simple') {
                     $this->createSimpleProductInventory($product, $request);
+                    
+                    // Auto-create variants for smart print products
+                    if ($data['is_smart_print_enabled'] && $data['is_print_service']) {
+                        $this->createDefaultSmartPrintVariants($product);
+                    }
                 }
             }
 
@@ -247,11 +286,54 @@ class ProductController extends Controller
             ]);
         }
     }
+    
+    private function createDefaultSmartPrintVariants(Product $product)
+    {
+        $defaultVariants = [
+            [
+                'name' => $product->name . ' - Black & White',
+                'sku' => $product->sku . '-BW',
+                'paper_size' => 'A4',
+                'print_type' => 'bw',
+                'stock' => 100,
+                'price' => $product->price ?: 1000,
+                'harga_beli' => $product->harga_beli ?: 500,
+            ],
+            [
+                'name' => $product->name . ' - Color',
+                'sku' => $product->sku . '-CLR',
+                'paper_size' => 'A4', 
+                'print_type' => 'color',
+                'stock' => 50,
+                'price' => ($product->price ?: 1000) * 1.5,
+                'harga_beli' => $product->harga_beli ?: 500,
+            ]
+        ];
+        
+        foreach ($defaultVariants as $variantData) {
+            \App\Models\ProductVariant::create([
+                'product_id' => $product->id,
+                'sku' => $variantData['sku'],
+                'name' => $variantData['name'],
+                'price' => $variantData['price'],
+                'harga_beli' => $variantData['harga_beli'],
+                'stock' => $variantData['stock'],
+                'weight' => $product->weight ?: 0.1,
+                'length' => $product->length,
+                'width' => $product->width,
+                'height' => $product->height,
+                'print_type' => $variantData['print_type'],
+                'paper_size' => $variantData['paper_size'],
+                'is_active' => true,
+                'min_stock_threshold' => $variantData['stock'] * 0.1, // 10% of initial stock
+            ]);
+        }
+    }
 
     public function data()
     {
         $products = Product::with(['variants.productAttributeValues.attribute', 'variants.productAttributeValues.attribute_variant', 'variants.productAttributeValues.attribute_option'])
-            ->select('id', 'sku', 'name', 'price', 'type')
+            ->select('id', 'sku', 'name', 'price', 'type', 'total_stock')
             ->get();
 
         return datatables()
@@ -274,7 +356,8 @@ class ProductController extends Controller
                              data-sku="'. $product->sku .'"
                              data-name="'. e($product->name) .'"
                              data-type="'. $product->type .'"
-                             data-price="'. $product->price .'">
+                             data-price="'. $product->price .'"
+                             data-stock="'. $product->total_stock .'">
                              Add
                             </button>';
             })
@@ -305,11 +388,86 @@ class ProductController extends Controller
         ]);
     }
 
+    public function getVariantOptions($id)
+    {
+        $product = Product::find($id);
+        
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+
+        if ($product->type !== 'configurable') {
+            return response()->json(['success' => false, 'message' => 'Product is not configurable']);
+        }
+
+        $variantOptions = $product->getVariantOptions();
+
+        return response()->json([
+            'success' => true,
+            'data' => $variantOptions
+        ]);
+    }
+
+    public function getAllVariants($id)
+    {
+        $product = Product::find($id);
+        
+        if (!$product) {
+            return response()->json(['success' => false, 'message' => 'Product not found'], 404);
+        }
+
+        // Check if product is configurable or simple with variants (like frontend)
+        $hasVariants = $product->activeVariants()->count() > 0;
+        $isConfigurable = $product->type == 'configurable' || 
+                         ($product->type == 'simple' && $hasVariants);
+
+        if (!$isConfigurable) {
+            return response()->json(['success' => false, 'message' => 'Product has no variants', 'data' => []]);
+        }
+
+        // Use activeVariants() like frontend and get variant's own stock
+        $variants = $product->activeVariants()
+            ->with(['variantAttributes'])
+            ->get()
+            ->map(function($variant) {
+                return [
+                    'id' => $variant->id,
+                    'sku' => $variant->sku,
+                    'name' => $variant->name,
+                    'price' => $variant->price,
+                    'formatted_price' => number_format($variant->price, 0, ',', '.'),
+                    'stock' => $variant->stock, // Use variant's own stock column
+                    'weight' => $variant->weight ?? 0,
+                    'variant_attributes' => $variant->variantAttributes->map(function($attr) {
+                        return [
+                            'attribute_name' => $attr->attribute_name,
+                            'attribute_value' => $attr->attribute_value
+                        ];
+                    })->toArray()
+                ];
+            });
+
+        // Get variant options like frontend
+        $variantOptions = [];
+        try {
+            $variantOptions = $product->getVariantOptions()->toArray();
+        } catch (Exception $e) {
+            $variantOptions = [];
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $variants,
+            'variantOptions' => $variantOptions
+        ]);
+    }
+
     public function findByBarcode(Request $request)
     {
         $barcode = $request->input('barcode');
 
         $product = Product::where('barcode', $barcode)
+                        ->select('id', 'sku', 'name', 'price', 'type', 'total_stock')
                         ->first();
 
         if ($product) {
@@ -320,6 +478,8 @@ class ProductController extends Controller
                     'name' => $product->name,
                     'sku' => $product->sku,
                     'price' => $product->price,
+                    'type' => $product->type,
+                    'total_stock' => $product->total_stock,
                 ]
             ]);
         }
@@ -429,7 +589,13 @@ class ProductController extends Controller
     {
         try {
             DB::transaction(function () use ($product, $request) {
-                $product->update($request->validated());
+                $data = $request->validated();
+                
+                // CRITICAL FIX: Force checkbox handling regardless of form submission
+                $data['is_print_service'] = $request->has('is_print_service') || $request->get('is_print_service') == '1' || $request->get('is_print_service') === 'on';
+                $data['is_smart_print_enabled'] = $request->has('is_smart_print_enabled') || $request->get('is_smart_print_enabled') == '1' || $request->get('is_smart_print_enabled') === 'on';
+                
+                $product->update($data);
                 
                 if (!empty($request->category_id)) {
                     $product->categories()->sync($request->category_id);

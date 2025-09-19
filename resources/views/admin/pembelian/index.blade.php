@@ -65,7 +65,14 @@
             ]
         });
 
-        $('.table-supplier').DataTable();
+        $('.table-supplier').DataTable({
+            responsive: true,
+            paging: false,
+            searching: true,
+            info: false,
+            ordering: false
+        });
+
         table1 = $('.table-detail').DataTable({
             processing: true,
             bSort: false,
@@ -78,21 +85,39 @@
                 {data: 'jumlah'},
                 {data: 'subtotal'},
             ]
-        })
+        });
     });
 
     function addForm() {
-        $('#modal-supplier').modal('show');
-        $('#modal-supplier').addClass('show');
+        $('#modal-supplier').show();
+        $('body').addClass('modal-open');
+        if ($('.modal-backdrop').length === 0) {
+            $('body').append('<div class="modal-backdrop"></div>');
+        }
     }
 
     function showDetail(url) {
-        $('#modal-detail').modal('show');
-        $('#modal-detail').addClass('show');
+        $('#modal-detail').show();
+        $('body').addClass('modal-open');
+        if ($('.modal-backdrop').length === 0) {
+            $('body').append('<div class="modal-backdrop"></div>');
+        }
 
         table1.ajax.url(url);
         table1.ajax.reload();
     }
+
+    $(document).on('click', '[data-dismiss="modal"]', function() {
+        $('.modal').hide();
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+    });
+
+    $(document).on('click', '.modal-backdrop', function() {
+        $('.modal').hide();
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+    });
 
     function deleteData(url) {
         if (confirm('Yakin ingin menghapus data terpilih?')) {
