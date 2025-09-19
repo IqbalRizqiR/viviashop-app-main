@@ -87,8 +87,8 @@ class DashboardController extends Controller
             ->sum('grand_total');
 
         $orderIdTotalNeed = Order::where('created_at', '>=', $thisMonth)
-            ->where('payment_status', Order::PAID)->get('id');
-        dd($orderIdTotalNeed->id);
+            ->where('payment_status', Order::PAID)->pluck('id');
+        dd($orderIdTotalNeed);
         $totalPurchases = OrderItem::query()
                 ->whereIn('order_items.order_id', $orderIdTotalNeed)
                 ->join('products', 'order_items.product_id', '=', 'products.id')
