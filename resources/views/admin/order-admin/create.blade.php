@@ -51,6 +51,10 @@
             overflow: hidden;
         }
 
+        .box-body {
+            padding: 15px
+        }
+
         .box-header {
             background: linear-gradient(135deg, #f8f9fa, #e9ecef);
             border-bottom: 2px solid #dee2e6;
