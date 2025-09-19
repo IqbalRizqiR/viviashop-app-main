@@ -49,6 +49,7 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             overflow: hidden;
+            margin-bottom: 20px;
         }
 
         .box-body {
@@ -58,6 +59,7 @@
         .box-header {
             background: linear-gradient(135deg, #f8f9fa, #e9ecef);
             border-bottom: 2px solid #dee2e6;
+            padding: 15px;
         }
 
         .box-title {
@@ -68,10 +70,12 @@
         .box-primary .box-header {
             background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
+            padding: 15px
         }
 
         .box-primary .box-title {
             color: white;
+            padding: 15px
         }
 
         .box-success .box-header {
