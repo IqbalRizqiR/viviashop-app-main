@@ -95,6 +95,7 @@ class DashboardController extends Controller
                 ->selectRaw('SUM(order_items.qty * products.price) as total_value')
                 ->value('total_value');
         dd($totalPurchases);
+        dd();
         $netProfit = $revenueThisMonth - $totalPurchases;
 
         $lastMonthRevenue = Order::whereBetween('created_at', [
