@@ -20,12 +20,6 @@ class DashboardController extends Controller
     public function index()
     {
         $data = $this->getDashboardData();
-        $totalPurchases = OrderItem::query()
-                ->whereIn('order_items.order_id', $orderIdTotalNeed)
-                ->join('products', 'order_items.product_id', '=', 'products.id')
-                ->selectRaw('SUM(order_items.qty * products.price) as total_value')
-                ->value('total_value');
-        dd($totalPurchases);
         return view('admin.dashboard', $data);
     }
 
@@ -99,7 +93,6 @@ class DashboardController extends Controller
                 ->join('products', 'order_items.product_id', '=', 'products.id')
                 ->selectRaw('SUM(order_items.qty * products.price) as total_value')
                 ->value('total_value');
-        dd($totalPurchases);
         $netProfit = $revenueThisMonth - $totalPurchases;
 
         $lastMonthRevenue = Order::whereBetween('created_at', [
