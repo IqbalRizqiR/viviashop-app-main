@@ -9,7 +9,7 @@
 <body>
 <style>
     @page {
-        size: 58mm auto;
+        size: 58mm fit-content;
         margin: 2mm;
     }
 
