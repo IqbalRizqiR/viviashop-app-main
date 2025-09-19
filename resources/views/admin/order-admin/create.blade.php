@@ -430,8 +430,8 @@
                                     <div id="scanner" style="width: 100%; height: 300px; border: 1px solid #ccc; position: relative;"></div>
                                     <div id="result" class="mt-3"></div>
                                     <div class="mt-3">
-                                        <button id="start-scan" class="btn btn-success">Start Scanner</button>
-                                        <button id="stop-scan" class="btn btn-danger">Stop Scanner</button>
+                                        <button id="start-scan" class="btn btn-success" type="button">Start Scanner</button>
+                                        <button id="stop-scan" class="btn btn-danger" type="button">Stop Scanner</button>
                                     </div>
                                 </div>
                             </div>
