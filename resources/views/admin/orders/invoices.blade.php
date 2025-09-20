@@ -10,7 +10,7 @@
 <style>
     @page {
         size: 80mm auto;
-        margin: 2mm;
+        margin: 0;
     }
 
     * {
@@ -23,84 +23,85 @@
         background: #fff;
         color: #000;
         font-family: 'Courier New', monospace;
-        font-size: 10pt;
-        line-height: 1.3;
+        font-size: 8pt;
+        line-height: 1.2;
+        width: 80mm;
     }
 
     .receipt-container {
-        width: 100%;
-        padding: 3mm;
+        width: 76mm;
+        padding: 2mm;
         box-sizing: border-box;
     }
 
     .header {
         text-align: center;
-        border-bottom: 2px dashed #000;
-        padding-bottom: 3mm;
-        margin-bottom: 3mm;
-    }
-
-    .store-name {
-        font-size: 14pt;
-        font-weight: bold;
+        border-bottom: 1px dashed #000;
+        padding-bottom: 2mm;
         margin-bottom: 2mm;
     }
 
+    .store-name {
+        font-size: 12pt;
+        font-weight: bold;
+        margin-bottom: 1mm;
+    }
+
     .invoice-info {
-        font-size: 10pt;
+        font-size: 8pt;
         margin-bottom: 1mm;
     }
 
     .order-details {
-        margin-bottom: 3mm;
-        font-size: 9pt;
-        line-height: 1.4;
+        margin-bottom: 2mm;
+        font-size: 7pt;
+        line-height: 1.3;
     }
 
     .customer-info {
-        margin-bottom: 3mm;
-        font-size: 9pt;
+        margin-bottom: 2mm;
+        font-size: 7pt;
         border-bottom: 1px dashed #000;
-        padding-bottom: 3mm;
-        line-height: 1.4;
+        padding-bottom: 2mm;
+        line-height: 1.3;
     }
 
     .customer-info div {
         word-wrap: break-word;
         overflow-wrap: break-word;
-        hyphens: auto;
     }
 
     .items-section {
-        margin-bottom: 3mm;
+        margin-bottom: 2mm;
     }
 
     .item-row {
         display: flex;
         justify-content: space-between;
         margin-bottom: 1mm;
-        font-size: 9pt;
+        font-size: 7pt;
         align-items: flex-start;
     }
 
     .item-name {
         flex: 1;
-        margin-right: 3mm;
+        margin-right: 2mm;
         word-wrap: break-word;
         overflow-wrap: break-word;
-        hyphens: auto;
+        max-width: 50mm;
     }
 
     .item-qty-price {
         text-align: right;
         white-space: nowrap;
         flex-shrink: 0;
+        min-width: 20mm;
     }
 
     .totals-section {
-        border-top: 2px dashed #000;
-        padding-top: 3mm;
-        font-size: 9pt;
+        border-top: 1px dashed #000;
+        padding-top: 2mm;
+        font-size: 7pt;
     }
 
     .total-row {
@@ -111,41 +112,43 @@
 
     .final-total {
         font-weight: bold;
-        border-top: 2px solid #000;
-        padding-top: 2mm;
-        margin-top: 2mm;
-        font-size: 11pt;
+        border-top: 1px solid #000;
+        padding-top: 1mm;
+        margin-top: 1mm;
+        font-size: 9pt;
     }
 
     .footer {
         text-align: center;
-        font-size: 8pt;
-        margin-top: 5mm;
+        font-size: 6pt;
+        margin-top: 3mm;
         border-top: 1px dashed #000;
-        padding-top: 3mm;
+        padding-top: 2mm;
     }
 
     .status {
         text-align: center;
         font-weight: bold;
-        font-size: 10pt;
+        font-size: 8pt;
         margin: 1mm 0;
-        padding: 2mm;
+        padding: 1mm;
         border: 1px solid #000;
     }
 
     @media print {
         body { 
             background: #fff !important;
-            -webkit-print-color-adjust: exact;
+            width: 80mm !important;
         }
         
         .receipt-container {
-            padding: 2mm;
+            width: 76mm !important;
+            padding: 1mm !important;
         }
 
         @page {
-            margin: 1mm;
+            margin: 0 !important;
+            size: 80mm auto !important;
         }
     }
 </style>
