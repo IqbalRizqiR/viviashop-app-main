@@ -871,7 +871,7 @@ function renderFrontendStyleVariants(variants, variantOptions, itemIndex, produc
         `;
     } else {
         // Fallback to simple dropdown if no variant options
-        variantHtml += renderSimpleVariantDropdown(variants, itemIndex);
+        // variantHtml += renderSimpleVariantDropdown(variants, itemIndex);
     }
     
     variantHtml += '</div>';
