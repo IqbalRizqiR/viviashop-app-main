@@ -304,8 +304,12 @@ class ProductVariantService
                 'name' => $variantData['name'],
                 'sku' => $variantData['sku'],
                 'price' => $variantData['price'],
+                'harga_beli' => $variantData['harga_beli'] ?? null,
                 'stock' => $variantData['stock'],
                 'weight' => $variantData['weight'] ?? 0,
+                'length' => $variantData['length'] ?? 0,
+                'width' => $variantData['width'] ?? 0,
+                'height' => $variantData['height'] ?? 0,
                 'is_active' => true,
             ]);
 

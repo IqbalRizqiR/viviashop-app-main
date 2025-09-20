@@ -61,15 +61,17 @@ class ProductRequest extends FormRequest
             case 'PUT':
             case 'PATCH':
             {
-                if ($this->get('type') == 'simple') {
-                    return [
+                $product = $this->route('product');
+                $currentType = $product ? $product->type : null;
+                $newType = $this->get('type');
+                $isTypeSwitching = $currentType !== $newType;
+
+                if ($newType == 'simple') {
+                    $rules = [
                         'type' => 'required|in:simple,configurable',
-                        'name' => ['required', 'max:255', 'unique:products,name,'.$this->route()->product->id],
-                        'sku' => ['required', 'max:255', 'unique:products,sku,'. $this->route()->product->id],
+                        'name' => ['required', 'max:255', 'unique:products,name,'.($product ? $product->id : 'NULL')],
+                        'sku' => ['required', 'max:255', 'unique:products,sku,'. ($product ? $product->id : 'NULL')],
                         'brand_id' => 'nullable|exists:brands,id',
-                        'price' => ['required', 'numeric'],
-                        'harga_beli' => ['required', 'numeric'],
-                        'qty' => ['required', 'numeric'],
                         'weight' => ['required', 'numeric'],
                         'height' => 'nullable|numeric',
                         'width' => 'nullable|numeric',
@@ -87,11 +89,23 @@ class ProductRequest extends FormRequest
                         'category_id' => 'nullable|array',
                         'category_id.*' => 'exists:categories,id',
                     ];
+
+                    if ($isTypeSwitching && $currentType === 'configurable') {
+                        $rules['price'] = 'nullable|numeric';
+                        $rules['harga_beli'] = 'nullable|numeric';
+                        $rules['qty'] = 'nullable|numeric';
+                    } else {
+                        $rules['price'] = ['required', 'numeric'];
+                        $rules['harga_beli'] = ['required', 'numeric'];
+                        $rules['qty'] = ['required', 'numeric'];
+                    }
+
+                    return $rules;
                 } else {
                     return [
                         'type' => 'required|in:simple,configurable',
-                        'name' => ['required', 'max:255', 'unique:products,name,'. $this->route()->product->id],
-                        'sku' => ['required', 'max:255', 'unique:products,sku,'. $this->route()->product->id],
+                        'name' => ['required', 'max:255', 'unique:products,name,'. ($product ? $product->id : 'NULL')],
+                        'sku' => ['required', 'max:255', 'unique:products,sku,'. ($product ? $product->id : 'NULL')],
                         'brand_id' => 'nullable|exists:brands,id',
                         'price' => 'nullable|numeric',
                         'harga_beli' => 'nullable|numeric',

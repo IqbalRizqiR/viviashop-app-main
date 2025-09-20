@@ -298,6 +298,10 @@ class ProductController extends Controller
                 'stock' => 100,
                 'price' => $product->price ?: 1000,
                 'harga_beli' => $product->harga_beli ?: 500,
+                'attributes' => [
+                    'print_type' => 'Black & White',
+                    'paper_size' => 'A4'
+                ]
             ],
             [
                 'name' => $product->name . ' - Color',
@@ -307,11 +311,15 @@ class ProductController extends Controller
                 'stock' => 50,
                 'price' => ($product->price ?: 1000) * 1.5,
                 'harga_beli' => $product->harga_beli ?: 500,
+                'attributes' => [
+                    'print_type' => 'Color',
+                    'paper_size' => 'A4'
+                ]
             ]
         ];
         
         foreach ($defaultVariants as $variantData) {
-            \App\Models\ProductVariant::create([
+            $variant = \App\Models\ProductVariant::create([
                 'product_id' => $product->id,
                 'sku' => $variantData['sku'],
                 'name' => $variantData['name'],
@@ -325,8 +333,17 @@ class ProductController extends Controller
                 'print_type' => $variantData['print_type'],
                 'paper_size' => $variantData['paper_size'],
                 'is_active' => true,
-                'min_stock_threshold' => $variantData['stock'] * 0.1, // 10% of initial stock
+                'min_stock_threshold' => $variantData['stock'] * 0.1,
             ]);
+
+            foreach ($variantData['attributes'] as $attrName => $attrValue) {
+                \App\Models\VariantAttribute::create([
+                    'variant_id' => $variant->id,
+                    'attribute_name' => $attrName,
+                    'attribute_value' => $attrValue,
+                    'sort_order' => 0
+                ]);
+            }
         }
     }
 
@@ -591,20 +608,27 @@ class ProductController extends Controller
             DB::transaction(function () use ($product, $request) {
                 $data = $request->validated();
                 
-                // CRITICAL FIX: Force checkbox handling regardless of form submission
                 $data['is_print_service'] = $request->has('is_print_service') || $request->get('is_print_service') == '1' || $request->get('is_print_service') === 'on';
                 $data['is_smart_print_enabled'] = $request->has('is_smart_print_enabled') || $request->get('is_smart_print_enabled') == '1' || $request->get('is_smart_print_enabled') === 'on';
                 
-                $product->update($data);
-                
-                if (!empty($request->category_id)) {
-                    $product->categories()->sync($request->category_id);
-                }
+                $currentType = $product->type;
+                $newType = $data['type'];
+                $isTypeSwitching = $currentType !== $newType;
 
-                if ($product->type === 'configurable' && !empty($request->variants)) {
-                    $this->updateConfigurableProduct($product, $request);
-                } elseif ($product->type === 'simple') {
-                    $this->updateSimpleProduct($product, $request);
+                if ($isTypeSwitching) {
+                    $this->handleProductTypeSwitch($product, $currentType, $newType, $data, $request);
+                } else {
+                    $product->update($data);
+                    
+                    if (!empty($request->category_id)) {
+                        $product->categories()->sync($request->category_id);
+                    }
+
+                    if ($product->type === 'configurable' && !empty($request->variants)) {
+                        $this->updateConfigurableProduct($product, $request);
+                    } elseif ($product->type === 'simple') {
+                        $this->updateSimpleProduct($product, $request);
+                    }
                 }
             });
 
@@ -619,6 +643,103 @@ class ProductController extends Controller
                 'alert-type' => 'error'
             ]);
         }
+    }
+
+    private function handleProductTypeSwitch(Product $product, $currentType, $newType, $data, $request)
+    {
+        if ($currentType === 'configurable' && $newType === 'simple') {
+            $this->convertConfigurableToSimple($product, $data, $request);
+        } elseif ($currentType === 'simple' && $newType === 'configurable') {
+            $this->convertSimpleToConfigurable($product, $data, $request);
+        }
+    }
+
+    private function convertConfigurableToSimple(Product $product, $data, $request)
+    {
+        $existingInventory = $product->productInventory;
+        $hasExistingParentData = $product->price !== null || $product->harga_beli !== null || $existingInventory;
+        
+        if (!$hasExistingParentData) {
+            $firstVariant = $product->productVariants()->first();
+            if ($firstVariant) {
+                $data['price'] = $data['price'] ?? $firstVariant->price;
+                $data['harga_beli'] = $data['harga_beli'] ?? $firstVariant->harga_beli;
+                $data['weight'] = $data['weight'] ?? $firstVariant->weight;
+                $data['length'] = $data['length'] ?? $firstVariant->length;
+                $data['width'] = $data['width'] ?? $firstVariant->width;
+                $data['height'] = $data['height'] ?? $firstVariant->height;
+            }
+            
+            if (!isset($data['qty'])) {
+                $totalStock = $product->productVariants()->sum('stock');
+                $data['qty'] = $totalStock > 0 ? $totalStock : 1;
+            }
+        } else {
+            $data['price'] = $data['price'] ?? $product->price;
+            $data['harga_beli'] = $data['harga_beli'] ?? $product->harga_beli;
+            $data['qty'] = $data['qty'] ?? ($existingInventory ? $existingInventory->qty : 1);
+        }
+
+        $product->update($data);
+        
+        if (!empty($request->category_id)) {
+            $product->categories()->sync($request->category_id);
+        }
+
+        foreach ($product->productVariants as $variant) {
+            $variant->variantAttributes()->delete();
+            $variant->delete();
+        }
+
+        ProductInventory::updateOrCreate(
+            ['product_id' => $product->id],
+            ['qty' => $data['qty']]
+        );
+
+        if ($data['is_smart_print_enabled'] && $data['is_print_service']) {
+            $this->createDefaultSmartPrintVariants($product);
+        }
+    }
+
+    private function convertSimpleToConfigurable(Product $product, $data, $request)
+    {
+        $hasSmartPrintVariants = $product->productVariants()
+            ->whereIn('print_type', ['bw', 'color'])
+            ->where('paper_size', 'A4')
+            ->count() >= 2;
+
+        if ($hasSmartPrintVariants) {
+            $data['price'] = $data['price'] ?? $product->price;
+            $data['harga_beli'] = $data['harga_beli'] ?? $product->harga_beli;
+        } else {
+            $data['price'] = $data['price'] ?? $product->price;
+            $data['harga_beli'] = $data['harga_beli'] ?? $product->harga_beli;
+        }
+
+        $product->update($data);
+        
+        if (!empty($request->category_id)) {
+            $product->categories()->sync($request->category_id);
+        }
+
+        if (!$hasSmartPrintVariants && $data['is_smart_print_enabled'] && $data['is_print_service']) {
+            $this->createDefaultSmartPrintVariants($product);
+        }
+
+        if (!empty($request->variants)) {
+            foreach ($request->variants as $variantData) {
+                if (isset($variantData['id'])) {
+                    $variant = \App\Models\ProductVariant::find($variantData['id']);
+                    if ($variant) {
+                        $this->productVariantService->updateProductVariant($variant, $variantData);
+                    }
+                } else {
+                    $this->productVariantService->createSingleVariant($product, $variantData);
+                }
+            }
+        }
+        
+        $this->productVariantService->updateBasePrice($product);
     }
 
     private function updateConfigurableProduct(Product $product, $request)

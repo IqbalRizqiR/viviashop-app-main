@@ -134,85 +134,117 @@
                         </div>
                     @endif
                     @if ($product)
-                        @if ($product->type == 'configurable')
-                            <!-- CRUD Produk Induk untuk Configurable Product -->
-                            <div class="form-group row border-bottom pb-4">
-                                <div class="col-12">
-                                    <p class="text-primary mt-4">Data Produk Induk</p>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="parent_price">Harga Dasar Produk Induk</label>
-                                                <input type="number" step="0.01" class="form-control" name="price" id="parent_price" 
-                                                       value="{{ old('price', $product->price) }}" placeholder="Harga dasar produk">
-                                                <small class="text-muted">Harga dasar untuk produk induk (opsional)</small>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="parent_harga_beli">Harga Beli Produk Induk</label>
-                                                <input type="number" step="0.01" class="form-control" name="harga_beli" id="parent_harga_beli"
-                                                       value="{{ old('harga_beli', $product->harga_beli) }}" placeholder="Harga beli produk">
-                                                <small class="text-muted">Harga beli dasar untuk produk induk (opsional)</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label for="parent_weight">Berat (kg)</label>
-                                                <input type="number" step="0.01" class="form-control" name="weight" id="parent_weight"
-                                                       value="{{ old('weight', $product->weight) }}" placeholder="Berat">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label for="parent_length">Panjang (cm)</label>
-                                                <input type="number" step="0.01" class="form-control" name="length" id="parent_length"
-                                                       value="{{ old('length', $product->length) }}" placeholder="Panjang">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label for="parent_width">Lebar (cm)</label>
-                                                <input type="number" step="0.01" class="form-control" name="width" id="parent_width"
-                                                       value="{{ old('width', $product->width) }}" placeholder="Lebar">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label for="parent_height">Tinggi (cm)</label>
-                                                <input type="number" step="0.01" class="form-control" name="height" id="parent_height"
-                                                       value="{{ old('height', $product->height) }}" placeholder="Tinggi">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <div class="form-check mb-2">
-                                                    <input type="checkbox" class="form-check-input" name="is_print_service" value="1" id="is_print_service" {{ old('is_print_service', $product->is_print_service) ? 'checked' : '' }}>
-                                                    <label class="form-check-label" for="is_print_service">
-                                                        Aktifkan sebagai produk layanan cetak
-                                                    </label>
+                        <div class="product-type-section" id="product-type-section">
+                            @if ($product->type == 'configurable')
+                                <div class="configurable-section">
+                                    <div class="form-group row border-bottom pb-4">
+                                        <div class="col-12">
+                                            <p class="text-primary mt-4">Data Produk Induk (Opsional - untuk auto-fill saat switch ke Simple)</p>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="parent_price">Harga Jual Produk Induk</label>
+                                                        <input type="number" step="0.01" class="form-control" name="price" id="parent_price" 
+                                                               value="{{ old('price', $product->price) }}" placeholder="Harga jual (opsional)">
+                                                        <small class="text-muted">Akan digunakan sebagai default saat switch ke simple</small>
+                                                    </div>
                                                 </div>
-                                                <small class="form-text text-muted">Produk ini dapat digunakan untuk layanan cetak dokumen</small>
-                                                
-                                                <div class="form-check mt-2" id="smart_print_section_edit" style="display: {{ old('is_print_service', $product->is_print_service) ? 'block' : 'none' }};">
-                                                    <input type="checkbox" class="form-check-input" name="is_smart_print_enabled" value="1" id="is_smart_print_enabled" {{ old('is_smart_print_enabled', $product->is_smart_print_enabled) ? 'checked' : '' }}>
-                                                    <label class="form-check-label" for="is_smart_print_enabled">
-                                                        Aktifkan Smart Print untuk produk ini
-                                                    </label>
-                                                    <small class="form-text text-muted d-block">Smart Print memungkinkan cetak otomatis tanpa operator</small>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="parent_harga_beli">Harga Beli Produk Induk</label>
+                                                        <input type="number" step="0.01" class="form-control" name="harga_beli" id="parent_harga_beli"
+                                                               value="{{ old('harga_beli', $product->harga_beli) }}" placeholder="Harga beli (opsional)">
+                                                        <small class="text-muted">Akan digunakan sebagai default saat switch ke simple</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <div class="form-group">
+                                                        <label for="parent_weight">Berat (kg)</label>
+                                                        <input type="number" step="0.01" class="form-control" name="weight" id="parent_weight"
+                                                               value="{{ old('weight', $product->weight) }}" placeholder="Berat (opsional)">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="form-group">
+                                                        <label for="parent_qty">Qty Produk Induk</label>
+                                                        <input type="number" class="form-control" name="qty" id="parent_qty"
+                                                               value="{{ old('qty', $product->productInventory ? $product->productInventory->qty : null) }}" placeholder="Qty (opsional)">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <div class="form-group">
+                                                        <label for="parent_length">Panjang (cm)</label>
+                                                        <input type="number" step="0.01" class="form-control" name="length" id="parent_length"
+                                                               value="{{ old('length', $product->length) }}" placeholder="Panjang">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <div class="form-group">
+                                                        <label for="parent_width">Lebar (cm)</label>
+                                                        <input type="number" step="0.01" class="form-control" name="width" id="parent_width"
+                                                               value="{{ old('width', $product->width) }}" placeholder="Lebar">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <div class="form-group">
+                                                        <label for="parent_height">Tinggi (cm)</label>
+                                                        <input type="number" step="0.01" class="form-control" name="height" id="parent_height"
+                                                               value="{{ old('height', $product->height) }}" placeholder="Tinggi">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-group">
+                                                        <div class="form-check mb-2">
+                                                            <input type="checkbox" class="form-check-input" name="is_print_service" value="1" id="is_print_service_config" {{ old('is_print_service', $product->is_print_service) ? 'checked' : '' }}>
+                                                            <label class="form-check-label" for="is_print_service_config">
+                                                                Aktifkan sebagai produk layanan cetak
+                                                            </label>
+                                                        </div>
+                                                        <small class="form-text text-muted">Produk ini dapat digunakan untuk layanan cetak dokumen</small>
+                                                        
+                                                        <div class="form-check mt-2" id="smart_print_section_config" style="display: {{ old('is_print_service', $product->is_print_service) ? 'block' : 'none' }};">
+                                                            <input type="checkbox" class="form-check-input" name="is_smart_print_enabled" value="1" id="is_smart_print_enabled_config" {{ old('is_smart_print_enabled', $product->is_smart_print_enabled) ? 'checked' : '' }}>
+                                                            <label class="form-check-label" for="is_smart_print_enabled_config">
+                                                                Aktifkan Smart Print untuk produk ini
+                                                            </label>
+                                                            <small class="form-text text-muted d-block">Smart Print memungkinkan cetak otomatis tanpa operator</small>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        @elseif ($product->type == 'simple')
-                            @include('admin.products.simple')
-                        @endif
+                            @else
+                                <div class="simple-section">
+                                    @include('admin.products.simple')
+                                    
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" name="is_print_service" value="1" id="is_print_service_simple" {{ old('is_print_service', $product->is_print_service) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="is_print_service_simple">
+                                                    Aktifkan sebagai produk layanan cetak
+                                                </label>
+                                                <small class="form-text text-muted d-block">Produk ini akan tersedia untuk layanan pencetakan</small>
+                                            </div>
+                                            
+                                            <div class="form-check mt-2" id="smart_print_section_simple" style="display: {{ old('is_print_service', $product->is_print_service) ? 'block' : 'none' }};">
+                                                <input type="checkbox" class="form-check-input" name="is_smart_print_enabled" value="1" id="is_smart_print_enabled_simple" {{ old('is_smart_print_enabled', $product->is_smart_print_enabled) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="is_smart_print_enabled_simple">
+                                                    Aktifkan Smart Print untuk produk ini
+                                                </label>
+                                                <small class="form-text text-muted d-block">Smart Print memungkinkan cetak otomatis tanpa operator</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
 
                         <div class="form-group row border-bottom pb-4">
                             <label for="short_description" class="col-sm-2 col-form-label">Deskripsi Singkat</label>
@@ -685,7 +717,7 @@
 											<div class="col-md-4">
 												<div class="form-group">
 													<label>Harga Beli</label>
-													<input type="number" class="form-control" name="harga_beli" value="${variant.harga_beli || ''}" step="0.01">
+													<input type="number" class="form-control" name="harga_beli" value="${variant.harga_beli !== null ? variant.harga_beli : ''}" step="0.01">
 												</div>
 											</div>
 											<div class="col-md-4">
@@ -699,25 +731,25 @@
 											<div class="col-md-3">
 												<div class="form-group">
 													<label>Berat (kg)</label>
-													<input type="number" step="0.01" class="form-control" name="weight" value="${variant.weight || ''}">
+													<input type="number" step="0.01" class="form-control" name="weight" value="${variant.weight !== null ? variant.weight : ''}">
 												</div>
 											</div>
 											<div class="col-md-3">
 												<div class="form-group">
 													<label>Panjang (cm)</label>
-													<input type="number" class="form-control" name="length" value="${variant.length || ''}">
+													<input type="number" class="form-control" name="length" value="${variant.length !== null ? variant.length : ''}">
 												</div>
 											</div>
 											<div class="col-md-3">
 												<div class="form-group">
 													<label>Lebar (cm)</label>
-													<input type="number" class="form-control" name="width" value="${variant.width || ''}">
+													<input type="number" class="form-control" name="width" value="${variant.width !== null ? variant.width : ''}">
 												</div>
 											</div>
 											<div class="col-md-3">
 												<div class="form-group">
 													<label>Tinggi (cm)</label>
-													<input type="number" class="form-control" name="height" value="${variant.height || ''}">
+													<input type="number" class="form-control" name="height" value="${variant.height !== null ? variant.height : ''}">
 												</div>
 											</div>
 										</div>
@@ -885,10 +917,21 @@
 			}
 		}
 		
-		function handlePrintServiceLogicEdit() {
-		    var printServiceChecked = $("#is_print_service").is(':checked');
-		    var smartPrintSection = $("#smart_print_section_edit");
-		    var smartPrintCheckbox = $("#is_smart_print_enabled");
+		function handlePrintServiceLogic() {
+		    var productType = $('.product-type').val();
+		    var printServiceCheckbox, smartPrintSection, smartPrintCheckbox;
+		    
+		    if (productType === 'configurable') {
+		        printServiceCheckbox = $("#is_print_service_config");
+		        smartPrintSection = $("#smart_print_section_config");
+		        smartPrintCheckbox = $("#is_smart_print_enabled_config");
+		    } else {
+		        printServiceCheckbox = $("#is_print_service_simple");
+		        smartPrintSection = $("#smart_print_section_simple");
+		        smartPrintCheckbox = $("#is_smart_print_enabled_simple");
+		    }
+		    
+		    var printServiceChecked = printServiceCheckbox.is(':checked');
 		    
 		    if (printServiceChecked) {
 		        smartPrintSection.show();
@@ -898,13 +941,29 @@
 		    }
 		}
 		
-		$(document).ready(function() {
-		    // Initialize print service logic
-		    handlePrintServiceLogicEdit();
+		function updateFormForProductType() {
+		    var productType = $('.product-type').val();
 		    
-		    // Handle print service checkbox change
-		    $("#is_print_service").change(function() {
-		        handlePrintServiceLogicEdit();
+		    if (productType === 'configurable') {
+		        $('.configurable-section').show();
+		        $('.simple-section').hide();
+		    } else {
+		        $('.configurable-section').hide();
+		        $('.simple-section').show();
+		    }
+		    
+		    handlePrintServiceLogic();
+		}
+		
+		$(document).ready(function() {
+		    updateFormForProductType();
+		    
+		    $('.product-type').change(function() {
+		        updateFormForProductType();
+		    });
+		    
+		    $("#is_print_service_config, #is_print_service_simple").change(function() {
+		        handlePrintServiceLogic();
 		    });
 		});
 </script>

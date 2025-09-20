@@ -106,8 +106,11 @@ class ProductVariantController extends Controller
     {
         $variant = ProductVariant::with('variantAttributes')->findOrFail($id);
         
+        $variantData = $variant->toArray();
+        $variantData['variant_attributes'] = $variant->variantAttributes->toArray();
+        
         return response()->json([
-            'variant' => $variant
+            'variant' => $variantData
         ]);
     }
 
