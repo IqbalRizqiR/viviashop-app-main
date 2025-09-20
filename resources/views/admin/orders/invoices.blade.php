@@ -9,8 +9,8 @@
 <body>
 <style>
     @page {
-        size: 58mm auto; /* Auto height sesuai konten */
-        margin: 1mm;
+        size: 80mm auto;
+        margin: 5mm;
     }
 
     * {
@@ -24,48 +24,47 @@
         background: #fff;
         color: #000;
         font-family: 'Courier New', monospace;
-        font-size: 7pt;
-        line-height: 1.1;
-        width: 56mm; /* Fixed width */
-        overflow: hidden;
+        font-size: 10pt;
+        line-height: 1.3;
+        width: 80mm;
     }
 
     .receipt-container {
         width: 100%;
-        padding: 0;
+        padding: 2mm;
         min-height: auto;
     }
 
     .header {
         text-align: center;
-        border-bottom: 1px dashed #000;
-        padding-bottom: 1mm;
-        margin-bottom: 1mm;
+        border-bottom: 2px dashed #000;
+        padding-bottom: 3mm;
+        margin-bottom: 3mm;
     }
 
     .store-name {
-        font-size: 9pt;
+        font-size: 14pt;
         font-weight: bold;
-        margin-bottom: 0.5mm;
+        margin-bottom: 2mm;
     }
 
     .invoice-info {
-        font-size: 6pt;
-        margin-bottom: 0.3mm;
+        font-size: 10pt;
+        margin-bottom: 1mm;
     }
 
     .order-details {
-        margin-bottom: 1mm;
-        font-size: 6pt;
-        line-height: 1.2;
+        margin-bottom: 3mm;
+        font-size: 9pt;
+        line-height: 1.4;
     }
 
     .customer-info {
-        margin-bottom: 1mm;
-        font-size: 6pt;
+        margin-bottom: 3mm;
+        font-size: 9pt;
         border-bottom: 1px dashed #000;
-        padding-bottom: 1mm;
-        line-height: 1.2;
+        padding-bottom: 3mm;
+        line-height: 1.4;
     }
 
     .customer-info div {
@@ -75,64 +74,67 @@
     }
 
     .items-section {
-        margin-bottom: 1mm;
+        margin-bottom: 3mm;
     }
 
     .item-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 0.3mm;
-        font-size: 6pt;
+        margin-bottom: 1mm;
+        font-size: 9pt;
         align-items: flex-start;
     }
 
     .item-name {
         flex: 1;
-        margin-right: 2mm;
+        margin-right: 3mm;
         word-wrap: break-word;
         overflow-wrap: break-word;
         hyphens: auto;
-        max-width: 35mm;
+        max-width: 50mm;
     }
 
     .item-qty-price {
         text-align: right;
         white-space: nowrap;
-        min-width: 15mm;
+        min-width: 20mm;
     }
 
     .totals-section {
-        border-top: 1px dashed #000;
-        padding-top: 1mm;
-        font-size: 6pt;
+        border-top: 2px dashed #000;
+        padding-top: 3mm;
+        font-size: 9pt;
     }
 
     .total-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 0.3mm;
+        margin-bottom: 1mm;
     }
 
     .final-total {
         font-weight: bold;
-        border-top: 1px solid #000;
-        padding-top: 0.5mm;
-        margin-top: 0.5mm;
+        border-top: 2px solid #000;
+        padding-top: 2mm;
+        margin-top: 2mm;
+        font-size: 11pt;
     }
 
     .footer {
         text-align: center;
-        font-size: 5pt;
-        margin-top: 1mm;
+        font-size: 8pt;
+        margin-top: 5mm;
         border-top: 1px dashed #000;
-        padding-top: 1mm;
+        padding-top: 3mm;
     }
 
     .status {
         text-align: center;
         font-weight: bold;
-        font-size: 6pt;
-        margin: 0.3mm 0;
+        font-size: 10pt;
+        margin: 1mm 0;
+        padding: 2mm;
+        border: 1px solid #000;
     }
 
     /* Ensure no page breaks */
@@ -236,7 +238,8 @@
 
     <!-- Footer -->
     <div class="footer">
-        <div>Thank you!</div>
+        <div>Thank you for your business!</div>
+        <div>{{ config('app.name') }}</div>
     </div>
 </div>
 
