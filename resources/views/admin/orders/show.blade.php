@@ -139,18 +139,24 @@
                                     $jsonAttr = (string) $jsonAttributes;
                                     $attributes = json_decode($jsonAttr, true);
                                     $showAttributes = '';
-                                    if ($attributes) {
+                                    if (is_array($attributes) && count($attributes) > 0) {
                                         $showAttributes .= '<ul class="item-attributes list-unstyled">';
                                         foreach ($attributes as $key => $attribute) {
-                                            if(is_array($attribute) && count($attribute) != 0){
-                                                foreach($attribute as $value => $attr){
-                                                    $showAttributes .= '<li>'.$value . ': <span>' . $attr . '</span><li>';
+                                            if (is_array($attribute)) {
+                                                foreach ($attribute as $k => $v) {
+                                                    $k = htmlspecialchars((string)$k, ENT_QUOTES, 'UTF-8');
+                                                    $v = htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+                                                    $showAttributes .= '<li>' . $k . ': <span>' . $v . '</span></li>';
                                                 }
-                                            }else {
-                                                $showAttributes .= '<li><span> - </span></li>';
+                                            } else {
+                                                $key = htmlspecialchars((string)$key, ENT_QUOTES, 'UTF-8');
+                                                $val = htmlspecialchars((string)$attribute, ENT_QUOTES, 'UTF-8');
+                                                $showAttributes .= '<li>' . $key . ': <span>' . $val . '</span></li>';
                                             }
                                         }
                                         $showAttributes .= '</ul>';
+                                    } else {
+                                        $showAttributes = '-';
                                     }
                                     return $showAttributes;
                                 }
@@ -163,7 +169,7 @@
                                     <td>{{ $item->qty }}</td>
                                     <td>Rp{{ number_format($item->base_price,0,",",".") }}</td>
                                     <td>Rp{{ number_format($item->sub_total,0,",",".") }}</td>
-                                    <td>{{ $order->note }}</td>
+                                    <td>{{ $order->notes }}</td>
                                 </tr>
                             @empty
                                 <tr>

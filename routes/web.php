@@ -1,12 +1,28 @@
 <?php
-
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ProductController;
+
+if (app()->environment('local')) {
+    Route::get('/debug-order/{id}', function($id) {
+        $order = \App\Models\Order::withTrashed()->with('shipment')->findOrFail($id);
+        $paymentData = [
+            'midtransClientKey' => config('midtrans.clientKey'),
+            'isProduction' => config('midtrans.isProduction'),
+            'snapUrl' => config('midtrans.isProduction') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js'
+        ];
+        $employees = \App\Models\EmployeePerformance::getEmployeeList();
+        return view('admin.orders.show', compact('order', 'paymentData', 'employees'));
+    });
+}
+
+
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\StockCardController;
 use App\Http\Controllers\Admin\SmartPrintConverterController;
 use App\Http\Controllers\Frontend\HomepageController;
 
-
+Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderController::class, 'notificationHandler'])
+    ->name('payment.notification');
 
 // Auth guest routes App\Http\Controllers\Frontend\OrderController;
 use App\Http\Controllers\InstagramController;
@@ -16,7 +32,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SupplierController;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -40,8 +56,7 @@ Auth::routes();
 Route::get('/test-bootstrap3-modal', function () {
     return view('test-bootstrap3-modal');
 });
-Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderController::class, 'notificationHandler'])
-    ->name('payment.notification');
+
 Route::get('/test-employee-performance-final', function () {
     $admin = \App\Models\User::where('is_admin', 1)->first();
     if (!$admin) {
@@ -304,7 +319,7 @@ Route::get('/check-order-142', function () {
     if ($performance) {
         echo "<ul>";
         echo "<li><strong>Employee Name:</strong> {$performance->employee_name}</li>";
-        echo "<li><strong>Transaction Value:</strong> Rp " . number_format($performance->transaction_value, 0, ',', '.') . "</li>";
+    echo "<li><strong>Transaction Value:</strong> Rp " . number_format((float)$performance->transaction_value, 0, ',', '.') . "</li>";
         echo "<li><strong>Completed At:</strong> {$performance->completed_at}</li>";
         echo "<li><strong>Created At:</strong> {$performance->created_at}</li>";
         echo "</ul>";
@@ -782,9 +797,6 @@ Route::post('payments/notification', [App\Http\Controllers\Frontend\OrderControl
         ->name('instagram.callback');
     Route::match(['get','post'], '/instagram/webhook', [InstagramController::class, 'webhook'])
         ->name('instagram.webhook');
-
-    Route::get('/orders/invoices/{id}', [\App\Http\Controllers\Admin\OrderController::class, 'invoices'])
-     ->name('orders.invoices');
 
 
 
