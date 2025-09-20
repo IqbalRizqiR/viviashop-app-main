@@ -101,8 +101,7 @@ class OrderController extends Controller
 		$order = Order::forUser(auth()->user())->findOrFail($id);
 		$cart = Cart::content()->count();
         $setting = Setting::first();
-view()->share('setting', $setting);
-dd($order);
+		view()->share('setting', $setting);
 		view()->share('countCart', $cart);
 		return view('frontend.orders.show',compact('order'));
 	}

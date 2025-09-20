@@ -129,6 +129,7 @@ class OrderController extends Controller
 		
 		// Get employee list for dropdown
 		$employees = EmployeePerformance::getEmployeeList();
+		dd($order);
 		
 		return view('admin.orders.show', compact('order', 'paymentData', 'employees'));
 	}
