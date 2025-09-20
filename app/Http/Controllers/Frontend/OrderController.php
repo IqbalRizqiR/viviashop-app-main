@@ -809,6 +809,7 @@ view()->share('setting', $setting);
         $setting = Setting::first();
 view()->share('setting', $setting);
 		view()->share('countCart', $cart);
+		dd($order);
 		return redirect()->route('admin.orders.show', $id);
 	}
 
