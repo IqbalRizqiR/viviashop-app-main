@@ -811,6 +811,8 @@ function renderFrontendStyleVariants(variants, variantOptions, itemIndex, produc
     }
 
     let variantHtml = '<div class="border-top pt-3"><h6>Select Product Variant:</h6>';
+
+    console.log(variantOptions);
     
     // Create variant option buttons like frontend
     if (variantOptions && Object.keys(variantOptions).length > 0) {
