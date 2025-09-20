@@ -28,9 +28,9 @@
         }
 
         .receipt-container {
-            width: 76mm;
-            padding: 2mm;
-            margin: 0 auto;
+            width: 80mm;
+            padding-inline: 4mm;
+            
         }
 
         .header {
