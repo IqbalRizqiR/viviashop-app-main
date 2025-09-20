@@ -92,6 +92,11 @@
         color: white;
     }
 
+    .box-body {
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+
     /* Button enhancements */
     .btn {
         border-radius: 6px;
