@@ -102,6 +102,7 @@ class OrderController extends Controller
 		$cart = Cart::content()->count();
         $setting = Setting::first();
 view()->share('setting', $setting);
+dd($order);
 		view()->share('countCart', $cart);
 		return view('frontend.orders.show',compact('order'));
 	}
@@ -809,7 +810,7 @@ view()->share('setting', $setting);
         $setting = Setting::first();
 view()->share('setting', $setting);
 		view()->share('countCart', $cart);
-		dd($order);
+		
 		return redirect()->route('admin.orders.show', $id);
 	}
 
