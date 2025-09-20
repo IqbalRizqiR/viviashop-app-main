@@ -230,11 +230,11 @@
             @foreach ($order->orderItems as $item)
                 <div class="item-row">
                     <div class="item-name">{{ $item->product_name }}</div>
-                    <div class="item-qty-price">{{ $item->qty }}x{{ number_format($item->price, 0, ',', '.') }}</div>
+                    <div class="item-qty-price">{{ $item->qty }}x{{ number_format($item->price, 0, ',', '.') }} Rp.</div>
                 </div>
                 <div class="item-row">
                     <div class="item-name"></div>
-                    <div class="item-qty-price">{{ number_format($item->total, 0, ',', '.') }}</div>
+                    <div class="item-qty-price">{{ number_format($item->total, 0, ',', '.') }} Rp.</div>
                 </div>
             @endforeach
         @else
@@ -243,11 +243,11 @@
             @endphp
             <div class="item-row">
                 <div class="item-name">{{ $singleItem->name ?? $singleItem->product_name }}</div>
-                <div class="item-qty-price">{{ $singleItem->qty }}x{{ number_format($singleItem->base_price ?? $singleItem->price, 0, ',', '.') }}</div>
+                <div class="item-qty-price">{{ $singleItem->qty }}x{{ number_format($singleItem->base_price ?? $singleItem->price, 0, ',', '.') }} Rp.</div>
             </div>
             <div class="item-row">
                 <div class="item-name"></div>
-                <div class="item-qty-price">{{ number_format($singleItem->sub_total ?? $singleItem->total, 0, ',', '.') }}</div>
+                <div class="item-qty-price">{{ number_format($singleItem->sub_total ?? $singleItem->total, 0, ',', '.') }} Rp.</div>
             </div>
         @endif
     </div>
@@ -256,26 +256,26 @@
     <div class="totals">
         <div class="total-line">
             <span>Subtotal:</span>
-            <span>{{ number_format($order->base_total_price, 0, ',', '.') }}</span>
+            <span>{{ number_format($order->base_total_price, 0, ',', '.') }} Rp.</span>
         </div>
         
         @if($order->tax_amount > 0)
         <div class="total-line">
             <span>Tax:</span>
-            <span>{{ number_format($order->tax_amount, 0, ',', '.') }}</span>
+            <span>{{ number_format($order->tax_amount, 0, ',', '.') }} Rp.</span>
         </div>
         @endif
         
         @if($order->shipping_cost > 0)
         <div class="total-line">
             <span>Shipping:</span>
-            <span>{{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
+            <span>{{ number_format($order->shipping_cost, 0, ',', '.') }} Rp.</span>
         </div>
         @endif
         
         <div class="total-line grand-total">
             <span>TOTAL:</span>
-            <span>{{ number_format($order->grand_total, 0, ',', '.') }}</span>
+            <span>{{ number_format($order->grand_total, 0, ',', '.') }} Rp.</span>
         </div>
     </div>
 
