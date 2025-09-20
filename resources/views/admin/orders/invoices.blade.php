@@ -29,7 +29,7 @@
 
         .receipt-container {
             width: 80mm;
-            padding-inline: 4mm;
+            
             
         }
 
