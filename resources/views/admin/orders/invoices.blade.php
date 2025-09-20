@@ -10,12 +10,11 @@
 <style>
     @page {
         size: 80mm auto;
-        margin: 5mm;
+        margin: 2mm;
     }
 
     * {
         box-sizing: border-box;
-        page-break-inside: avoid;
     }
 
     body {
@@ -26,13 +25,12 @@
         font-family: 'Courier New', monospace;
         font-size: 10pt;
         line-height: 1.3;
-        width: 80mm;
     }
 
     .receipt-container {
         width: 100%;
-        padding: 2mm;
-        min-height: auto;
+        padding: 3mm;
+        box-sizing: border-box;
     }
 
     .header {
@@ -91,13 +89,12 @@
         word-wrap: break-word;
         overflow-wrap: break-word;
         hyphens: auto;
-        max-width: 50mm;
     }
 
     .item-qty-price {
         text-align: right;
         white-space: nowrap;
-        min-width: 20mm;
+        flex-shrink: 0;
     }
 
     .totals-section {
@@ -137,27 +134,18 @@
         border: 1px solid #000;
     }
 
-    /* Ensure no page breaks */
-    .receipt-container,
-    .header,
-    .order-details,
-    .customer-info,
-    .items-section,
-    .totals-section,
-    .footer {
-        page-break-inside: avoid;
-        break-inside: avoid;
-    }
-
     @media print {
         body { 
             background: #fff !important;
             -webkit-print-color-adjust: exact;
         }
         
-        * {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
+        .receipt-container {
+            padding: 2mm;
+        }
+
+        @page {
+            margin: 1mm;
         }
     }
 </style>
