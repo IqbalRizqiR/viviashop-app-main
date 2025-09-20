@@ -303,7 +303,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="input-group">
-                                        <input type="text" id="barcode" onchange="searchBarcodeId()" class="form-control" placeholder="Enter or scan barcode here...">
+                                        <input type="text" id="barcode" onkeyup="searchBarcodeId()" class="form-control" placeholder="Enter or scan barcode here...">
                                         <div class="input-group-btn">
                                             <button type="button" class="btn btn-warning" onclick="searchBarcodeId()">
                                                 <i class="fas fa-search"></i> Search
