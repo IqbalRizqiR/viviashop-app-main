@@ -138,7 +138,7 @@ class OrderController extends Controller
     $order = Order::where('id', $id)->first();
     
     // Hitung estimasi tinggi berdasarkan jumlah items
-    $baseHeight = 200; // Base height untuk header, customer info, dll
+    $baseHeight = 20; // Base height untuk header, customer info, dll
     $itemHeight = 20; // Height per item
     $totalItems = $order->orderItems->count();
     $estimatedHeight = $baseHeight + ($totalItems * $itemHeight * 2); // x2 untuk qty dan total

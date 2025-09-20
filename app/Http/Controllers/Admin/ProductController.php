@@ -132,7 +132,7 @@ class ProductController extends Controller
         }
         
         $pdf = Pdf::loadView('admin.barcodeSingle', compact('dataSingle'));
-        $pdf->setPaper([0, 0, (80 * 2.83), (50 * 2.83)], 'portrait'); // Ukuran kertas 80mm x 50mm
+        $pdf->setPaper([0, 0, (80 * 2.83), (297 * 2.83)], 'portrait'); // Ukuran kertas 80mm x 50mm
         $filename = 'barcode-' . $dataSingle->sku . '.pdf';
         return $pdf->stream($filename);
     }
