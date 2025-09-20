@@ -467,10 +467,14 @@ function closeBarcodeModal() {
     clearScanner();
 }
 
-document.getElementById("barcode")
-    .addEventListener("keyup", function(event) {
+const barcodeInput = document.getElementById('barcode');
+
+barcodeInput.addEventListener('keypress', function(event) {
+  if (event.which === 13 || event.key === 'Enter') {
     event.preventDefault();
     searchBarcodeId();
+    // Process the barcode value from barcodeInput.value
+  }
 });
 
 // Initialize when modal is shown
