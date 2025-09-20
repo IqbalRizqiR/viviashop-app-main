@@ -11,22 +11,20 @@
     @page {
         size: 80mm auto;
         margin: 0;
-        orientation: portrait;
-    }
-
-    * {
-        box-sizing: border-box;
     }
 
     body {
         margin: 0;
         padding: 0;
-        background: #fff;
-        color: #000;
         font-family: 'Courier New', monospace;
         font-size: 8pt;
-        line-height: 1.2;
         width: 80mm;
+        max-height: none;
+    }
+
+
+    * {
+        box-sizing: border-box;
     }
 
     .receipt-container {

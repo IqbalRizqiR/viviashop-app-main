@@ -152,7 +152,7 @@ class OrderController extends Controller
         ]);
     
     // Gunakan tinggi yang dihitung
-    $customPaper = [0, 0, 164.4, $estimatedHeight];
+    $customPaper = [0, 0, (80 * 2.83), $estimatedHeight];
     $pdf->setPaper($customPaper, 'portrait');
     
     return $pdf->stream('invoice.pdf');
