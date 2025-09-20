@@ -226,17 +226,30 @@
     <div class="section">
         <div class="items-header">ITEMS</div>
         
-        @foreach ($order->orderItems as $item)
-            <div class="item">
-                <div class="item-name">{{ $item->product_name }}</div>
-                <div class="item-details">
-                    <div>{{ $item->qty }} x {{ number_format($item->price, 0, ',', '.') }}</div>
+        @if ($order->orderItems->count() > 1)
+            @foreach ($order->orderItems as $item)
+                <div class="item-row">
+                    <div class="item-name">{{ $item->product_name }}</div>
+                    <div class="item-qty-price">{{ $item->qty }}x{{ number_format($item->price, 0, ',', '.') }}</div>
                 </div>
-                <div class="item-total">
-                    {{ number_format($item->total, 0, ',', '.') }}
+                <div class="item-row">
+                    <div class="item-name"></div>
+                    <div class="item-qty-price">{{ number_format($item->total, 0, ',', '.') }}</div>
                 </div>
+            @endforeach
+        @else
+            @php
+                $singleItem = $order->orderItems[0];
+            @endphp
+            <div class="item-row">
+                <div class="item-name">{{ $singleItem->name ?? $singleItem->product_name }}</div>
+                <div class="item-qty-price">{{ $singleItem->qty }}x{{ number_format($singleItem->base_price ?? $singleItem->price, 0, ',', '.') }}</div>
             </div>
-        @endforeach
+            <div class="item-row">
+                <div class="item-name"></div>
+                <div class="item-qty-price">{{ number_format($singleItem->sub_total ?? $singleItem->total, 0, ',', '.') }}</div>
+            </div>
+        @endif
     </div>
 
     <!-- Totals -->
