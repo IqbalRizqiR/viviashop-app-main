@@ -54,7 +54,6 @@
     .box-header {
         background: linear-gradient(135deg, #f8f9fa, #e9ecef);
         border-bottom: 2px solid #dee2e6;
-        padding: 15px;
     }
 
     .box-title {
@@ -65,7 +64,6 @@
     .box-primary .box-header {
         background: linear-gradient(135deg, #007bff, #0056b3);
         color: white;
-        padding: 15px;
     }
 
     .box-primary .box-title {
@@ -75,7 +73,6 @@
     .box-success .box-header {
         background: linear-gradient(135deg, #28a745, #1e7e34);
         color: white;
-        padding: 15px;
     }
 
     .box-success .box-title {
@@ -85,16 +82,10 @@
     .box-info .box-header {
         background: linear-gradient(135deg, #17a2b8, #117a8b);
         color: white;
-        padding: 15px;
     }
 
     .box-info .box-title {
         color: white;
-    }
-
-    .box-body {
-        padding: 20px;
-        margin-bottom: 15px;
     }
 
     /* Button enhancements */
