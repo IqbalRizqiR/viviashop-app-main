@@ -303,12 +303,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="input-group">
-                                        <input type="text" id="barcode" onkeyup="searchBarcodeId()" class="form-control" placeholder="Enter or scan barcode here...">
-                                        <div class="input-group-btn">
-                                            <button type="button" class="btn btn-warning" onclick="searchBarcodeId()">
-                                                <i class="fas fa-search"></i> Search
-                                            </button>
-                                        </div>
+                                        <input type="text" id="barcode" class="form-control" placeholder="Enter or scan barcode here...">
                                     </div>
                                 </div>
                             </div>
@@ -471,6 +466,12 @@ function closeBarcodeModal() {
     stopScanner();
     clearScanner();
 }
+
+document.getElementById("barcode")
+    .addEventListener("keyup", function(event) {
+    event.preventDefault();
+    searchBarcodeId();
+});
 
 // Initialize when modal is shown
 $('#barcodeModal').on('shown', function() {
