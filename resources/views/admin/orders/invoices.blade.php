@@ -12,119 +12,146 @@
 
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             margin: 0;
-            padding: 0;
+            padding: 2mm;
             background: #fff;
             color: #000;
             font-family: 'Courier New', monospace;
-            font-size: 8pt;
+            font-size: 9pt;
             line-height: 1.2;
-            width: 76mm;              /* lebih kecil dari 80mm supaya aman */
-            margin-left: auto;
-            margin-right: auto;
+            width: 80mm;
         }
 
         .receipt-container {
-            width: 80mm;
-            
-            
+            width: 100%;
+            max-width: 76mm; /* Memberikan margin 2mm di setiap sisi */
         }
 
         .header {
             text-align: center;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 2mm;
-            margin-bottom: 2mm;
+            margin-bottom: 3mm;
         }
 
         .store-name {
-            font-size: 12pt;
+            font-size: 14pt;
             font-weight: bold;
             margin-bottom: 1mm;
         }
 
-        .invoice-info {
-            font-size: 8pt;
+        .invoice-title {
+            font-size: 10pt;
             margin-bottom: 1mm;
+        }
+
+        .invoice-code {
+            font-size: 9pt;
+            margin-bottom: 2mm;
         }
 
         .status {
             text-align: center;
             font-weight: bold;
-            font-size: 8pt;
-            margin: 1mm 0;
-            padding: 1mm;
+            font-size: 10pt;
+            margin: 2mm 0;
+            padding: 2mm;
             border: 1px solid #000;
         }
 
-        .order-details,
-        .customer-info,
-        .items-section,
-        .totals-section,
-        .footer {
-            font-size: 7pt;
-            line-height: 1.3;
+        .divider {
+            border-bottom: 1px dashed #000;
+            margin: 2mm 0;
+        }
+
+        .section {
+            margin-bottom: 3mm;
+            font-size: 8pt;
+        }
+
+        .order-info {
+            margin-bottom: 2mm;
         }
 
         .customer-info {
             margin-bottom: 2mm;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 2mm;
         }
 
-        .items-section {
-            margin-bottom: 2mm;
-        }
-
-        .item-row {
-            display: flex;
-            justify-content: space-between;
+        .customer-name {
+            font-weight: bold;
             margin-bottom: 1mm;
         }
 
+        .items-header {
+            font-weight: bold;
+            margin-bottom: 2mm;
+            text-align: center;
+        }
+
+        .item {
+            margin-bottom: 2mm;
+        }
+
         .item-name {
-            flex: 1;
-            margin-right: 2mm;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            max-width: 50mm;
+            font-weight: bold;
+            margin-bottom: 1mm;
+        }
+
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .item-qty-price {
             text-align: right;
-            white-space: nowrap;
-            min-width: 20mm;
         }
 
-        .totals-section {
+        .item-total {
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .totals {
+            margin-top: 3mm;
             border-top: 1px dashed #000;
             padding-top: 2mm;
         }
 
-        .total-row {
+        .total-line {
             display: flex;
             justify-content: space-between;
             margin-bottom: 1mm;
         }
 
-        .final-total {
-            font-weight: bold;
+        .grand-total {
             border-top: 1px solid #000;
-            padding-top: 1mm;
-            margin-top: 1mm;
-            font-size: 9pt;
+            padding-top: 2mm;
+            margin-top: 2mm;
+            font-weight: bold;
+            font-size: 10pt;
         }
 
         .footer {
             text-align: center;
-            margin-top: 3mm;
+            margin-top: 4mm;
             border-top: 1px dashed #000;
             padding-top: 2mm;
-            font-size: 6pt;
+            font-size: 7pt;
         }
+
+        .footer-line {
+            margin-bottom: 1mm;
+        }
+
+        /* Utility classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .bold { font-weight: bold; }
     </style>
 </head>
 <body>
@@ -132,66 +159,80 @@
     <!-- Header -->
     <div class="header">
         <div class="store-name">VIVIA STORE</div>
-        <div class="invoice-info">INVOICE</div>
-        <div class="invoice-info">{{ $order->code }}</div>
+        <div class="invoice-title">INVOICE</div>
+        <div class="invoice-code">{{ $order->code }}</div>
         <div class="status">{{ strtoupper($order->payment_status) }}</div>
     </div>
 
-    <!-- Order Details -->
-    <div class="order-details">
+    <div class="divider"></div>
+
+    <!-- Order Info -->
+    <div class="section order-info">
         <div>Date: {{ date('d/m/Y H:i', strtotime($order->order_date)) }}</div>
         <div>Payment: {{ $order->payment_method }}</div>
     </div>
 
+    <div class="divider"></div>
+
     <!-- Customer Info -->
-    <div class="customer-info">
-        <div><strong>{{ $order->customer_full_name }}</strong></div>
+    <div class="section customer-info">
+        <div class="customer-name">{{ $order->customer_full_name }}</div>
         <div>{{ $order->customer_phone }}</div>
         <div>{{ $order->customer_address1 }}</div>
     </div>
 
+    <div class="divider"></div>
+
     <!-- Items -->
-    <div class="items-section">
+    <div class="section">
+        <div class="items-header">ITEMS</div>
+        
         @foreach ($order->orderItems as $item)
-            <div class="item-row">
+            <div class="item">
                 <div class="item-name">{{ $item->product_name }}</div>
-                <div class="item-qty-price">{{ $item->qty }}x{{ number_format($item->price, 0, ',', '.') }}</div>
-            </div>
-            <div class="item-row">
-                <div class="item-name"></div>
-                <div class="item-qty-price">{{ number_format($item->total, 0, ',', '.') }}</div>
+                <div class="item-details">
+                    <div class="item-qty-price">
+                        {{ $item->qty }} x Rp {{ number_format($item->price, 0, ',', '.') }}
+                    </div>
+                </div>
+                <div class="item-total">
+                    Rp {{ number_format($item->total, 0, ',', '.') }}
+                </div>
             </div>
         @endforeach
     </div>
 
     <!-- Totals -->
-    <div class="totals-section">
-        <div class="total-row">
+    <div class="totals">
+        <div class="total-line">
             <span>Subtotal:</span>
-            <span>{{ number_format($order->base_total_price, 0, ',', '.') }}</span>
+            <span>Rp {{ number_format($order->base_total_price, 0, ',', '.') }}</span>
         </div>
+        
         @if($order->tax_amount > 0)
-        <div class="total-row">
+        <div class="total-line">
             <span>Tax:</span>
-            <span>{{ number_format($order->tax_amount, 0, ',', '.') }}</span>
+            <span>Rp {{ number_format($order->tax_amount, 0, ',', '.') }}</span>
         </div>
         @endif
+        
         @if($order->shipping_cost > 0)
-        <div class="total-row">
+        <div class="total-line">
             <span>Shipping:</span>
-            <span>{{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
+            <span>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
         </div>
         @endif
-        <div class="total-row final-total">
+        
+        <div class="total-line grand-total">
             <span>TOTAL:</span>
-            <span>{{ number_format($order->grand_total, 0, ',', '.') }}</span>
+            <span>Rp {{ number_format($order->grand_total, 0, ',', '.') }}</span>
         </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
-        <div>Thank you for your business!</div>
-        <div>{{ config('app.name') }}</div>
+        <div class="footer-line">Thank you for your business!</div>
+        <div class="footer-line">{{ config('app.name') }}</div>
     </div>
 </div>
 </body>
