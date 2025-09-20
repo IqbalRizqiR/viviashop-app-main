@@ -18,7 +18,7 @@
 
         body {
             margin: 0;
-            padding: 2mm;
+            padding: 0;
             background: #fff;
             color: #000;
             font-family: 'Courier New', monospace;
@@ -29,7 +29,9 @@
 
         .receipt-container {
             width: 100%;
-            max-width: 76mm; /* Memberikan margin 2mm di setiap sisi */
+            max-width: 72mm; /* Lebih kecil untuk margin yang aman */
+            margin: 0 auto;
+            padding: 3mm 4mm; /* Padding kiri-kanan yang lebih besar */
         }
 
         .header {
@@ -65,11 +67,13 @@
         .divider {
             border-bottom: 1px dashed #000;
             margin: 2mm 0;
+            width: 100%;
         }
 
         .section {
             margin-bottom: 3mm;
             font-size: 8pt;
+            width: 100%;
         }
 
         .order-info {
@@ -93,38 +97,60 @@
 
         .item {
             margin-bottom: 2mm;
+            width: 100%;
         }
 
         .item-name {
             font-weight: bold;
             margin-bottom: 1mm;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .item-details {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
         }
 
         .item-qty-price {
             text-align: right;
+            white-space: nowrap;
         }
 
         .item-total {
             text-align: right;
             font-weight: bold;
+            margin-top: 1mm;
         }
 
         .totals {
             margin-top: 3mm;
             border-top: 1px dashed #000;
             padding-top: 2mm;
+            width: 100%;
         }
 
         .total-line {
             display: flex;
             justify-content: space-between;
             margin-bottom: 1mm;
+            width: 100%;
+        }
+
+        .total-line span {
+            display: inline-block;
+        }
+
+        .total-line span:first-child {
+            flex: 1;
+            text-align: left;
+        }
+
+        .total-line span:last-child {
+            text-align: right;
+            white-space: nowrap;
         }
 
         .grand-total {
@@ -147,11 +173,24 @@
             margin-bottom: 1mm;
         }
 
-        /* Utility classes */
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .text-left { text-align: left; }
-        .bold { font-weight: bold; }
+        /* Khusus untuk printer thermal - margin ekstra */
+        .safe-margin {
+            margin-left: 2mm;
+            margin-right: 2mm;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .receipt-container {
+                margin: 0 auto !important;
+                padding: 2mm 5mm !important; /* Padding kiri yang lebih besar untuk print */
+            }
+        }
     </style>
 </head>
 <body>
@@ -191,12 +230,10 @@
             <div class="item">
                 <div class="item-name">{{ $item->product_name }}</div>
                 <div class="item-details">
-                    <div class="item-qty-price">
-                        {{ $item->qty }} x Rp {{ number_format($item->price, 0, ',', '.') }}
-                    </div>
+                    <div>{{ $item->qty }} x {{ number_format($item->price, 0, ',', '.') }}</div>
                 </div>
                 <div class="item-total">
-                    Rp {{ number_format($item->total, 0, ',', '.') }}
+                    {{ number_format($item->total, 0, ',', '.') }}
                 </div>
             </div>
         @endforeach
@@ -206,26 +243,26 @@
     <div class="totals">
         <div class="total-line">
             <span>Subtotal:</span>
-            <span>Rp {{ number_format($order->base_total_price, 0, ',', '.') }}</span>
+            <span>{{ number_format($order->base_total_price, 0, ',', '.') }}</span>
         </div>
         
         @if($order->tax_amount > 0)
         <div class="total-line">
             <span>Tax:</span>
-            <span>Rp {{ number_format($order->tax_amount, 0, ',', '.') }}</span>
+            <span>{{ number_format($order->tax_amount, 0, ',', '.') }}</span>
         </div>
         @endif
         
         @if($order->shipping_cost > 0)
         <div class="total-line">
             <span>Shipping:</span>
-            <span>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
+            <span>{{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
         </div>
         @endif
         
         <div class="total-line grand-total">
             <span>TOTAL:</span>
-            <span>Rp {{ number_format($order->grand_total, 0, ',', '.') }}</span>
+            <span>{{ number_format($order->grand_total, 0, ',', '.') }}</span>
         </div>
     </div>
 
