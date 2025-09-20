@@ -2,197 +2,92 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice - {{ $order->code }}</title>
     <style>
-        @page {
-            size: 80mm auto;
-            margin: 0;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
         body {
             margin: 0;
             padding: 0;
-            background: #fff;
-            color: #000;
             font-family: 'Courier New', monospace;
             font-size: 8pt;
             line-height: 1.2;
-            width: 76mm;              /* lebih kecil dari 80mm supaya aman */
-            margin-left: auto;
-            margin-right: auto;
+            width: 100%; /* full 80mm */
         }
 
         .receipt-container {
-            width: 80mm;
-            
-            
+            width: 100%;
+            padding: 2mm;
+            margin: 0 auto;
         }
 
-        .header {
+        .center {
             text-align: center;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 2mm;
-            margin-bottom: 2mm;
         }
 
-        .store-name {
-            font-size: 12pt;
-            font-weight: bold;
-            margin-bottom: 1mm;
+        .line {
+            border-top: 1px dashed #000;
+            margin: 2mm 0;
         }
 
-        .invoice-info {
-            font-size: 8pt;
-            margin-bottom: 1mm;
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .status {
-            text-align: center;
-            font-weight: bold;
-            font-size: 8pt;
-            margin: 1mm 0;
-            padding: 1mm;
-            border: 1px solid #000;
+        td {
+            padding: 1mm 0;
+            vertical-align: top;
         }
 
-        .order-details,
-        .customer-info,
-        .items-section,
-        .totals-section,
-        .footer {
-            font-size: 7pt;
-            line-height: 1.3;
-        }
-
-        .customer-info {
-            margin-bottom: 2mm;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 2mm;
-        }
-
-        .items-section {
-            margin-bottom: 2mm;
-        }
-
-        .item-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1mm;
-        }
-
-        .item-name {
-            flex: 1;
-            margin-right: 2mm;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            max-width: 50mm;
-        }
-
-        .item-qty-price {
+        .right {
             text-align: right;
-            white-space: nowrap;
-            min-width: 20mm;
         }
 
-        .totals-section {
-            border-top: 1px dashed #000;
-            padding-top: 2mm;
-        }
-
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1mm;
-        }
-
-        .final-total {
+        .bold {
             font-weight: bold;
-            border-top: 1px solid #000;
-            padding-top: 1mm;
-            margin-top: 1mm;
-            font-size: 9pt;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 3mm;
-            border-top: 1px dashed #000;
-            padding-top: 2mm;
-            font-size: 6pt;
         }
     </style>
 </head>
 <body>
-<div class="receipt-container">
-    <!-- Header -->
-    <div class="header">
-        <div class="store-name">VIVIA STORE</div>
-        <div class="invoice-info">INVOICE</div>
-        <div class="invoice-info">{{ $order->code }}</div>
-        <div class="status">{{ strtoupper($order->payment_status) }}</div>
-    </div>
-
-    <!-- Order Details -->
-    <div class="order-details">
-        <div>Date: {{ date('d/m/Y H:i', strtotime($order->order_date)) }}</div>
-        <div>Payment: {{ $order->payment_method }}</div>
-    </div>
-
-    <!-- Customer Info -->
-    <div class="customer-info">
-        <div><strong>{{ $order->customer_full_name }}</strong></div>
-        <div>{{ $order->customer_phone }}</div>
-        <div>{{ $order->customer_address1 }}</div>
-    </div>
-
-    <!-- Items -->
-    <div class="items-section">
-        @foreach ($order->orderItems as $item)
-            <div class="item-row">
-                <div class="item-name">{{ $item->product_name }}</div>
-                <div class="item-qty-price">{{ $item->qty }}x{{ number_format($item->price, 0, ',', '.') }}</div>
-            </div>
-            <div class="item-row">
-                <div class="item-name"></div>
-                <div class="item-qty-price">{{ number_format($item->total, 0, ',', '.') }}</div>
-            </div>
-        @endforeach
-    </div>
-
-    <!-- Totals -->
-    <div class="totals-section">
-        <div class="total-row">
-            <span>Subtotal:</span>
-            <span>{{ number_format($order->base_total_price, 0, ',', '.') }}</span>
+    <div class="receipt-container">
+        <div class="center bold">
+            Nama Kantin<br>
+            <small>Alamat / Kontak</small>
         </div>
-        @if($order->tax_amount > 0)
-        <div class="total-row">
-            <span>Tax:</span>
-            <span>{{ number_format($order->tax_amount, 0, ',', '.') }}</span>
-        </div>
-        @endif
-        @if($order->shipping_cost > 0)
-        <div class="total-row">
-            <span>Shipping:</span>
-            <span>{{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
-        </div>
-        @endif
-        <div class="total-row final-total">
-            <span>TOTAL:</span>
-            <span>{{ number_format($order->grand_total, 0, ',', '.') }}</span>
+
+        <div class="line"></div>
+        <table>
+            <tr>
+                <td>Invoice</td>
+                <td class="right">#{{ $order->id }}</td>
+            </tr>
+            <tr>
+                <td>Tanggal</td>
+                <td class="right">{{ $order->created_at->format('d-m-Y H:i') }}</td>
+            </tr>
+        </table>
+        <div class="line"></div>
+
+        <table>
+            @foreach ($order->items as $item)
+                <tr>
+                    <td>{{ $item->product->name }} (x{{ $item->quantity }})</td>
+                    <td class="right">{{ number_format($item->price * $item->quantity, 0, ',', '.') }}</td>
+                </tr>
+            @endforeach
+        </table>
+
+        <div class="line"></div>
+        <table>
+            <tr>
+                <td class="bold">Total</td>
+                <td class="right bold">{{ number_format($order->total, 0, ',', '.') }}</td>
+            </tr>
+        </table>
+        <div class="line"></div>
+
+        <div class="center">
+            Terima Kasih<br>
+            ~ Selamat Menikmati ~
         </div>
     </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        <div>Thank you for your business!</div>
-        <div>{{ config('app.name') }}</div>
-    </div>
-</div>
 </body>
 </html>
