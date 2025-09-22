@@ -465,6 +465,7 @@
 let isScanning = false;
 function showBarcodeModal() {
     $('#barcodeModal').modal('show');
+    $('#barcodeModal').addClass('show');
 }
 
 function closeBarcodeModal() {
