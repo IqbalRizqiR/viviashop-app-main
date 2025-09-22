@@ -1494,7 +1494,6 @@ view()->share('setting', $setting);
 
 		// Mark order as completed
 		$order->status = Order::COMPLETED;
-		$order->completed_at = now();
 		$order->notes = $order->notes . "\nOrder marked as completed by customer";
 
 		if ($order->save()) {
