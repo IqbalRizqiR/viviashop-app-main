@@ -1452,17 +1452,17 @@ view()->share('setting', $setting);
 		// Check if order can be completed
 		if ($order->isCancelled()) {
 			Session::flash('error', 'Cannot complete a cancelled order.');
-			return redirect()->route('orders.show', $order->id);
+			return redirect()->route('showUsersOrder', $order->id);
 		}
 
 		if ($order->isCompleted()) {
 			Session::flash('info', 'Order is already completed.');
-			return redirect()->route('orders.show', $order->id);
+			return redirect()->route('showUsersOrder', $order->id);
 		}
 
 		if (!$order->isDelivered()) {
 			Session::flash('error', 'Order cannot be completed until it has been delivered.');
-			return redirect()->route('orders.show', $order->id);
+			return redirect()->route('showUsersOrder', $order->id);
 		}
 
 		// Automatically complete the order since it meets all requirements
@@ -1479,17 +1479,17 @@ view()->share('setting', $setting);
 		// Check if order can be completed
 		if ($order->isCancelled()) {
 			Session::flash('error', 'Cannot complete a cancelled order.');
-			return redirect()->route('orders.show', $order->id);
+			return redirect()->route('showUsersOrder', $order->id);
 		}
 
 		if ($order->isCompleted()) {
 			Session::flash('info', 'Order is already completed.');
-			return redirect()->route('orders.show', $order->id);
+			return redirect()->route('showUsersOrder', $order->id);
 		}
 
 		if (!$order->isDelivered()) {
 			Session::flash('error', 'Order cannot be completed until it has been delivered.');
-			return redirect()->route('orders.show', $order->id);
+			return redirect()->route('showUsersOrder', $order->id);
 		}
 
 		// Mark order as completed
@@ -1502,7 +1502,7 @@ view()->share('setting', $setting);
 			Session::flash('error', 'Failed to complete the order. Please try again.');
 		}
 
-		return redirect()->route('orders.show', $order->id);
+		return redirect()->route('showUsersOrder', $order->id);
 	}
 
 }
