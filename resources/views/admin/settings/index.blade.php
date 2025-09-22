@@ -15,25 +15,26 @@
               </div>
               <!-- /.card-header -->
               <div class="card-body">
-                <form method="post" enctype="multipart/form-data" action="{{ route('admin.setting.update', $setting->id) }}">
-                    @csrf
-                    @method('put')
+        @if(isset($setting) && $setting)
+        <form method="post" enctype="multipart/form-data" action="{{ route('admin.setting.update', optional($setting)->id) }}">
+          @csrf
+          @method('put')
                     <div class="form-group row border-bottom pb-4">
                         <label for="nama_toko" class="col-sm-2 col-form-label">Nama Toko</label>
                         <div class="col-sm-10">
-                          <input type="text" class="form-control" name="nama_toko" value="{{ old('nama_toko', $setting->nama_toko) }}" id="sku">
+                          <input type="text" class="form-control" name="nama_toko" value="{{ old('nama_toko', optional($setting)->nama_toko) }}" id="sku">
                         </div>
                     </div>
                     <div class="form-group row border-bottom pb-4">
                         <label for="alamat" class="col-sm-2 col-form-label">Alamat Toko</label>
                         <div class="col-sm-10">
-                          <input type="text" class="form-control" name="alamat" value="{{ old('alamat', $setting->alamat) }}" id="name">
+                          <input type="text" class="form-control" name="alamat" value="{{ old('alamat', optional($setting)->alamat) }}" id="name">
                         </div>
                     </div>
                     <div class="form-group row border-bottom pb-4">
                         <label for="telepon" class="col-sm-2 col-form-label">Telepon Toko</label>
                         <div class="col-sm-10">
-                          <input type="text" class="form-control" name="telepon" value="{{ old('telepon', $setting->telepon) }}" id="name">
+                          <input type="text" class="form-control" name="telepon" value="{{ old('telepon', optional($setting)->telepon) }}" id="name">
                         </div>
                     </div>
                     <div class="form-group row border-bottom pb-4">
@@ -43,7 +44,10 @@
                         </div>
                     </div>
                     <button type="submit" class="btn btn-success">Save</button>
-                </form>
+        </form>
+        @else
+          <div class="alert alert-warning">No settings found. Please create a setting record first.</div>
+        @endif
               </div>
               <!-- /.card-body -->
             </div>

@@ -5,7 +5,7 @@
                     <div class="row g-4">
                         <div class="col-lg-3">
                             <a href="#">
-                                <h1 class="text-primary mb-0">{{ $setting->nama_toko }}</h1>
+                                <h1 class="text-primary mb-0">{{ optional($setting)->nama_toko ?? config('app.name') }}</h1>
                                 <p class="text-secondary mb-0">Printing</p>
                             </a>
                         </div>
@@ -46,9 +46,9 @@
                     <div class="col-lg-3 col-md-6">
                         <div class="footer-item">
                             <h4 class="text-light mb-3">Contact</h4>
-                            <p>Address: {{ $setting->alamat }}</p>
+                            <p>Address: {{ optional($setting)->alamat ?? '' }}</p>
                             <p>Email: Example@gmail.com</p>
-                            <p>Phone: {{ $setting->telepon }}</p>
+                            <p>Phone: {{ optional($setting)->telepon ?? '' }}</p>
                         </div>
                     </div>
                 </div>
@@ -61,7 +61,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                        <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>{{ $setting->nama_toko }}</a>, All right reserved.</span>
+                        <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>{{ optional($setting)->nama_toko ?? config('app.name') }}</a>, All right reserved.</span>
                     </div>
                 </div>
             </div>

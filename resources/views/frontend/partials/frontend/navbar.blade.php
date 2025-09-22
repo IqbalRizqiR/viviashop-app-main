@@ -3,8 +3,8 @@
         <div class="container-fluid fixed-top">
             <div class="container topbar bg-primary d-none d-lg-block">
                 <div class="d-flex justify-content-between">
-                    <div class="top-info ps-2">
-                        <small class="me-3"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> <a href="#" class="text-white">{{ $setting->alamat }}</a></small>
+                        <div class="top-info ps-2">
+                        <small class="me-3"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> <a href="#" class="text-white">{{ optional($setting)->alamat ?? '' }}</a></small>
                         <small class="me-3"><i class="fas fa-envelope me-2 text-secondary"></i><a href="#" class="text-white">support@vivia.com</a></small>
                     </div>
                     <div class="top-link pe-2">
@@ -17,7 +17,7 @@
             <div class="container px-0">
                 <nav class="navbar navbar-light bg-white navbar-expand-xl">
                     <a href="{{ url("/") }}" class="navbar-brand">
-                        <h1 class="text-primary display-6">{{ $setting->nama_toko }}</h1>
+                        <h1 class="text-primary display-6">{{ optional($setting)->nama_toko ?? config('app.name') }}</h1>
                     </a>
                     <button class="navbar-toggler py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
                         <span class="fa fa-bars text-primary"></span>
