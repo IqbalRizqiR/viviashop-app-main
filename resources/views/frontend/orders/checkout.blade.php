@@ -2,121 +2,8 @@
 @section('content')
     <style>
         /* Checkout page scoped styles - pro e-commerce (green theme) */
-        .checkout-card {
-                           function handleFormSubmit(event) {
-                               console.log('🔍 FORM SUBMIT STARTED');
-                               console.log('Event:', event);
-                               console.log('Form action:', $('#checkout-form').attr('action'));
-                               console.log('Form method:', $('#checkout-form').attr('method'));
+        .checkout-card { }
 
-                               // Prevent double submission
-                               var submitButton = $('#place-order-btn');
-                               if (submitButton.prop('disabled')) {
-                                   console.log('❌ FORM ALREADY SUBMITTING - preventing double submit');
-                                   event.preventDefault();
-                                   return false;
-                               }
-
-                               // Validate form first
-                               if (!validateForm()) {
-                                   console.log('❌ FORM VALIDATION FAILED - preventing submit');
-                                   event.preventDefault();
-                                   return false;
-                               }
-
-                               console.log('✅ FORM VALIDATION PASSED');
-
-                               // Disable submit button to prevent double submission
-                               var submitButton = $('#place-order-btn');
-                               var loadingIndicator = $('#loading-indicator');
-
-                               submitButton.prop('disabled', true).hide();
-                               loadingIndicator.show();
-
-                               var deliveryMethod = $('input[name="delivery_method"]:checked').val();
-                               console.log('Form submit - delivery method:', deliveryMethod);
-
-                               if (deliveryMethod === 'self') {
-                                   // Remove address field names for self pickup to avoid validation issues
-                                   $('#shipping-province').removeAttr('name');
-                                   $('#shipping-city').removeAttr('name');
-                                   $('#shipping-district').removeAttr('name');
-                                   $('#shipping-cost-option').removeAttr('name');
-                                   console.log('Self pickup - removed address field names');
-                               }
-
-                               // Ensure all required hidden fields exist
-                               if (!$('input[name="unique_code"]').length) {
-                                   $('<input>').attr({
-                                       type: 'hidden',
-                                       name: 'unique_code',
-                                       value: '0'
-                                   }).appendTo('#checkout-form');
-                                   console.log('Added missing unique_code field');
-                               }
-
-                               // Prepare form data for AJAX
-                               var ajaxUrl = $('#checkout-form').attr('action');
-                               var formData = new FormData($('#checkout-form')[0]);
-
-                               console.log('📝 FINAL FORM DATA:');
-                               for (var pair of formData.entries()) {
-                                   console.log(pair[0] + ': ' + pair[1]);
-                               }
-
-                               // Send via AJAX to avoid full page redirect issues and handle JSON response
-                               $.ajax({
-                                   url: ajaxUrl,
-                                   method: 'POST',
-                                   data: formData,
-                                   processData: false,
-                                   contentType: false,
-                                   dataType: 'json',
-                                   success: function(resp) {
-                                       console.log('Checkout AJAX success response:', resp);
-                                       if (resp && resp.success) {
-                                           // If payment_url provided (automatic payment), redirect user there
-                                           if (resp.payment_url) {
-                                               window.location.href = resp.payment_url;
-                                               return;
-                                           }
-
-                                           // Otherwise redirect to received page
-                                           if (resp.redirect) {
-                                               window.location.href = resp.redirect;
-                                               return;
-                                           }
-
-                                           // Fallback: reload
-                                           window.location.reload();
-                                       } else {
-                                           console.warn('Checkout returned success=false, showing error');
-                                           alert(resp.message || 'There was an error processing your order');
-                                           submitButton.prop('disabled', false).show();
-                                           loadingIndicator.hide();
-                                       }
-                                   },
-                                   error: function(xhr, status, err) {
-                                       console.error('Checkout AJAX error:', status, err, xhr.responseText);
-                                       // If the server returned JSON with message, show it
-                                       try {
-                                           var json = JSON.parse(xhr.responseText);
-                                           alert(json.message || 'An error occurred: ' + (json.error || status));
-                                       } catch (e) {
-                                           // Non-JSON response: show generic message
-                                           console.error('Non-JSON error response:', xhr.responseText);
-                                           alert('An error occurred while processing your order. Please try again.');
-                                       }
-
-                                       submitButton.prop('disabled', false).show();
-                                       loadingIndicator.hide();
-                                   }
-                               });
-
-                               // Prevent default form submit since we handled it via AJAX
-                               event.preventDefault();
-                               return false;
-                           }
     .summary-panel { background:#fbfffb; border-radius:10px; padding:18px; border:1px solid #eef7ef }
 
         .total-amount {
@@ -453,92 +340,44 @@
             console.log('Loading provinces...');
             console.log('jQuery available:', typeof $ !== 'undefined');
             console.log('CSRF token:', $('meta[name="csrf-token"]').attr('content'));
-            
+
             var apiUrl = "{{ url('api/provinces') }}" + '?t=' + Date.now();
             console.log('API URL:', apiUrl);
-            
+
             $.ajax({
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
-                beforeSend: function(xhr) {
+                beforeSend: function() {
                     console.log('Making request to:', apiUrl);
-                    console.log('Request headers will include CSRF token');
                     $('#shipping-province').html('<option value="">Loading provinces...</option>');
                 },
-                    success: function(resp) {
-                        console.log('checkout response', resp);
-                        if (resp.success) {
-                            // If Midtrans token returned, open Snap popup so we can control post-payment redirect
-                            if (resp.token) {
-                                // Determine snap.js URL based on environment; default to sandbox
-                                var snapUrl = 'https://app.sandbox.midtrans.com/snap/snap.js';
-                                if (typeof MIDTRANS_IS_PRODUCTION !== 'undefined' && MIDTRANS_IS_PRODUCTION) {
-                                    snapUrl = 'https://app.midtrans.com/snap/snap.js';
-                                }
-                                // Load snap script dynamically if not already loaded
-                                function loadScript(url, cb) {
-                                    var s = document.createElement('script');
-                                    s.src = url;
-                                    s.async = true;
-                                    s.onload = cb;
-                                    s.onerror = function() { cb(new Error('Failed to load script: ' + url)); };
-                                    document.head.appendChild(s);
-                                }
+                success: function(response) {
+                    console.log('Provinces response:', response);
+                    var options = '<option value="">-- Pilih Provinsi --</option>';
 
-                                loadScript(snapUrl, function(err) {
-                                    if (err) {
-                                        alert('Could not load payment library. Please try again.');
-                                        placeOrderBtn.prop('disabled', false).removeClass('loading');
-                                        return;
-                                    }
-                                    // Use snap.pay to open the payment UI and handle redirect on success
-                                    try {
-                                        snap.pay(resp.token, {
-                                            onSuccess: function(result) {
-                                                // After successful payment, redirect to our finish handler which will show received page
-                                                window.location = '/payments/finish?order_id=' + encodeURIComponent(resp.order_code || resp.order_id || '');
-                                            },
-                                            onPending: function(result) {
-                                                // Payment pending, also redirect to finish to show order status
-                                                window.location = '/payments/finish?order_id=' + encodeURIComponent(resp.order_code || resp.order_id || '');
-                                            },
-                                            onError: function(err) {
-                                                alert('Payment failed or cancelled.');
-                                                placeOrderBtn.prop('disabled', false).removeClass('loading');
-                                            }
-                                        });
-                                    } catch (e) {
-                                        console.error(e);
-                                        alert('Payment failed to start.');
-                                        placeOrderBtn.prop('disabled', false).removeClass('loading');
-                                    }
-                                });
-                                return;
+                    if (Array.isArray(response)) {
+                        response.forEach(function(item) {
+                            if (item && (item.id !== undefined && item.name !== undefined)) {
+                                var selected = item.id == '{{ auth()->user()->province_id }}' ? 'selected' : '';
+                                options += '<option value="' + item.id + '" ' + selected + '>' + item.name + '</option>';
                             }
-
-                            if (resp.payment_url) {
-                                window.location = resp.payment_url;
-                                return;
-                            }
-                            window.location = '/orders/received/' + resp.order_id;
-                        } else {
-                            alert(resp.message || 'Failed to place order');
-                            placeOrderBtn.prop('disabled', false).removeClass('loading');
-                        }
-                    },
-                        console.log('Processing object response');
-                        $.each(response, function(id, name) {
-                            var selected = id == '{{ auth()->user()->province_id }}' ? 'selected' : '';
-                            options += '<option value="' + id + '" ' + selected + '>' + name + '</option>';
                         });
+                    } else if (response && typeof response === 'object') {
+                        for (var id in response) {
+                            if (response.hasOwnProperty(id)) {
+                                var name = response[id];
+                                var selected = id == '{{ auth()->user()->province_id }}' ? 'selected' : '';
+                                options += '<option value="' + id + '" ' + selected + '>' + name + '</option>';
+                            }
+                        }
                     } else {
-                        console.error('Unexpected response format:', response);
+                        console.error('Unexpected provinces response format');
                     }
-                    
+
                     $('#shipping-province').html(options);
                     console.log('Province options updated, total options:', $('#shipping-province option').length);
-                    
+
                     var selectedProvinceId = $('#shipping-province').val();
                     if (selectedProvinceId) {
                         console.log('Auto-loading cities for selected province:', selectedProvinceId);
@@ -850,47 +689,29 @@
             
             $('input[name="delivery_method"]').on('change', function() {
                 var method = $(this).val();
-                console.log('🚚 DELIVERY METHOD CHANGED to:', method);
-                
                 if (method === 'self') {
-                    $('.address-fields').hide();
                     $('#shipping-row').hide();
+                    $('.address-fields').hide();
                     $('#shipping-cost-option').removeAttr('required');
-                    
-                    $('#shipping-province').removeAttr('required').prop('disabled', true);
-                    $('#shipping-city').removeAttr('required').prop('disabled', true);
-                    $('#shipping-district').removeAttr('required').prop('disabled', true);
-                    
+                    $('#shipping-province').prop('disabled', true).removeAttr('required');
+                    $('#shipping-city').prop('disabled', true).removeAttr('required');
+                    $('#shipping-district').prop('disabled', true).removeAttr('required');
                     updateTotalAmount();
                 } else if (method === 'courier') {
-                    console.log('Switching to courier delivery mode...');
                     $('.address-fields').show();
                     $('#shipping-row').show();
                     $('#shipping-cost-option').attr('required', 'required');
-                    
-                    $('#shipping-province').attr('required', 'required').prop('disabled', false);
-                    $('#shipping-city').attr('required', 'required').prop('disabled', false);
-                    $('#shipping-district').attr('required', 'required').prop('disabled', false);
-                    
-                    console.log('Checking province options count:', $('#shipping-province option').length);
-                    console.log('Loading provinces for courier delivery...');
-                    
+                    $('#shipping-province').prop('disabled', false).attr('required', 'required');
+                    $('#shipping-city').prop('disabled', false).attr('required', 'required');
+                    $('#shipping-district').prop('disabled', false).attr('required', 'required');
+
                     if ($('#shipping-province option').length <= 1) {
-                        console.log('Province options <= 1, calling loadProvinces()');
                         loadProvinces();
                     } else {
-                        console.log('Provinces already loaded, checking selected province');
                         var selectedProvinceId = $('#shipping-province').val();
-                        console.log('Selected province ID:', selectedProvinceId);
-                        if (selectedProvinceId) {
-                            console.log('Loading cities for existing province:', selectedProvinceId);
-                            loadCities(selectedProvinceId);
-                        } else {
-                            console.log('No province selected, calling loadProvinces() anyway');
-                            loadProvinces();
-                        }
+                        if (selectedProvinceId) loadCities(selectedProvinceId);
                     }
-                    
+
                     $('#shipping-cost-option').html('<option value="">-- Select District First --</option>');
                     updateTotalAmount();
                 }
