@@ -52,6 +52,12 @@
                           </select>
                         </div>
                     </div>
+                    <div class="form-group row border-bottom pb-4">
+                        <label for="barcode" class="col-sm-2 col-form-label">Barcode</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" name="barcode" value="{{ old('barcode', $product->barcode) }}" id="barcode">
+                        </div>
+                    </div>
                     <!-- New Multi-Variant System -->
                     @if($product->type === 'configurable')
                         <div class="product-variants-section">
@@ -816,6 +822,15 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
       $('.select-multiple').select2();
+      const barcodeInput = document.getElementById('barcode');
+
+      barcodeInput.addEventListener('keypress', function(event) {
+        if (event.which === 13 || event.key === 'Enter') {
+            event.preventDefault();
+            searchBarcodeId();
+            // Process the barcode value from barcodeInput.value
+        }
+        });
       
       // Function to load options for a variant and select the saved option
       function loadOptionsForVariant(variantSelect, preselectedOptionId = null) {

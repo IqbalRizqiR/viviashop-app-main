@@ -653,6 +653,7 @@ class ProductController extends Controller
                 $currentType = $product->type;
                 $newType = $data['type'];
                 $isTypeSwitching = $currentType !== $newType;
+                $data['barcode'] = $request->barcode ?? $product->barcode;
 
                 if ($isTypeSwitching) {
                     $this->handleProductTypeSwitch($product, $currentType, $newType, $data, $request);
