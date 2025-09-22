@@ -231,7 +231,7 @@ class InstagramController extends Controller
                 Alert::error('Error', 'Product image not found!');
                 return redirect()->route('admin.products.index');
             }
-            dd($image);
+            // dd($image);
             $imageName = explode('/', $image->path);
             
             $imageName = end($imageName);
