@@ -171,6 +171,10 @@ class InstagramController extends Controller
             // ]);
             foreach ($product->productImages as $image) {
                 // dd();
+                if ($image->path == null) {
+                    Alert::error('Error', 'Product image not found!');
+                    return redirect()->route('admin.instagram.index');
+                }
                 $imageName = explode('/', $image->path);
                 $imageName = end($imageName);
                 // dd($imageName);
