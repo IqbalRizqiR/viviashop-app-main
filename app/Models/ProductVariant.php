@@ -68,6 +68,18 @@ class ProductVariant extends Model
             ->first()?->attribute_value;
     }
 
+    // Accessor for paper_size attribute
+    public function getPaperSizeAttribute()
+    {
+        return $this->getAttributeByName('paper_size');
+    }
+
+    // Accessor for print_type attribute  
+    public function getPrintTypeAttribute()
+    {
+        return $this->getAttributeByName('print_type');
+    }
+
     public function getFormattedPriceAttribute()
     {
         return number_format((float)$this->price, 0, ',', '.');

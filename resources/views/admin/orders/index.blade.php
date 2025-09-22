@@ -26,29 +26,39 @@
                   <input type="text" class="form-control datepicker" readonly="" value="{{ !empty(request()->input('end')) ? request()->input('end') : '' }}" name="end" placeholder="to">
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                  <select class="form-control input-block" name="status" id="status">
-                    @foreach($statuses as $value => $status)
-                      <option value="{{ $value }}">{{ $status }}</option>
-                    @endforeach
+                    <select name="status" class="form-control input-sm">
+                      <option value="">All</option>
+                      @foreach($statuses as $key => $label)
+                          <option value="{{ $key }}" @if(request()->get('status') == $key) selected @endif>{{ $label }}</option>
+                      @endforeach
                   </select>
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
                   <button type="submit" class="btn btn-success shadow-sm float-right">Cari</button>
                 </div>
                 </form>
+                <div class="mb-3">
+                  <span class="mr-3">Paid: {{ $counts['paid'] ?? 0 }}</span>
+                  <span class="mr-3">Waiting: {{ $counts['waiting'] ?? 0 }}</span>
+                  <span class="mr-3">Unpaid: {{ $counts['unpaid'] ?? 0 }}</span>
+                </div>
                 <div class="table-responsive">
-                    <table id="data-table" class="table table-bordered table-striped">
-                        <thead>
-                            <th>Order ID</th>
-                            <th>Grand Total</th>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Payment</th>
-                            <th>Action</th>
-                        </thead>
+          <table id="data-table" class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="display:none">order_date_raw</th>
+                <th>Order ID</th>
+                <th>Grand Total</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Action</th>
+              </tr>
+            </thead>
                         <tbody>
                             @forelse ($orders as $order)
                                 <tr>    
+                                    <td style="display:none">{{ $order->order_date }}</td>
                                     <td>
                                         {{ $order->code }}<br>
                                         <span style="font-size: 12px; font-weight: normal"> {{ $order->order_date }}</span>
@@ -108,9 +118,17 @@
     >
     </script>
     <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
-    <script>
-    $("#data-table").DataTable();
-    </script>
+  <script>
+  $(document).ready(function() {
+    $("#data-table").DataTable({
+      "order": [[0, "desc"]],
+      "columnDefs": [
+        { "orderable": false, "targets": -1 },
+        { "visible": false, "targets": 0 }
+      ]
+    });
+  });
+  </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" integrity="sha512-T/tUfKSV1bihCnd+MxKD0Hm1uBBroVYBOYSk1knyvQ9VyZJpc/ALb4P0r6ubwVPSGB2GvjeoMAJJImBG12TiaQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 		$('.datepicker').datepicker({

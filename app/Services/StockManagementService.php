@@ -219,13 +219,30 @@ class StockManagementService
     public function getVariantsByStock($sortDirection = 'asc')
     {
         return ProductVariant::where('is_active', true)
-            ->with('product')
+            ->with(['product', 'variantAttributes'])
             ->whereHas('product', function($query) {
                 $query->where('is_print_service', true)
                       ->where('status', 1);
             })
             ->orderBy('stock', $sortDirection)
-            ->get();
+            ->get()
+            ->map(function($variant) {
+                if (empty($variant->paper_size) || empty($variant->print_type)) {
+                    $attributes = $variant->variantAttributes->keyBy('attribute_name');
+                    if ($attributes->has('paper_size')) {
+                        $variant->paper_size = $attributes->get('paper_size')->attribute_value;
+                    }
+                    if ($attributes->has('print_type')) {
+                        $variant->print_type = $attributes->get('print_type')->attribute_value;
+                        if (strtolower($variant->print_type) === 'black & white') {
+                            $variant->print_type = 'bw';
+                        } elseif (strtolower($variant->print_type) === 'color') {
+                            $variant->print_type = 'color';
+                        }
+                    }
+                }
+                return $variant;
+            });
     }
     
     public function checkForDuplicateVariants()

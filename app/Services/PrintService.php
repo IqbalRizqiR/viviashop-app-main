@@ -99,9 +99,13 @@ class PrintService
             }
         }
 
+        // Get ALL files in this session (not just newly uploaded ones)
+        $allSessionFiles = PrintFile::where('print_session_id', $session->id)->get();
+        $totalSessionPages = $allSessionFiles->sum('pages_count');
+
         $response = [
             'success' => true,
-            'files' => collect($uploadedFiles)->map(function($file) {
+            'files' => $allSessionFiles->map(function($file) {
                 return [
                     'id' => $file->id,
                     'name' => $file->file_name,
@@ -112,7 +116,8 @@ class PrintService
                     'file_path' => $file->file_path
                 ];
             })->toArray(),
-            'total_pages' => $totalPages
+            'total_pages' => $totalSessionPages,
+            'newly_uploaded' => count($uploadedFiles)
         ];
 
         // Include skipped files info if any

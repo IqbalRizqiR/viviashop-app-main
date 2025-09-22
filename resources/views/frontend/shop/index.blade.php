@@ -7,7 +7,7 @@
 @section('content')
 <style>
     .page-header {
-        background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-success) 100%);
+        background: linear-gradient(135deg, #28a745 0%, #ffc107 100%);
         position: relative;
         overflow: hidden;
     }
@@ -29,38 +29,41 @@
     }
     
     .search-container {
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        padding: 2rem;
-        margin-bottom: 2rem;
+        background: transparent;
+        border-radius: 12px;
+        padding: 0;
+        margin-bottom: 1rem;
     }
     
     .search-input-group {
         position: relative;
         overflow: hidden;
-        border-radius: 50px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-radius: 12px;
+        box-shadow: 0 6px 22px rgba(40, 167, 69, 0.08);
+        border: 1px solid rgba(40,167,69,0.06);
     }
     
     .search-input {
         border: none;
-        padding: 1rem 1.5rem;
-        font-size: 1.1rem;
-        background: #f8f9fa;
-        transition: all 0.3s ease;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        background: #fffef8;
+        transition: all 0.25s ease;
     }
     
     .search-input:focus {
-        background: white;
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(40,167,69,0.12);
     }
     
     .search-btn {
-        background: linear-gradient(45deg, var(--bs-primary), var(--bs-success));
+        background: #28a745;
         border: none;
-        padding: 1rem 1.5rem;
-        transition: all 0.3s ease;
+        padding: 0.6rem 1rem;
+        transition: all 0.18s ease;
+        color: white;
+        font-weight: 700;
+        border-radius: 8px;
     }
     
     .search-btn:hover {
@@ -81,17 +84,18 @@
     }
     
     .category-sidebar {
-        background: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 1rem 1rem 1.25rem 1rem;
+        box-shadow: 0 10px 28px rgba(40,167,69,0.04);
         margin-bottom: 2rem;
         position: sticky;
-        top: 120px;
+        top: 110px;
         height: fit-content;
-        max-height: calc(100vh - 140px);
+        max-height: calc(100vh - 130px);
         overflow-y: auto;
-        z-index: 10;
+        z-index: 50;
+        border: 1px solid rgba(40,167,69,0.06);
     }
     
     /* Custom scrollbar for category sidebar */
@@ -122,14 +126,14 @@
     }
     
     .category-item:hover {
-        background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(25, 135, 84, 0.1));
-        border-left-color: var(--bs-primary);
-        transform: translateX(5px);
+        background: rgba(40,167,69,0.04);
+        border-left-color: #ffc107;
+        transform: translateX(4px);
     }
     
     .category-item.active {
-        background: linear-gradient(135deg, var(--bs-primary), var(--bs-success));
-        border-left-color: var(--bs-success);
+        background: linear-gradient(90deg, #28a745, #ffc107);
+        border-left-color: #ffc107;
     }
     
     .category-item.active a {
@@ -139,12 +143,13 @@
     
     .product-card {
         background: white;
-        border-radius: 20px;
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        transition: all 0.4s ease;
+        box-shadow: 0 12px 28px rgba(40,167,69,0.03);
+        transition: all 0.28s ease;
         margin-bottom: 2rem;
         position: relative;
+        border: 1px solid rgba(40,167,69,0.04);
     }
     
     .product-card:hover {
@@ -171,28 +176,28 @@
     
     .product-category-badge {
         position: absolute;
-        top: 15px;
-        left: 15px;
-        background: linear-gradient(45deg, var(--bs-primary), var(--bs-success));
+        top: 12px;
+        left: 12px;
+        background: #28a745;
         color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        padding: 0.35rem 0.85rem;
+        border-radius: 14px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        box-shadow: 0 6px 18px rgba(40,167,69,0.06);
         z-index: 2;
     }
     
     .product-stock-badge {
         position: absolute;
-        top: 15px;
-        right: 15px;
-        background: rgba(25, 135, 84, 0.9);
+        top: 12px;
+        right: 12px;
+        background: #28a745;
         color: white;
-        padding: 0.4rem 0.8rem;
-        border-radius: 15px;
+        padding: 0.35rem 0.7rem;
+        border-radius: 12px;
         font-size: 0.75rem;
-        font-weight: 600;
+        font-weight: 700;
     }
     
     .product-content {
@@ -220,10 +225,10 @@
     }
     
     .product-price {
-        font-size: 1.4rem;
+        font-size: 1.25rem;
         font-weight: 800;
-        color: var(--bs-primary);
-        margin-bottom: 1rem;
+        color: #28a745;
+        margin-bottom: 0.75rem;
     }
     
     .product-stock {
@@ -236,30 +241,31 @@
     }
     
     .btn-add-cart {
-        background: linear-gradient(45deg, var(--bs-primary), var(--bs-success));
+        background: linear-gradient(90deg, #28a745 0%, #28a745 100%);
         border: none;
         color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 25px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+        padding: 0.6rem 1rem;
+        border-radius: 12px;
+        font-weight: 700;
+        transition: all 0.22s ease;
         width: 100%;
     }
     
     .btn-add-cart:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(40,167,69,0.18);
+        color: #ffffff !important;
+        background: linear-gradient(90deg, #2ecc71 0%, #28a745 100%);
     }
     
     .reset-btn, .view-all-btn {
-        background: linear-gradient(45deg, var(--bs-info), var(--bs-primary));
+        background: #ffc107;
         border: none;
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 25px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+        color: #0b2a1a;
+        padding: 0.55rem 1rem;
+        border-radius: 18px;
+        font-weight: 700;
+        transition: all 0.18s ease;
         text-decoration: none;
     }
     
@@ -313,6 +319,85 @@
         margin-bottom: 2rem;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
+
+    .pagination .page-link {
+        background: #ffffff;
+        border: 1px solid rgba(40,167,69,0.08);
+        color: #28a745;
+        font-weight: 700;
+        padding: 0.45rem 0.85rem;
+        border-radius: 50px;
+        transition: all 0.18s ease;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: #28a745;
+        border-color: #28a745;
+        color: #ffffff;
+        box-shadow: 0 8px 20px rgba(40,167,69,0.12);
+    }
+
+    .pagination .page-link:hover {
+        background: #28a745;
+        color: #ffffff;
+        border-color: #28a745;
+    }
+
+    /* Force pagination to be horizontal, compact and centered */
+    .pagination {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        align-items: center;
+        justify-content: center;
+        list-style: none;
+        padding-left: 0;
+        margin: 0.5rem 0;
+    }
+
+    .pagination .page-item {
+        display: inline-block;
+    }
+
+    /* Small previous/next buttons as square pills */
+    .pagination .page-item .page-link {
+        min-width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    /* Active page stronger green */
+    .pagination .page-item.active .page-link {
+        background: #28a745;
+        border-color: #28a745;
+        color: #ffffff;
+        box-shadow: 0 8px 20px rgba(40,167,69,0.18);
+    }
+
+    /* Disabled state subdued */
+    .pagination .page-item.disabled .page-link {
+        opacity: 0.45;
+        cursor: default;
+        background: #ffffff;
+        color: rgba(40,167,69,0.45);
+    }
+
+    /* Responsive: allow wrapping on very small screens */
+    @media (max-width: 420px) {
+        .pagination { gap: 0.25rem; }
+        .pagination .page-item .page-link { min-width: 34px; height: 34px; }
+    }
+
+    @media (max-width: 768px) {
+        .product-image { height: 180px; }
+        .product-title { font-size: 1.05rem; }
+        .btn-add-cart { padding: 0.5rem; font-size: 0.95rem; }
+        .search-input { padding: 0.6rem 0.8rem; }
+        .pagination .page-link { padding: 0.35rem 0.6rem; font-size: 0.9rem; }
+    }
     
     @media (max-width: 768px) {
         .product-card {
@@ -361,26 +446,10 @@
             <div class="search-container">
                 <div class="row g-4 align-items-center">
                     <div class="col-md-6">
-                        <form action="{{ route('shop') }}" method="GET" class="position-relative">
-                            @if(request('sort'))
-                                <input type="hidden" name="sort" value="{{ request('sort') }}">
-                            @endif
-                            <div class="search-input-group d-flex">
-                                <input type="text" 
-                                       name="search" 
-                                       class="form-control search-input" 
-                                       placeholder="Cari produk... (contoh: amplop, kertas, pulpen)"
-                                       value="{{ request('search') }}"
-                                       aria-describedby="search-icon">
-                                <button type="submit" class="btn search-btn">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                            <small class="text-muted mt-2 d-block">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Pencarian toleran terhadap typo: amplap, amlop, amplopa akan menampilkan "amplop"
-                            </small>
-                        </form>
+                        <div class="">
+                            <h5 class="mb-0 text-white-50 small">Telusuri produk dengan cepat</h5>
+                            <small class="text-white-50">Gunakan pencarian di sidebar untuk akses cepat</small>
+                        </div>
                     </div>
                     
                     <div class="col-md-3">
@@ -453,7 +522,25 @@
                 <!-- Sidebar Categories -->
                 <div class="col-lg-3">
                     <div class="category-sidebar">
-                        <h4 class="text-primary fw-bold mb-4">
+                        <form action="{{ route('shop') }}" method="GET" class="mb-3">
+                            @if(request('sort'))
+                                <input type="hidden" name="sort" value="{{ request('sort') }}">
+                            @endif
+                            <div class="search-input-group d-flex align-items-center">
+                                <input type="text"
+                                       name="search"
+                                       class="form-control search-input"
+                                       placeholder="Cari produk..."
+                                       value="{{ request('search') }}"
+                                       aria-label="Cari produk">
+                                <button type="submit" class="btn search-btn ms-2">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-2">Pencarian toleran terhadap typo</small>
+                        </form>
+
+                        <h4 class="text-primary fw-bold mb-3">
                             <i class="fas fa-list me-2"></i>
                             Kategori Produk
                         </h4>
@@ -518,21 +605,65 @@
                             </div>
                             
                             <div class="d-flex align-items-center gap-3">
-                                <div class="d-flex align-items-center text-muted">
-                                    <i class="fas fa-th-large me-2"></i>
-                                    <span class="small">Grid View</span>
+                                    <div class="d-flex align-items-center text-muted">
+                                        <i class="fas fa-th-large me-2"></i>
+                                        <span class="small">Grid View</span>
+                                    </div>
+                                    <div class="text-muted small">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Diperbarui hari ini
+                                    </div>
+                                    <form method="GET" class="ms-3">
+                                        @foreach(request()->except('perPage') as $k => $v)
+                                            @if(is_array($v))
+                                                @foreach($v as $val)
+                                                    <input type="hidden" name="{{ $k }}[]" value="{{ $val }}">
+                                                @endforeach
+                                            @else
+                                                <input type="hidden" name="{{ $k }}" value="{{ $v }}">
+                                            @endif
+                                        @endforeach
+                                        <select name="perPage" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="Hasil per halaman">
+                                            @php $pp = (int) request('perPage', 12); @endphp
+                                            <option value="6" {{ $pp==6 ? 'selected' : '' }}>6 / halaman</option>
+                                            <option value="12" {{ $pp==12 ? 'selected' : '' }}>12 / halaman</option>
+                                            <option value="24" {{ $pp==24 ? 'selected' : '' }}>24 / halaman</option>
+                                            <option value="48" {{ $pp==48 ? 'selected' : '' }}>48 / halaman</option>
+                                        </select>
+                                    </form>
                                 </div>
-                                <div class="text-muted small">
-                                    <i class="fas fa-clock me-1"></i>
-                                    Diperbarui hari ini
-                                </div>
-                            </div>
                         </div>
                     </div>
                     
                     <!-- Products Grid -->
+                    <?php
+                        use Illuminate\Pagination\LengthAwarePaginator;
+                        $currentPage = request()->get('page', 1);
+                        $perPage = (int) request('perPage', 12);
+                        if (!in_array($perPage, [6,12,24,48])) { $perPage = 12; }
+                        if ($products instanceof \Illuminate\Support\Collection) {
+                            $items = $products->values()->all();
+                            $total = $products->count();
+                        } elseif (is_array($products)) {
+                            $items = $products;
+                            $total = count($items);
+                        } elseif (is_object($products) && method_exists($products, 'all')) {
+                            $items = $products->all();
+                            $total = count($items);
+                        } else {
+                            $items = [];
+                            $total = 0;
+                        }
+                        $offset = ($currentPage - 1) * $perPage;
+                        $pagedData = array_slice($items, $offset, $perPage);
+                        $paginator = new LengthAwarePaginator($pagedData, $total, $perPage, $currentPage, [
+                            'path' => request()->url(),
+                            'query' => request()->query()
+                        ]);
+                    ?>
+
                     <div class="row g-4">
-                        @forelse ($products as $row)
+                        @forelse ($paginator as $row)
                             <div class="col-md-6 col-lg-4">
                                 <div class="product-card h-100">
                                     <div class="product-image">
@@ -613,6 +744,11 @@
                                 </div>
                             </div>
                         @endforelse
+                    </div>
+
+                    <div class="d-flex justify-content-center mt-4">
+                        {{ $paginator->links('pagination::bootstrap-5') }}
+                    </div>
                     </div>
                 </div>
             </div>
@@ -720,9 +856,11 @@ $(document).on('click', '.add-to-card', function(e) {
 
 <style>
 .btn-add-cart-hover {
-    background: linear-gradient(45deg, var(--bs-success), var(--bs-primary)) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    background: linear-gradient(90deg, #2ecc71 0%, #28a745 100%) !important;
+    color: #ffffff !important;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(40,167,69,0.18) !important;
+    border: none !important;
 }
 
 .is-valid {

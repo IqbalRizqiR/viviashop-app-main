@@ -488,7 +488,20 @@ class OrderController extends Controller
 					'redirect_url' => 'orders/received/' . $order->id
 				]);
 
-				// Redirect to order received page
+				// If request expects JSON (AJAX), return JSON payload so frontend can handle redirects
+				if ($request->ajax() || $request->wantsJson()) {
+					return response()->json([
+						'success' => true,
+						'order_id' => $order->id,
+						'redirect' => url('orders/received/' . $order->id),
+						'payment_url' => $order->payment_url ?? null,
+						'token' => isset($paymentResponse['token']) ? $paymentResponse['token'] : null,
+						'order_code' => isset($paymentResponse['order_code']) ? $paymentResponse['order_code'] : ($order->code ?? null),
+						'message' => 'Order created successfully'
+					]);
+				}
+
+				// Fallback for normal form submit
 				return redirect('orders/received/' . $order->id);
 
 			} catch (\Exception $e) {
@@ -501,7 +514,14 @@ class OrderController extends Controller
 					'trace' => $e->getTraceAsString()
 				]);
 
-				// Redirect back with error message
+				// Redirect back with error message or return JSON for AJAX
+				if ($request->ajax() || $request->wantsJson()) {
+					return response()->json([
+						'success' => false,
+						'message' => 'There was an error processing your order: ' . $e->getMessage()
+					], 500);
+				}
+
 				return redirect()->back()->withInput()->with('error', 'There was an error processing your order: ' . $e->getMessage());
 			}
 		} catch (\Exception $e) {
@@ -510,6 +530,14 @@ class OrderController extends Controller
 				'line' => $e->getLine(),
 				'request_data' => $request->all()
 			]);
+
+			if ($request->ajax() || $request->wantsJson()) {
+				return response()->json([
+					'success' => false,
+					'message' => 'Please check your input: ' . $e->getMessage(),
+					'errors' => $e->getMessage()
+				], 422);
+			}
 
 			return redirect()->back()->withInput()->withErrors($e->getMessage())->with('error', 'Please check your input: ' . $e->getMessage());
 		}
@@ -702,6 +730,7 @@ class OrderController extends Controller
 
 		if ($order && $cartItems) {
 			foreach ($cartItems as $item) {
+				$variantId = null;
 				$itemTaxAmount = 0;
 				$itemTaxPercent = 0;
 				$itemDiscountAmount = 0;
@@ -713,8 +742,10 @@ class OrderController extends Controller
 				if (isset($item->options['type']) && $item->options['type'] === 'configurable') {
 					// Variant item
 					$product = \App\Models\Product::find($item->options['product_id']);
-					$productId = $item->options['variant_id']; // Store variant ID as product_id for order item
-					$sku = $item->options['sku'] ?? 'VAR-' . $item->options['variant_id'];
+					// For configurable items: product_id must reference the parent product
+					$productId = $product ? $product->id : ($item->options['product_id'] ?? null);
+					$variantId = $item->options['variant_id'] ?? null;
+					$sku = $item->options['sku'] ?? ($variantId ? 'VAR-' . $variantId : '');
 					$weight = $item->weight ?? 0;
 				} else {
 					// Simple item
@@ -735,6 +766,7 @@ class OrderController extends Controller
 				$orderItemParams = [
 					'order_id' => $order->id,
 					'product_id' => $productId,
+					'variant_id' => $variantId ?? null,
 					'qty' => $item->qty,
 					'base_price' => $item->price,
 					'base_total' => $itemBaseTotal,
@@ -904,6 +936,7 @@ view()->share('setting', $setting);
 					'success' => true,
 					'token' => $snap->token,
 					'redirect_url' => $snap->redirect_url,
+					'order_code' => $order->code,
 				];
 			} else {
 				Log::error('Midtrans response missing token', ['response' => $snap]);
@@ -1264,8 +1297,9 @@ view()->share('setting', $setting);
 		
 		$pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.orders.invoices', compact('order'))
 			->setOptions(['defaultFont' => 'sans-serif']);
-		$customPaper = array(0, 0, (58 * 2.83), auto);
-        $pdf->setPaper($customPaper);
+	// Use explicit numeric values for paper size (width and height in points)
+	$customPaper = array(0, 0, (58 * 2.83), (210 * 2.83));
+	$pdf->setPaper($customPaper, 'portrait');
 		
 		return $pdf->stream('invoice-' . $order->code . '.pdf');
 	}
@@ -1273,11 +1307,65 @@ view()->share('setting', $setting);
 	public function getOrderStatus($id)
 	{
 		$order = Order::find($id);
-		
+
 		if (!$order) {
 			return response()->json(['error' => 'Order not found'], 404);
 		}
-		
+
+		// Ensure only owner or admin can query order status
+		if (auth()->check() && auth()->id() !== $order->user_id && !auth()->user()->is_admin) {
+			return response()->json(['error' => 'Unauthorized'], 403);
+		}
+
+		// If automatic payment and still unpaid, try to reconcile with Midtrans
+		if ($order->payment_method == 'automatic' && $order->payment_status != Order::PAID) {
+			try {
+				$this->initPaymentGateway();
+				$status = \Midtrans\Transaction::status($order->code);
+
+				$transactionStatus = is_object($status) ? $status->transaction_status : ($status['transaction_status'] ?? null);
+				$paymentType = is_object($status) ? $status->payment_type : ($status['payment_type'] ?? null);
+				$transactionId = is_object($status) ? ($status->transaction_id ?? null) : ($status['transaction_id'] ?? null);
+
+				if (in_array($transactionStatus, ['settlement', 'capture'])) {
+					$order->payment_status = Order::PAID;
+					if ($order->shipping_service_name == 'Self Pickup') {
+						$order->status = Order::CONFIRMED;
+					} else {
+						$order->status = Order::COMPLETED;
+						$order->approved_at = now();
+					}
+
+					try {
+						\App\Models\Payment::create([
+							'order_id' => $order->id,
+							'transaction_id' => $transactionId,
+							'amount' => $order->grand_total,
+							'method' => $paymentType,
+							'status' => $transactionStatus,
+							'token' => $order->payment_token,
+							'payloads' => is_object($status) ? json_encode($status) : json_encode($status),
+							'number' => $transactionId,
+							'payment_type' => $paymentType,
+							'va_number' => (is_object($status) && isset($status->va_numbers[0]->va_number)) ? $status->va_numbers[0]->va_number : (is_array($status) && isset($status['va_numbers'][0]['va_number']) ? $status['va_numbers'][0]['va_number'] : null),
+							'va_bank' => (is_object($status) && isset($status->va_numbers[0]->bank)) ? $status->va_numbers[0]->bank : (is_array($status) && isset($status['va_numbers'][0]['bank']) ? $status['va_numbers'][0]['bank'] : null),
+							'bill_key' => is_object($status) ? ($status->bill_key ?? null) : ($status['bill_key'] ?? null),
+							'biller_code' => is_object($status) ? ($status->biller_code ?? null) : ($status['biller_code'] ?? null),
+						]);
+					} catch (\Exception $e) {
+						Log::warning('Failed creating payment record during reconciliation: ' . $e->getMessage());
+					}
+
+					$order->save();
+				} elseif ($transactionStatus == 'pending') {
+					$order->payment_status = Order::WAITING;
+					$order->save();
+				}
+			} catch (\Exception $e) {
+				Log::warning('Order status reconciliation failed for order ' . $order->code . ': ' . $e->getMessage());
+			}
+		}
+
 		return response()->json([
 			'payment_status' => $order->payment_status,
 			'status' => $order->status,

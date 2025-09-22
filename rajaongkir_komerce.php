@@ -2,7 +2,7 @@
 
 class RajaOngkirKomerce
 {
-    private $apiKey = 'Ho0D8T1Ebf59683c23db234aV2uzrSn6';
+    private $apiKey = '8a8LJP3tb7897949dc74d7616Zo75MWQ';
     private $baseUrl = 'https://rajaongkir.komerce.id/api/v1/';
     
     public function getProvinces()

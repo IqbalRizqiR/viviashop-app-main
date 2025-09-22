@@ -3,75 +3,120 @@
     <style>
         /* Checkout page scoped styles - pro e-commerce (green theme) */
         .checkout-card {
-            background: #fff;
-            border: 1px solid #eef7ef;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(14,81,54,0.06);
-            padding: 26px;
-        }
+                           function handleFormSubmit(event) {
+                               console.log('🔍 FORM SUBMIT STARTED');
+                               console.log('Event:', event);
+                               console.log('Form action:', $('#checkout-form').attr('action'));
+                               console.log('Form method:', $('#checkout-form').attr('method'));
 
-        .page-header {
-            background: linear-gradient(90deg,#16a34a,#059669);
-            color: #fff;
-            border-radius: 10px;
-            margin-bottom: 22px;
-            padding: 28px 18px;
-        }
+                               // Prevent double submission
+                               var submitButton = $('#place-order-btn');
+                               if (submitButton.prop('disabled')) {
+                                   console.log('❌ FORM ALREADY SUBMITTING - preventing double submit');
+                                   event.preventDefault();
+                                   return false;
+                               }
 
-        .page-header h1 { font-weight: 800; letter-spacing: 0.4px; margin-bottom:6px; font-size: 34px }
+                               // Validate form first
+                               if (!validateForm()) {
+                                   console.log('❌ FORM VALIDATION FAILED - preventing submit');
+                                   event.preventDefault();
+                                   return false;
+                               }
 
-        /* center breadcrumb and make it compact */
-        .breadcrumb {
-            justify-content: center !important;
-            background: transparent;
-            padding: 0;
-            margin-top: 6px;
-            color: rgba(255,255,255,0.92);
-            font-weight: 600;
-            font-size: 14px;
-        }
+                               console.log('✅ FORM VALIDATION PASSED');
 
-        .form-item label {
-            font-weight: 700;
-            color: #0b3b2b;
-            display: block;
-            margin-bottom: 8px;
-            font-size: 15px;
-        }
+                               // Disable submit button to prevent double submission
+                               var submitButton = $('#place-order-btn');
+                               var loadingIndicator = $('#loading-indicator');
 
-        .form-control {
-            border-radius: 8px;
-            border: 1px solid #e6f2ea;
-            padding: 14px 16px;
-            background: #ffffff;
-            transition: box-shadow .12s, border-color .12s, transform .06s;
-            font-size: 15px;
-            line-height: 1.3;
-        }
+                               submitButton.prop('disabled', true).hide();
+                               loadingIndicator.show();
 
-        .form-control:focus {
-            box-shadow: 0 8px 24px rgba(16,185,129,0.12);
-            border-color: #10b981;
-            transform: translateY(-1px);
-        }
+                               var deliveryMethod = $('input[name="delivery_method"]:checked').val();
+                               console.log('Form submit - delivery method:', deliveryMethod);
 
-        .table thead th {
-            background: transparent;
-            border-bottom: 2px solid rgba(16,185,129,0.06);
-            color: #0b3b2b;
-            font-weight: 700;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-        }
+                               if (deliveryMethod === 'self') {
+                                   // Remove address field names for self pickup to avoid validation issues
+                                   $('#shipping-province').removeAttr('name');
+                                   $('#shipping-city').removeAttr('name');
+                                   $('#shipping-district').removeAttr('name');
+                                   $('#shipping-cost-option').removeAttr('name');
+                                   console.log('Self pickup - removed address field names');
+                               }
 
-        .table tbody tr th img {
-            border-radius: 8px;
-            object-fit: cover;
-            border: 1px solid #f0fbf3;
-            width: 120px; height: 120px;
-        }
+                               // Ensure all required hidden fields exist
+                               if (!$('input[name="unique_code"]').length) {
+                                   $('<input>').attr({
+                                       type: 'hidden',
+                                       name: 'unique_code',
+                                       value: '0'
+                                   }).appendTo('#checkout-form');
+                                   console.log('Added missing unique_code field');
+                               }
 
+                               // Prepare form data for AJAX
+                               var ajaxUrl = $('#checkout-form').attr('action');
+                               var formData = new FormData($('#checkout-form')[0]);
+
+                               console.log('📝 FINAL FORM DATA:');
+                               for (var pair of formData.entries()) {
+                                   console.log(pair[0] + ': ' + pair[1]);
+                               }
+
+                               // Send via AJAX to avoid full page redirect issues and handle JSON response
+                               $.ajax({
+                                   url: ajaxUrl,
+                                   method: 'POST',
+                                   data: formData,
+                                   processData: false,
+                                   contentType: false,
+                                   dataType: 'json',
+                                   success: function(resp) {
+                                       console.log('Checkout AJAX success response:', resp);
+                                       if (resp && resp.success) {
+                                           // If payment_url provided (automatic payment), redirect user there
+                                           if (resp.payment_url) {
+                                               window.location.href = resp.payment_url;
+                                               return;
+                                           }
+
+                                           // Otherwise redirect to received page
+                                           if (resp.redirect) {
+                                               window.location.href = resp.redirect;
+                                               return;
+                                           }
+
+                                           // Fallback: reload
+                                           window.location.reload();
+                                       } else {
+                                           console.warn('Checkout returned success=false, showing error');
+                                           alert(resp.message || 'There was an error processing your order');
+                                           submitButton.prop('disabled', false).show();
+                                           loadingIndicator.hide();
+                                       }
+                                   },
+                                   error: function(xhr, status, err) {
+                                       console.error('Checkout AJAX error:', status, err, xhr.responseText);
+                                       // If the server returned JSON with message, show it
+                                       try {
+                                           var json = JSON.parse(xhr.responseText);
+                                           alert(json.message || 'An error occurred: ' + (json.error || status));
+                                       } catch (e) {
+                                           // Non-JSON response: show generic message
+                                           console.error('Non-JSON error response:', xhr.responseText);
+                                           alert('An error occurred while processing your order. Please try again.');
+                                       }
+
+                                       submitButton.prop('disabled', false).show();
+                                       loadingIndicator.hide();
+                                   }
+                               });
+
+                               // Prevent default form submit since we handled it via AJAX
+                               event.preventDefault();
+                               return false;
+                           }
     .summary-panel { background:#fbfffb; border-radius:10px; padding:18px; border:1px solid #eef7ef }
 
         .total-amount {
@@ -421,19 +466,67 @@
                     console.log('Request headers will include CSRF token');
                     $('#shipping-province').html('<option value="">Loading provinces...</option>');
                 },
-                success: function(response) {
-                    console.log('Provinces response received:', response);
-                    console.log('Response type:', typeof response);
-                    console.log('Is array:', Array.isArray(response));
-                    
-                    var options = '<option value="">-- Pilih Provinsi --</option>';
-                    if (response && Array.isArray(response)) {
-                        console.log('Processing array response with', response.length, 'items');
-                        $.each(response, function(index, province) {
-                            var selected = province.id == '{{ auth()->user()->province_id }}' ? 'selected' : '';
-                            options += '<option value="' + province.id + '" ' + selected + '>' + province.name + '</option>';
-                        });
-                    } else if (response && typeof response === 'object') {
+                    success: function(resp) {
+                        console.log('checkout response', resp);
+                        if (resp.success) {
+                            // If Midtrans token returned, open Snap popup so we can control post-payment redirect
+                            if (resp.token) {
+                                // Determine snap.js URL based on environment; default to sandbox
+                                var snapUrl = 'https://app.sandbox.midtrans.com/snap/snap.js';
+                                if (typeof MIDTRANS_IS_PRODUCTION !== 'undefined' && MIDTRANS_IS_PRODUCTION) {
+                                    snapUrl = 'https://app.midtrans.com/snap/snap.js';
+                                }
+                                // Load snap script dynamically if not already loaded
+                                function loadScript(url, cb) {
+                                    var s = document.createElement('script');
+                                    s.src = url;
+                                    s.async = true;
+                                    s.onload = cb;
+                                    s.onerror = function() { cb(new Error('Failed to load script: ' + url)); };
+                                    document.head.appendChild(s);
+                                }
+
+                                loadScript(snapUrl, function(err) {
+                                    if (err) {
+                                        alert('Could not load payment library. Please try again.');
+                                        placeOrderBtn.prop('disabled', false).removeClass('loading');
+                                        return;
+                                    }
+                                    // Use snap.pay to open the payment UI and handle redirect on success
+                                    try {
+                                        snap.pay(resp.token, {
+                                            onSuccess: function(result) {
+                                                // After successful payment, redirect to our finish handler which will show received page
+                                                window.location = '/payments/finish?order_id=' + encodeURIComponent(resp.order_code || resp.order_id || '');
+                                            },
+                                            onPending: function(result) {
+                                                // Payment pending, also redirect to finish to show order status
+                                                window.location = '/payments/finish?order_id=' + encodeURIComponent(resp.order_code || resp.order_id || '');
+                                            },
+                                            onError: function(err) {
+                                                alert('Payment failed or cancelled.');
+                                                placeOrderBtn.prop('disabled', false).removeClass('loading');
+                                            }
+                                        });
+                                    } catch (e) {
+                                        console.error(e);
+                                        alert('Payment failed to start.');
+                                        placeOrderBtn.prop('disabled', false).removeClass('loading');
+                                    }
+                                });
+                                return;
+                            }
+
+                            if (resp.payment_url) {
+                                window.location = resp.payment_url;
+                                return;
+                            }
+                            window.location = '/orders/received/' + resp.order_id;
+                        } else {
+                            alert(resp.message || 'Failed to place order');
+                            placeOrderBtn.prop('disabled', false).removeClass('loading');
+                        }
+                    },
                         console.log('Processing object response');
                         $.each(response, function(id, name) {
                             var selected = id == '{{ auth()->user()->province_id }}' ? 'selected' : '';
@@ -842,35 +935,36 @@
        });
        
        function handleFormSubmit(event) {
-           console.log('🔍 FORM SUBMIT STARTED');
-           console.log('Event:', event);
+           // Prevent default immediately to avoid browser form submit (defensive)
+           event = event || window.event;
+           if (event && event.preventDefault) event.preventDefault();
+           else window.event.returnValue = false;
+
+           console.log('🔍 FORM SUBMIT STARTED (defensive)');
            console.log('Form action:', $('#checkout-form').attr('action'));
-           console.log('Form method:', $('#checkout-form').attr('method'));
-           
+
            // Prevent double submission
            var submitButton = $('#place-order-btn');
            if (submitButton.prop('disabled')) {
                console.log('❌ FORM ALREADY SUBMITTING - preventing double submit');
-               event.preventDefault();
                return false;
            }
-           
+
            // Validate form first
            if (!validateForm()) {
                console.log('❌ FORM VALIDATION FAILED - preventing submit');
-               event.preventDefault();
                return false;
            }
-           
+
            console.log('✅ FORM VALIDATION PASSED');
-           
+
            // Disable submit button to prevent double submission
            var submitButton = $('#place-order-btn');
            var loadingIndicator = $('#loading-indicator');
-           
+
            submitButton.prop('disabled', true).hide();
            loadingIndicator.show();
-           
+
            var deliveryMethod = $('input[name="delivery_method"]:checked').val();
            console.log('Form submit - delivery method:', deliveryMethod);
            
@@ -893,22 +987,105 @@
                console.log('Added missing unique_code field');
            }
            
-           // Log all form data before submit
+           // Prepare form data for AJAX
            var formData = new FormData($('#checkout-form')[0]);
            console.log('📝 FINAL FORM DATA:');
            for (var pair of formData.entries()) {
                console.log(pair[0] + ': ' + pair[1]);
            }
-           
-           console.log('🚀 ALLOWING FORM SUBMIT');
-           
-           // Re-enable button after some time in case of errors (fallback)
+
+           // AJAX POST helper
+           var ajaxUrl = $('#checkout-form').attr('action');
+           var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+           function handleSuccess(resp) {
+               console.log('Checkout AJAX success response:', resp);
+               if (resp && resp.success) {
+                   if (resp.payment_url) {
+                       window.location.href = resp.payment_url;
+                       return;
+                   }
+                   if (resp.redirect) {
+                       window.location.href = resp.redirect;
+                       return;
+                   }
+                   window.location.reload();
+               } else {
+                   alert(resp.message || 'There was an error processing your order');
+                   submitButton.prop('disabled', false).show();
+                   loadingIndicator.hide();
+               }
+           }
+
+           function handleError(xhrText) {
+               console.error('Checkout failed:', xhrText);
+               try {
+                   var json = typeof xhrText === 'string' ? JSON.parse(xhrText) : xhrText;
+                   alert(json.message || 'An error occurred while processing your order');
+               } catch (e) {
+                   alert('An error occurred while processing your order. Please try again.');
+               }
+               submitButton.prop('disabled', false).show();
+               loadingIndicator.hide();
+           }
+
+           // If jQuery is available, use it (we already set CSRF in $.ajaxSetup earlier)
+           if (window.jQuery && $.ajax) {
+               $.ajax({
+                   url: ajaxUrl,
+                   method: 'POST',
+                   data: formData,
+                   processData: false,
+                   contentType: false,
+                   dataType: 'json',
+                   headers: {
+                       'X-Requested-With': 'XMLHttpRequest'
+                   },
+                   success: function(resp) {
+                       handleSuccess(resp);
+                   },
+                   error: function(xhr, status, err) {
+                       handleError(xhr.responseText || status);
+                   }
+               });
+           } else {
+               // Fallback to fetch
+               var fetchHeaders = {
+                   'X-Requested-With': 'XMLHttpRequest'
+               };
+               if (csrfToken) fetchHeaders['X-CSRF-TOKEN'] = csrfToken;
+
+               fetch(ajaxUrl, {
+                   method: 'POST',
+                   headers: fetchHeaders,
+                   body: formData,
+                   credentials: 'same-origin'
+               }).then(function(response) {
+                   return response.text().then(function(text) {
+                       try {
+                           var json = text ? JSON.parse(text) : {};
+                           if (response.ok) {
+                               handleSuccess(json);
+                           } else {
+                               handleError(text);
+                           }
+                       } catch (e) {
+                           handleError(text);
+                       }
+                   });
+               }).catch(function(err) {
+                   handleError(err);
+               });
+           }
+
+           // Safety fallback re-enable after 15s
            setTimeout(function() {
                submitButton.prop('disabled', false).show();
                loadingIndicator.hide();
            }, 15000);
-           
-           return true;
+
+           // Prevent default (we already did earlier) and do not allow normal submit
+           return false;
        }
 
        function validateForm() {

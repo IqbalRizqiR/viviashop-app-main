@@ -13,6 +13,7 @@ use App\Models\ProductInventory;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use App\Models\ProductAttributeValue;
 use App\Http\Requests\Admin\ProductRequest;
 use App\Services\ProductVariantService;
@@ -259,8 +260,8 @@ class ProductController extends Controller
                     
                     // Auto-create variants for smart print products
                     if ($data['is_smart_print_enabled'] && $data['is_print_service']) {
-                        $this->createDefaultSmartPrintVariants($product);
-                    }
+                            $this->createDefaultSmartPrintVariants($product, $data);
+                        }
                 }
             }
 
@@ -287,17 +288,51 @@ class ProductController extends Controller
         }
     }
     
-    private function createDefaultSmartPrintVariants(Product $product)
+    private function createDefaultSmartPrintVariants(Product $product, array $data = [])
     {
+        // Refresh product with related inventory data
+        $product->load('productInventory');
+        // Prefer the provided $data (form input) when available, otherwise use saved product values
+        $basePrice = isset($data['price']) && $data['price'] !== null ? $data['price'] : $product->price;
+        $baseCost = isset($data['harga_beli']) && $data['harga_beli'] !== null ? $data['harga_beli'] : $product->harga_beli;
+
+        // Fallback to 0 to prevent DB NOT NULL constraint errors when parent price/cost not set
+        if ($basePrice === null) {
+            Log::warning('Auto-creating smart print variants: parent product id ' . $product->id . ' has null price. Falling back to 0.');
+            $basePrice = 0;
+        }
+        if ($baseCost === null) {
+            Log::warning('Auto-creating smart print variants: parent product id ' . $product->id . ' has null harga_beli. Falling back to 0.');
+            $baseCost = 0;
+        }
+
+        $baseStock = null;
+        if (isset($data['qty']) && $data['qty'] !== null) {
+            $baseStock = $data['qty'];
+        } elseif ($product->productInventory) {
+            $baseStock = $product->productInventory->qty;
+        } else {
+            $baseStock = 100;
+        }
+
+        $baseWeight = isset($data['weight']) && $data['weight'] !== null ? $data['weight'] : ($product->weight ?? 0.1);
+        $baseLength = isset($data['length']) && $data['length'] !== null ? $data['length'] : ($product->length ?? 0);
+        $baseWidth = isset($data['width']) && $data['width'] !== null ? $data['width'] : ($product->width ?? 0);
+        $baseHeight = isset($data['height']) && $data['height'] !== null ? $data['height'] : ($product->height ?? 0);
+        
         $defaultVariants = [
             [
                 'name' => $product->name . ' - Black & White',
                 'sku' => $product->sku . '-BW',
                 'paper_size' => 'A4',
                 'print_type' => 'bw',
-                'stock' => 100,
-                'price' => $product->price ?: 1000,
-                'harga_beli' => $product->harga_beli ?: 500,
+                'stock' => $baseStock,
+                'price' => $basePrice,
+                'harga_beli' => $baseCost,
+                'weight' => $baseWeight,
+                'length' => $baseLength,
+                'width' => $baseWidth,
+                'height' => $baseHeight,
                 'attributes' => [
                     'print_type' => 'Black & White',
                     'paper_size' => 'A4'
@@ -308,9 +343,13 @@ class ProductController extends Controller
                 'sku' => $product->sku . '-CLR',
                 'paper_size' => 'A4', 
                 'print_type' => 'color',
-                'stock' => 50,
-                'price' => ($product->price ?: 1000) * 1.5,
-                'harga_beli' => $product->harga_beli ?: 500,
+                'stock' => $baseStock,
+                'price' => $basePrice, // Same price as parent
+                'harga_beli' => $baseCost, // Same cost as parent
+                'weight' => $baseWeight,
+                'length' => $baseLength,
+                'width' => $baseWidth,
+                'height' => $baseHeight,
                 'attributes' => [
                     'print_type' => 'Color',
                     'paper_size' => 'A4'
@@ -326,14 +365,14 @@ class ProductController extends Controller
                 'price' => $variantData['price'],
                 'harga_beli' => $variantData['harga_beli'],
                 'stock' => $variantData['stock'],
-                'weight' => $product->weight ?: 0.1,
-                'length' => $product->length,
-                'width' => $product->width,
-                'height' => $product->height,
-                'print_type' => $variantData['print_type'],
-                'paper_size' => $variantData['paper_size'],
+                'weight' => $variantData['weight'],
+                'length' => $variantData['length'],
+                'width' => $variantData['width'],
+                'height' => $variantData['height'],
+                'print_type' => $variantData['print_type'], // Include in initial creation
+                'paper_size' => $variantData['paper_size'], // Include in initial creation
                 'is_active' => true,
-                'min_stock_threshold' => $variantData['stock'] * 0.1,
+                'min_stock_threshold' => max(1, $variantData['stock'] * 0.1),
             ]);
 
             foreach ($variantData['attributes'] as $attrName => $attrValue) {

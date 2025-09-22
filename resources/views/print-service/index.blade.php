@@ -316,6 +316,7 @@
             console.log('DOM Content Loaded');
             setupEventListeners();
             loadProducts();
+            loadExistingFiles(); // Load files that might already exist in session
         });
 
         function setupEventListeners() {
@@ -592,10 +593,25 @@
                     document.getElementById('total-pages').value = data.total_pages;
                     document.getElementById('upload-btn').disabled = false;
 
+                    // Show success message with upload stats
+                    let message = '';
+                    if (data.newly_uploaded > 0) {
+                        message += `${data.newly_uploaded} file(s) uploaded successfully. `;
+                    }
+                    
                     // Show message about skipped files if any
                     if (data.skipped_files && data.skipped_files.length > 0) {
                         const skippedNames = data.skipped_files.map(f => f.name).join(', ');
-                        alert(`Note: ${skippedNames} were skipped (already uploaded)`);
+                        message += `Note: ${skippedNames} were skipped (already uploaded).`;
+                    }
+                    
+                    if (message) {
+                        alert(message);
+                    }
+                    
+                    // If no new files were uploaded, just show current files
+                    if (data.newly_uploaded === 0 && (!data.skipped_files || data.skipped_files.length === 0)) {
+                        alert('No new files to upload. Please select different files.');
                     }
                 } else {
                     alert('Upload failed: ' + (data.error || 'Unknown error'));
@@ -947,6 +963,34 @@
             } catch (error) {
                 console.error('Preview error:', error);
                 alert('Preview failed: ' + error.message);
+            }
+        }
+
+        // Load existing files in the session when page loads
+        async function loadExistingFiles() {
+            try {
+                const response = await fetch('/print-service/get-session-files', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ session_token: sessionToken })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.files.length > 0) {
+                        uploadedFiles = data.files;
+                        displayUploadedFiles();
+                        document.getElementById('total-pages').value = data.total_pages;
+                        document.getElementById('upload-btn').disabled = false;
+                        console.log(`Loaded ${data.files.length} existing files`);
+                    }
+                }
+            } catch (error) {
+                console.log('Could not load existing files:', error);
+                // This is not critical, user can still upload new files
             }
         }
     </script>

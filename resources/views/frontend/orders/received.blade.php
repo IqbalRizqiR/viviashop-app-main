@@ -103,6 +103,55 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					<div class="row pt-4">
+						<div class="col-xl-4 col-lg-4">
+							<p class="text-dark mb-2" style="font-weight: normal; font-size:16px; text-transform: uppercase;">Billing Address</p>
+							<address>
+								{{ $order->customer_first_name }} {{ $order->customer_last_name }}
+								<br> {{ $order->customer_address1 }}
+								<br> {{ $order->customer_address2 }}
+								<br> Email: {{ $order->customer_email }}
+								<br> Phone: {{ $order->customer_phone }}
+								<br> Postcode: {{ $order->customer_postcode }}
+							</address>
+						</div>
+						@if ($order->shipment != null)
+							<div class="col-xl-4 col-lg-4">
+								<p class="text-dark mb-2" style="font-weight: normal; font-size:16px; text-transform: uppercase;">Shipment Address</p>
+								<address>
+									{{ $order->shipment->first_name }} {{ $order->shipment->last_name }}
+									<br> {{ $order->shipment->address1 }}
+									<br> {{ $order->shipment->address2 }}
+									<br> Email: {{ $order->shipment->email }}
+									<br> Phone: {{ $order->shipment->phone }}
+									<br> Postcode: {{ $order->shipment->postcode }}
+								</address>
+							</div>
+						@endif
+						<div class="col-xl-4 col-lg-4">
+							<p class="text-dark mb-2" style="font-weight: normal; font-size:16px; text-transform: uppercase;">Details</p>
+							<address>
+								ID: <span class="text-dark">#{{ $order->code }}</span>
+								<br> {{ date('d M Y', strtotime($order->order_date)) }}
+								<br> Status: {{ $order->status }} {{ $order->isCancelled() ? '('. date('d M Y', strtotime($order->cancelled_at)) .')' : null}}
+								<br> Payment Status: {{ $order->payment_status }}
+								<br> Shipped by: {{ $order->shipping_courier }} - {{ $order->shipping_service_name }}
+								@if ($order->isShippingCostAdjusted())
+									<br> <span class="text-info">Shipping Cost: Rp{{ number_format($order->shipping_cost, 0, ",", ".") }}</span>
+									<small class="text-muted d-block">Original Cost: Rp{{ number_format($order->original_shipping_cost, 0, ",", ".") }}</small>
+								@else
+									<br> Shipping Cost: Rp{{ number_format($order->shipping_cost, 0, ",", ".") }}
+								@endif
+								@php
+									$resi = \App\Models\Shipment::where('order_id', $order->id)->pluck('track_number')->first();
+								@endphp
+								<br> Tracking Number: {{ $resi }}
+								@if($order->handled_by)
+									<br> Handled by: {{ $order->handled_by }}
+								@endif
+							</address>
+						</div>
+					</div>
                 @if(session()->has('message'))
                     <div class="content-header mb-0 pb-0">
                         <div class="container-fluid">

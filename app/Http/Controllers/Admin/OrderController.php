@@ -63,13 +63,16 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $statuses = Order::STATUSES;
-        $orders = Order::latest();
+	$orders = Order::orderBy('order_date', 'desc');
 
-        $q = $request->input('q');
+
+		$q = $request->input('q');
 		if ($q) {
-			$orders = $orders->where('code', 'like', '%'. $q .'%')
-				->orWhere('customer_first_name', 'like', '%'. $q .'%')
-				->orWhere('customer_last_name', 'like', '%'. $q .'%');
+			$orders = $orders->where(function($query) use ($q) {
+				$query->where('code', 'like', '%'. $q .'%')
+					->orWhere('customer_first_name', 'like', '%'. $q .'%')
+					->orWhere('customer_last_name', 'like', '%'. $q .'%');
+			});
 		}
 
 		if ($request->input('status') && in_array($request->input('status'), array_keys(Order::STATUSES))) {
@@ -95,13 +98,21 @@ class OrderController extends Controller
 				return redirect('admin/orders');
 			}
 
-			$order = $orders->whereRaw("DATE(order_date) >= ?", $startDate)
-				->whereRaw("DATE(order_date) <= ? ", $endDate);
-        }
+			$orders = $orders->whereDate('order_date', '>=', $startDate)
+				->whereDate('order_date', '<=', $endDate);
+		}
 
-        $orders = $orders->get();;
+		$ordersQuery = $orders;
 
-		return view('admin.orders.index', compact('orders','statuses'));
+		$counts = [
+			'paid' => (clone $ordersQuery)->where('payment_status', Order::PAID)->count(),
+			'waiting' => (clone $ordersQuery)->where('payment_status', Order::WAITING)->count(),
+			'unpaid' => (clone $ordersQuery)->where('payment_status', Order::UNPAID)->count(),
+		];
+
+		$orders = $ordersQuery->get();
+
+		return view('admin.orders.index', compact('orders','statuses','counts'));
     }
 
     public function create()
@@ -1053,40 +1064,41 @@ class OrderController extends Controller
 	private function recordOrderStockMovements($order, $description = 'Admin Sale')
 	{
 		// Check if stock movements have already been recorded for this order
-		$existingMovements = \App\Models\StockMovement::where('reference_type', 'order')
-			->where('reference_id', $order->id)
+		$existingMovements = \App\Models\StockMovement::where('reference_id', $order->id)
 			->exists();
 		
 		if ($existingMovements) {
-			// Stock movements already recorded, skip to avoid double deduction
 			\Illuminate\Support\Facades\Log::info("Stock movements already recorded for order {$order->id}, skipping duplicate recording");
+			try {
+				app(\App\Services\StockService::class)->synchronizeStockTables();
+			} catch (\Exception $e) {
+				\Illuminate\Support\Facades\Log::warning('Stock synchronization failed: ' . $e->getMessage());
+			}
 			return;
 		}
 
 		foreach ($order->orderItems as $orderItem) {
 			try {
 				// Check if item has variant
-				if ($orderItem->product_variant_id) {
-					// For variant products, use StockService directly (it handles both stock update and movement recording)
+				if ($orderItem->variant_id) {
 					app(StockService::class)->recordMovement(
-						$orderItem->product_variant_id, // variantId
-						'out',                           // movementType
-						$orderItem->qty,                 // quantity
-						'order',                         // referenceType
-						$order->id,                      // referenceId
-						$description,                    // reason
-						"Order #{$order->code}"          // notes
+						$orderItem->variant_id,
+						\App\Models\StockMovement::MOVEMENT_OUT,
+						$orderItem->qty,
+						'order',
+						$order->id,
+						$description,
+						"Order #{$order->code}"
 					);
 				} else {
-					// For simple products without variants, use the simple product method
 					app(StockService::class)->recordSimpleProductMovement(
-						$orderItem->product_id,          // productId
-						'out',                           // movementType
-						$orderItem->qty,                 // quantity
-						'order',                         // referenceType
-						$order->id,                      // referenceId
-						$description,                    // reason
-						"Order #{$order->code}"          // notes
+						$orderItem->product_id,
+						\App\Models\StockMovement::MOVEMENT_OUT,
+						$orderItem->qty,
+						'order',
+						$order->id,
+						$description,
+						"Order #{$order->code}"
 					);
 				}
 			} catch (\Exception $e) {

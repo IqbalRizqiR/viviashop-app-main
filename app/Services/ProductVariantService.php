@@ -77,7 +77,7 @@ class ProductVariantService
     {
         $sku = $this->generateVariantSku($product, $variantInfo['attributes']);
         
-        $variant = ProductVariant::create([
+        $variantData = [
             'product_id' => $product->id,
             'sku' => $sku,
             'name' => $this->generateVariantName($product->name, $variantInfo['attributes']),
@@ -91,7 +91,28 @@ class ProductVariantService
             'barcode' => $variantInfo['barcode'] ?? $this->generateBarcode(),
             'is_active' => $variantInfo['is_active'] ?? true,
             'min_stock_threshold' => $variantInfo['min_stock_threshold'] ?? 10,
-        ]);
+        ];
+
+        if ($product->is_print_service) {
+            $attributes = $variantInfo['attributes'];
+            
+            if (isset($attributes['paper_size'])) {
+                $variantData['paper_size'] = $attributes['paper_size'];
+            }
+            
+            if (isset($attributes['print_type'])) {
+                $printType = strtolower($attributes['print_type']);
+                if (in_array($printType, ['black & white', 'bw', 'black and white'])) {
+                    $variantData['print_type'] = 'bw';
+                } elseif (in_array($printType, ['color', 'colour'])) {
+                    $variantData['print_type'] = 'color';
+                } else {
+                    $variantData['print_type'] = $printType;
+                }
+            }
+        }
+
+        $variant = ProductVariant::create($variantData);
 
         $this->createVariantAttributes($variant, $variantInfo['attributes']);
         
@@ -187,6 +208,25 @@ class ProductVariantService
     public function updateProductVariant(ProductVariant $variant, array $data)
     {
         return DB::transaction(function () use ($variant, $data) {
+            if ($variant->product->is_print_service && isset($data['attributes'])) {
+                $attributes = $data['attributes'];
+                
+                if (isset($attributes['paper_size'])) {
+                    $data['paper_size'] = $attributes['paper_size'];
+                }
+                
+                if (isset($attributes['print_type'])) {
+                    $printType = strtolower($attributes['print_type']);
+                    if (in_array($printType, ['black & white', 'bw', 'black and white'])) {
+                        $data['print_type'] = 'bw';
+                    } elseif (in_array($printType, ['color', 'colour'])) {
+                        $data['print_type'] = 'color';
+                    } else {
+                        $data['print_type'] = $printType;
+                    }
+                }
+            }
+            
             $variant->update($data);
             
             if (isset($data['attributes'])) {
@@ -299,7 +339,71 @@ class ProductVariantService
     public function createVariant(Product $product, array $variantData, array $attributes)
     {
         return DB::transaction(function () use ($product, $variantData, $attributes) {
-            $variant = ProductVariant::create([
+            $printServiceColumns = [];
+            $normalizedAttributes = [];
+            
+            if ($product->is_print_service) {
+                foreach ($attributes as $attr) {
+                    $attrName = strtolower(trim($attr['attribute_name']));
+                    $attrValue = trim($attr['attribute_value']);
+                    
+                    if (in_array($attrName, ['paper_size', 'paper size', 'size'])) {
+                        $printServiceColumns['paper_size'] = $attrValue;
+                        $normalizedAttributes[] = [
+                            'attribute_name' => 'paper_size',
+                            'attribute_value' => $attrValue
+                        ];
+                    } elseif (in_array($attrName, ['print_type', 'print type', 'type', 'color'])) {
+                        $printType = strtolower($attrValue);
+                        if (in_array($printType, ['black & white', 'bw', 'black and white', 'hitam putih'])) {
+                            $printServiceColumns['print_type'] = 'bw';
+                            $normalizedAttributes[] = [
+                                'attribute_name' => 'print_type',
+                                'attribute_value' => 'Black & White'
+                            ];
+                        } elseif (in_array($printType, ['color', 'colour', 'warna'])) {
+                            $printServiceColumns['print_type'] = 'color';
+                            $normalizedAttributes[] = [
+                                'attribute_name' => 'print_type',
+                                'attribute_value' => 'Color'
+                            ];
+                        } else {
+                            $printServiceColumns['print_type'] = $printType;
+                            $normalizedAttributes[] = [
+                                'attribute_name' => 'print_type',
+                                'attribute_value' => $attrValue
+                            ];
+                        }
+                    } elseif (in_array($attrName, ['a3', 'a4', 'a5']) && in_array(strtolower($attrValue), ['black & white', 'bw', 'black and white', 'color', 'colour'])) {
+                        $printServiceColumns['paper_size'] = strtoupper($attrName);
+                        $normalizedAttributes[] = [
+                            'attribute_name' => 'paper_size',
+                            'attribute_value' => strtoupper($attrName)
+                        ];
+                        
+                        $printType = strtolower($attrValue);
+                        if (in_array($printType, ['black & white', 'bw', 'black and white'])) {
+                            $printServiceColumns['print_type'] = 'bw';
+                            $normalizedAttributes[] = [
+                                'attribute_name' => 'print_type',
+                                'attribute_value' => 'Black & White'
+                            ];
+                        } elseif (in_array($printType, ['color', 'colour'])) {
+                            $printServiceColumns['print_type'] = 'color';
+                            $normalizedAttributes[] = [
+                                'attribute_name' => 'print_type',
+                                'attribute_value' => 'Color'
+                            ];
+                        }
+                    } else {
+                        $normalizedAttributes[] = $attr;
+                    }
+                }
+            } else {
+                $normalizedAttributes = $attributes;
+            }
+            
+            $variant = ProductVariant::create(array_merge([
                 'product_id' => $product->id,
                 'name' => $variantData['name'],
                 'sku' => $variantData['sku'],
@@ -311,9 +415,9 @@ class ProductVariantService
                 'width' => $variantData['width'] ?? 0,
                 'height' => $variantData['height'] ?? 0,
                 'is_active' => true,
-            ]);
+            ], $printServiceColumns));
 
-            $this->createVariantAttributesFromArray($variant, $attributes);
+            $this->createVariantAttributesFromArray($variant, $normalizedAttributes);
 
             $product->update(['type' => 'configurable']);
             $this->updateBasePrice($product);
@@ -325,7 +429,71 @@ class ProductVariantService
     public function updateVariant(ProductVariant $variant, array $variantData, array $attributes)
     {
         return DB::transaction(function () use ($variant, $variantData, $attributes) {
-            $variant->update([
+            $printServiceColumns = [];
+            $normalizedAttributes = [];
+            
+            if ($variant->product->is_print_service) {
+                foreach ($attributes as $attr) {
+                    $attrName = strtolower(trim($attr['attribute_name']));
+                    $attrValue = trim($attr['attribute_value']);
+                    
+                    if (in_array($attrName, ['paper_size', 'paper size', 'size'])) {
+                        $printServiceColumns['paper_size'] = $attrValue;
+                        $normalizedAttributes[] = [
+                            'attribute_name' => 'paper_size',
+                            'attribute_value' => $attrValue
+                        ];
+                    } elseif (in_array($attrName, ['print_type', 'print type', 'type', 'color'])) {
+                        $printType = strtolower($attrValue);
+                        if (in_array($printType, ['black & white', 'bw', 'black and white', 'hitam putih'])) {
+                            $printServiceColumns['print_type'] = 'bw';
+                            $normalizedAttributes[] = [
+                                'attribute_name' => 'print_type',
+                                'attribute_value' => 'Black & White'
+                            ];
+                        } elseif (in_array($printType, ['color', 'colour', 'warna'])) {
+                            $printServiceColumns['print_type'] = 'color';
+                            $normalizedAttributes[] = [
+                                'attribute_name' => 'print_type',
+                                'attribute_value' => 'Color'
+                            ];
+                        } else {
+                            $printServiceColumns['print_type'] = $printType;
+                            $normalizedAttributes[] = [
+                                'attribute_name' => 'print_type',
+                                'attribute_value' => $attrValue
+                            ];
+                        }
+                    } elseif (in_array($attrName, ['a3', 'a4', 'a5']) && in_array(strtolower($attrValue), ['black & white', 'bw', 'black and white', 'color', 'colour'])) {
+                        $printServiceColumns['paper_size'] = strtoupper($attrName);
+                        $normalizedAttributes[] = [
+                            'attribute_name' => 'paper_size',
+                            'attribute_value' => strtoupper($attrName)
+                        ];
+                        
+                        $printType = strtolower($attrValue);
+                        if (in_array($printType, ['black & white', 'bw', 'black and white'])) {
+                            $printServiceColumns['print_type'] = 'bw';
+                            $normalizedAttributes[] = [
+                                'attribute_name' => 'print_type',
+                                'attribute_value' => 'Black & White'
+                            ];
+                        } elseif (in_array($printType, ['color', 'colour'])) {
+                            $printServiceColumns['print_type'] = 'color';
+                            $normalizedAttributes[] = [
+                                'attribute_name' => 'print_type',
+                                'attribute_value' => 'Color'
+                            ];
+                        }
+                    } else {
+                        $normalizedAttributes[] = $attr;
+                    }
+                }
+            } else {
+                $normalizedAttributes = $attributes;
+            }
+            
+            $variant->update(array_merge([
                 'name' => $variantData['name'],
                 'sku' => $variantData['sku'],
                 'price' => $variantData['price'],
@@ -335,10 +503,10 @@ class ProductVariantService
                 'length' => $variantData['length'] ?? 0,
                 'width' => $variantData['width'] ?? 0,
                 'height' => $variantData['height'] ?? 0,
-            ]);
+            ], $printServiceColumns));
 
             $variant->variantAttributes()->delete();
-            $this->createVariantAttributesFromArray($variant, $attributes);
+            $this->createVariantAttributesFromArray($variant, $normalizedAttributes);
 
             $this->updateBasePrice($variant->product);
 

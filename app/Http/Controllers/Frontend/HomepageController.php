@@ -358,59 +358,87 @@ class HomepageController extends Controller
         view()->share('countCart', $cart);
         $categories = Category::all();
 
-        // Handle search with fuzzy matching
+        
         if ($request->has('search')) {
-            $searchTerm = $request->get('search', '');
-            $filteredProducts = collect();
-            
-            foreach ($products as $row) {
-                if ($row->products) {
-                    // Exact match first
-                    if (stripos($row->products->name, $searchTerm) !== false) {
+            $searchTerm = trim($request->get('search', ''));
+            $searchLower = strtolower($searchTerm);
+            $matched = collect();
+
+            if ($searchTerm !== '') {
+                
+                foreach ($products as $row) {
+                    if (!$row->products) continue;
+                    $nameLower = strtolower($row->products->name);
+                    if (preg_match('/\b' . preg_quote($searchLower, '/') . '\b/u', $nameLower)) {
                         if ($row->products->parent_id) {
                             $parentProduct = Product::find($row->products->parent_id);
                             if ($parentProduct) {
-                                $existingProduct = $filteredProducts->first(function($item) use ($parentProduct) {
+                                $exists = $matched->first(function($item) use ($parentProduct) {
                                     return $item->products && $item->products->id === $parentProduct->id;
                                 });
-                                
-                                if (!$existingProduct) {
+                                if (!$exists) {
                                     $parentProductCategory = ProductCategory::where('product_id', $parentProduct->id)->first();
-                                    if ($parentProductCategory) {
-                                        $filteredProducts->push($parentProductCategory);
-                                    }
+                                    if ($parentProductCategory) $matched->push($parentProductCategory);
                                 }
                             }
                         } else {
-                            $filteredProducts->push($row);
+                            $matched->push($row);
                         }
-                    } else {
-                        // Fuzzy matching for typos
-                        $similarity = $this->calculateSimilarity($searchTerm, $row->products->name);
-                        if ($similarity >= 50) { // 50% similarity threshold
+                    }
+                }
+
+                
+                if ($matched->isEmpty()) {
+                    foreach ($products as $row) {
+                        if (!$row->products) continue;
+                        if (stripos($row->products->name, $searchTerm) !== false) {
                             if ($row->products->parent_id) {
                                 $parentProduct = Product::find($row->products->parent_id);
                                 if ($parentProduct) {
-                                    $existingProduct = $filteredProducts->first(function($item) use ($parentProduct) {
+                                    $exists = $matched->first(function($item) use ($parentProduct) {
                                         return $item->products && $item->products->id === $parentProduct->id;
                                     });
-                                    
-                                    if (!$existingProduct) {
+                                    if (!$exists) {
                                         $parentProductCategory = ProductCategory::where('product_id', $parentProduct->id)->first();
-                                        if ($parentProductCategory) {
-                                            $filteredProducts->push($parentProductCategory);
-                                        }
+                                        if ($parentProductCategory) $matched->push($parentProductCategory);
                                     }
                                 }
                             } else {
-                                $filteredProducts->push($row);
+                                $matched->push($row);
+                            }
+                        }
+                    }
+                }
+
+                
+                if ($matched->isEmpty()) {
+                    // dynamic threshold: longer queries require higher similarity
+                    $len = strlen($searchLower);
+                    $threshold = $len >= 6 ? 75 : 60;
+                    foreach ($products as $row) {
+                        if (!$row->products) continue;
+                        $similarity = $this->calculateSimilarity($searchLower, strtolower($row->products->name));
+                        if ($similarity >= $threshold) {
+                            if ($row->products->parent_id) {
+                                $parentProduct = Product::find($row->products->parent_id);
+                                if ($parentProduct) {
+                                    $exists = $matched->first(function($item) use ($parentProduct) {
+                                        return $item->products && $item->products->id === $parentProduct->id;
+                                    });
+                                    if (!$exists) {
+                                        $parentProductCategory = ProductCategory::where('product_id', $parentProduct->id)->first();
+                                        if ($parentProductCategory) $matched->push($parentProductCategory);
+                                    }
+                                }
+                            } else {
+                                $matched->push($row);
                             }
                         }
                     }
                 }
             }
-            
-            $producted = $filteredProducts;
+
+            $producted = $matched;
         } else {
             $producted = $producteds;
         }
@@ -642,27 +670,86 @@ class HomepageController extends Controller
         
         $producted = $products;
         
-        // Handle search with fuzzy matching
+        
         if ($request->has('search')) {
-            $searchTerm = $request->get('search', '');
-            $filteredProducts = collect();
-            
-            foreach ($products as $row) {
-                if ($row->products) {
-                    // Exact match first
-                    if (stripos($row->products->name, $searchTerm) !== false) {
-                        $filteredProducts->push($row);
-                    } else {
-                        // Fuzzy matching for typos
-                        $similarity = $this->calculateSimilarity($searchTerm, $row->products->name);
-                        if ($similarity >= 50) { // 50% similarity threshold
-                            $filteredProducts->push($row);
+            $searchTerm = trim($request->get('search', ''));
+            $searchLower = strtolower($searchTerm);
+            $matched = collect();
+
+            if ($searchTerm !== '') {
+                
+                foreach ($products as $row) {
+                    if (!$row->products) continue;
+                    $nameLower = strtolower($row->products->name);
+                    if (preg_match('/\b' . preg_quote($searchLower, '/') . '\b/u', $nameLower)) {
+                        if ($row->products->parent_id) {
+                            $parentProduct = Product::find($row->products->parent_id);
+                            if ($parentProduct) {
+                                $exists = $matched->first(function($item) use ($parentProduct) {
+                                    return $item->products && $item->products->id === $parentProduct->id;
+                                });
+                                if (!$exists) {
+                                    $parentProductCategory = ProductCategory::where('product_id', $parentProduct->id)->first();
+                                    if ($parentProductCategory) $matched->push($parentProductCategory);
+                                }
+                            }
+                        } else {
+                            $matched->push($row);
+                        }
+                    }
+                }
+
+                
+                if ($matched->isEmpty()) {
+                    foreach ($products as $row) {
+                        if (!$row->products) continue;
+                        if (stripos($row->products->name, $searchTerm) !== false) {
+                            if ($row->products->parent_id) {
+                                $parentProduct = Product::find($row->products->parent_id);
+                                if ($parentProduct) {
+                                    $exists = $matched->first(function($item) use ($parentProduct) {
+                                        return $item->products && $item->products->id === $parentProduct->id;
+                                    });
+                                    if (!$exists) {
+                                        $parentProductCategory = ProductCategory::where('product_id', $parentProduct->id)->first();
+                                        if ($parentProductCategory) $matched->push($parentProductCategory);
+                                    }
+                                }
+                            } else {
+                                $matched->push($row);
+                            }
+                        }
+                    }
+                }
+
+                
+                if ($matched->isEmpty()) {
+                    $len = strlen($searchLower);
+                    $threshold = $len >= 6 ? 75 : 60;
+                    foreach ($products as $row) {
+                        if (!$row->products) continue;
+                        $similarity = $this->calculateSimilarity($searchLower, strtolower($row->products->name));
+                        if ($similarity >= $threshold) {
+                            if ($row->products->parent_id) {
+                                $parentProduct = Product::find($row->products->parent_id);
+                                if ($parentProduct) {
+                                    $exists = $matched->first(function($item) use ($parentProduct) {
+                                        return $item->products && $item->products->id === $parentProduct->id;
+                                    });
+                                    if (!$exists) {
+                                        $parentProductCategory = ProductCategory::where('product_id', $parentProduct->id)->first();
+                                        if ($parentProductCategory) $matched->push($parentProductCategory);
+                                    }
+                                }
+                            } else {
+                                $matched->push($row);
+                            }
                         }
                     }
                 }
             }
-            
-            $producted = $filteredProducts;
+
+            $producted = $matched;
         }
 
         // Handle sorting

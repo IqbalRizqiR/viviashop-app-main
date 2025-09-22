@@ -47,6 +47,14 @@ use Illuminate\Support\Facades\Auth;
 
 Auth::routes();
 
+Route::get('storage/{path}', function($path) {
+    $full = storage_path('app/public/' . $path);
+    if (!file_exists($full)) {
+        abort(404);
+    }
+    return response()->file($full);
+})->where('path', '.*');
+
 // $cart = Cart::content()->count();
 // dd($cart);
 // view()->share('countCart', $cart);
@@ -976,6 +984,12 @@ Route::group(['middleware' => ['auth', 'is_admin'], 'prefix' => 'admin', 'as' =>
         Route::get('/product/{productId}', [\App\Http\Controllers\Admin\StockCardController::class, 'showProduct'])->name('product');
         Route::get('/report', [\App\Http\Controllers\Admin\StockCardController::class, 'report'])->name('report');
     });
+
+    Route::resource('paper-types', \App\Http\Controllers\Admin\PaperTypeController::class);
+    Route::get('/paper-types/api/active', [\App\Http\Controllers\Admin\PaperTypeController::class, 'getActivePaperTypes'])->name('paper-types.api.active');
+    
+    Route::resource('print-types', \App\Http\Controllers\Admin\PrintTypeController::class);
+    Route::get('/print-types/api/active', [\App\Http\Controllers\Admin\PrintTypeController::class, 'getActivePrintTypes'])->name('print-types.api.active');
 });
 
 Route::get('/smart-print', function () {
@@ -993,6 +1007,7 @@ Route::prefix('print-service')->group(function () {
     Route::delete('/file/{file_id}', [\App\Http\Controllers\PrintServiceController::class, 'deleteFile'])->name('print-service.delete-file');
     Route::get('/preview/{file_id}', [\App\Http\Controllers\PrintServiceController::class, 'previewFile'])->name('print-service.preview-file');
     Route::get('/products', [\App\Http\Controllers\PrintServiceController::class, 'getProducts'])->name('print-service.products');
+    Route::post('/get-session-files', [\App\Http\Controllers\PrintServiceController::class, 'getSessionFiles'])->name('print-service.get-session-files');
     Route::post('/calculate', [\App\Http\Controllers\PrintServiceController::class, 'calculate'])->name('print-service.calculate');
     Route::post('/checkout', [\App\Http\Controllers\PrintServiceController::class, 'checkout'])->name('print-service.checkout');
     Route::get('/status/{orderCode}', [\App\Http\Controllers\PrintServiceController::class, 'status'])->name('print-service.status');

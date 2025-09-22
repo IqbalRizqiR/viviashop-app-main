@@ -389,7 +389,7 @@
 <div class="receipt-container">
     <!-- Header -->
     <div class="header">
-        <div class="store-name">VIVIA STORE</div>
+        <div class="store-name">VIVIA PRINTSHOP</div>
         <div class="invoice-title">INVOICE</div>
         <div class="invoice-code">{{ $order->code }}</div>
         <div class="status">{{ strtoupper($order->payment_status) }}</div>
@@ -402,44 +402,44 @@
         <div>Date: {{ date('d/m/Y H:i', strtotime($order->order_date)) }}</div>
         <div>Payment: {{ $order->payment_method }}</div>
     </div>
-
-    <div class="divider"></div>
-
-    <!-- Customer Info -->
-    <div class="section customer-info">
-        <div class="customer-name">{{ $order->customer_full_name }}</div>
-        <div>{{ $order->customer_phone }}</div>
-        <div>{{ $order->customer_address1 }}</div>
-    </div>
+    
 
     <div class="divider"></div>
 
     <!-- Items -->
     <div class="section">
         <div class="items-header">ITEMS</div>
-        
-        @if ($order->orderItems->count() > 1)
-            @foreach ($order->orderItems as $item)
+
+        @if(isset($order->orderItems) && $order->orderItems->count() > 1)
+            @foreach($order->orderItems as $item)
                 <div class="item-row">
-                    <div class="item-name">{{ $item->product_name }}</div>
-                    <div class="item-qty-price">{{ $item->qty }}x{{ number_format($item->price, 0, ',', '.') }} Rp</div>
-                </div>
-                <div class="item-row">
-                    <div class="item-name"></div>
-                    <div class="item-qty-price">{{ number_format($item->total, 0, ',', '.') }} Rp</div>
+                    <div class="item-name">
+                        <strong style="display:block; text-transform:uppercase;">{{ $item->product_name ?? $item->name }}</strong>
+                        <small style="color:#555; display:block; margin-top:4px;">
+                            {{ $item->qty }} x Rp {{ number_format($item->price ?? ($item->base_price ?? 0), 0, ',', '.') }}
+                        </small>
+                    </div>
+                    <div class="item-qty-price">{{ $item->qty }}</div>
+                    <div class="item-qty-price">Rp {{ number_format($item->total ?? ($item->qty * ($item->price ?? ($item->base_price ?? 0))), 0, ',', '.') }}</div>
                 </div>
             @endforeach
-        @else
-            @php
-                $singleItem = $order->orderItems[0];
-            @endphp
+        @elseif(isset($order->orderItems) && $order->orderItems->count() == 1)
+            @php $singleItem = $order->orderItems->first(); @endphp
             <div class="item-row">
-                <div class="item-name">{{ $singleItem->name ?? $singleItem->product_name }}</div>
-                <div class="item-qty-price">{{ $singleItem->qty }}x{{ number_format($singleItem->base_price ?? $singleItem->price, 0, ',', '.') }} Rp</div>
+                <div class="item-name">
+                    <strong style="display:block; text-transform:uppercase;">{{ $singleItem->name ?? $singleItem->product_name }}</strong>
+                    <small style="color:#555; display:block; margin-top:4px;">
+                        {{ $singleItem->qty ?? 0 }} x Rp {{ number_format($singleItem->base_price ?? $singleItem->price ?? 0, 0, ',', '.') }}
+                    </small>
+                </div>
+                <div class="item-qty-price">{{ $singleItem->qty ?? 0 }}</div>
+                <div class="item-qty-price">Rp {{ number_format($singleItem->sub_total ?? $singleItem->total ?? (($singleItem->qty ?? 0) * ($singleItem->base_price ?? $singleItem->price ?? 0)), 0, ',', '.') }}</div>
             </div>
+        @else
             <div class="item-row">
-                <div class="item-name"></div>
-                <div class="item-qty-price">{{ number_format($singleItem->sub_total ?? $singleItem->total, 0, ',', '.') }} Rp</div>
+                <div class="item-name">No items</div>
+                <div class="item-qty-price">-</div>
+                <div class="item-qty-price">-</div>
             </div>
         @endif
     </div>
@@ -473,8 +473,8 @@
 
     <!-- Footer -->
     <div class="footer">
-        <div class="footer-line">Thank you for your business!</div>
-        <div class="footer-line">{{ config('app.name') }}</div>
+        <div class="footer-line">Terima kasih atas kepercayaan Anda!</div>
+        <div class="footer-line">Hormat kami, Vivia PrintShop</div>
     </div>
 </div>
 </body>
