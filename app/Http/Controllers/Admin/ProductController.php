@@ -152,9 +152,32 @@ class ProductController extends Controller
     }
     public function generateBarcodeSingle($id)
     {
-        $products = Product::where('id', $id)->first();
-        $products->barcode = rand(1000000000, 9999999999);
-        $products->save();
+        $product = Product::where('id', $id)->first();
+        if (!$product) {
+            if (request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Produk tidak ditemukan'], 404);
+            }
+            Alert::error('Error', 'Produk tidak ditemukan.');
+            return redirect()->back();
+        }
+
+        do {
+            $barcode = rand(1000000000, 9999999999);
+        } while (Product::where('barcode', $barcode)->exists());
+
+        $product->barcode = $barcode;
+        $product->save();
+
+        if (request()->ajax()) {
+            $png = '\\DNS1D::getBarcodePNG('.json_encode($barcode).', "C128", 1.5, 25)';
+            try {
+                $generator = new \Milon\Barcode\DNS1D();
+                $img = $generator->getBarcodePNG($barcode, 'C128', 1.5, 25);
+            } catch (Exception $e) {
+                $img = null;
+            }
+            return response()->json(['success' => true, 'barcode' => $barcode, 'image' => $img]);
+        }
 
         Alert::success('Berhasil', 'Barcode untuk produk telah dibuat.');
         return redirect()->route('admin.products.index');
@@ -653,7 +676,6 @@ class ProductController extends Controller
                 $currentType = $product->type;
                 $newType = $data['type'];
                 $isTypeSwitching = $currentType !== $newType;
-                $data['barcode'] = $request->barcode ?? $product->barcode;
 
                 if ($isTypeSwitching) {
                     $this->handleProductTypeSwitch($product, $currentType, $newType, $data, $request);
