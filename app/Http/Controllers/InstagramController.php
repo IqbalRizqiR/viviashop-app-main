@@ -223,8 +223,13 @@ class InstagramController extends Controller
             }
         } else {
             $image  = $product->productImages->first();
+            if ($image->path == null) {
+                Alert::error('Error', 'Product image not found!');
+                return redirect()->route('admin.instagram.index');
+            }
             // dd($image);
             $imageName = explode('/', $image->path);
+            
             $imageName = end($imageName);
             $result = CloudinaryController::upload(Storage::url($image->path), $imageName);
             $url = $result;
