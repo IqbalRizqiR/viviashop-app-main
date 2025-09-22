@@ -51,11 +51,30 @@
                         </div>
                     </div>
                     <div class="form-group row border-bottom pb-4">
-                        <label for="weight" class="col-sm-2 col-form-label">Berat (kg)</label>
-                        <div class="col-sm-10">
-                          <input type="number" step="0.01" class="form-control" name="weight" value="{{ old('weight') }}" id="weight" placeholder="Contoh: 1.5 (untuk 1.5 kg)">
-                        </div>
+            <label for="weight" class="col-sm-2 col-form-label">Berat (kg)</label>
+            <div class="col-sm-10">
+              <input type="number" step="0.01" class="form-control" name="weight" value="{{ old('weight') }}" id="weight" placeholder="Contoh: 1.5 (untuk 1.5 kg)">
+            </div>
                     </div>
+          <div class="form-group row border-bottom pb-4">
+            <label for="barcode" class="col-sm-2 col-form-label">Barcode (opsional)</label>
+            <div class="col-sm-10">
+              <div class="input-group">
+                <input type="text" class="form-control" name="barcode" id="barcode_input_create" value="{{ old('barcode') }}" placeholder="Scan atau ketik barcode" onkeyup="onBarcodeKey(event)">
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-sm btn-warning" onclick="document.getElementById('barcode_input_create').value='';">Clear</button>
+                </div>
+              </div>
+              <div id="barcode_preview_create" style="margin-top:8px;">
+                @if(old('barcode'))
+                  <img src="data:image/png;base64,{{ DNS1D::getBarcodePNG(old('barcode'), 'C128') }}" alt="barcode" style="height:40px">
+                  <div style="font-size:12px">{{ old('barcode') }}</div>
+                @else
+                  <div style="font-size:12px;color:#888;">No barcode</div>
+                @endif
+              </div>
+            </div>
+          </div>
                     <div class="form-group row border-bottom pb-4">
                         <label class="col-sm-2 col-form-label">Layanan Cetak</label>
                         <div class="col-sm-10">

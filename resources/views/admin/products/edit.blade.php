@@ -52,12 +52,6 @@
                           </select>
                         </div>
                     </div>
-                    <div class="form-group row border-bottom pb-4">
-                        <label for="barcode" class="col-sm-2 col-form-label">Barcode</label>
-                        <div class="col-sm-10">
-                          <input type="text" class="form-control" name="barcode" value="{{ old('barcode', $product->barcode) }}" id="barcode">
-                        </div>
-                    </div>
                     <!-- New Multi-Variant System -->
                     @if($product->type === 'configurable')
                         <div class="product-variants-section">
@@ -822,15 +816,6 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
       $('.select-multiple').select2();
-      const barcodeInput = document.getElementById('barcode');
-
-      barcodeInput.addEventListener('keypress', function(event) {
-        if (event.which === 13 || event.key === 'Enter') {
-            event.preventDefault();
-            searchBarcodeId();
-            // Process the barcode value from barcodeInput.value
-        }
-        });
       
       // Function to load options for a variant and select the saved option
       function loadOptionsForVariant(variantSelect, preselectedOptionId = null) {
@@ -1373,4 +1358,44 @@ if (typeof window.showVariantModal === 'undefined') {
 })();
 </script>
 @include('admin.products.partials.variant-modal-script')
+
+@push('script-alt')
+<script>
+function onBarcodeKey(e) {
+    var val = e.target.value || '';
+    var preview = document.getElementById('barcode_preview') || document.getElementById('barcode_preview_create');
+    if (!preview) return;
+    if (val.trim() === '') {
+        preview.innerHTML = '<div style="font-size:12px;color:#888;">No barcode</div>';
+        return;
+    }
+    preview.innerHTML = '<div style="font-size:12px">' + val + '</div>';
+}
+
+function generateBarcodeSingle(id) {
+    var btn = document.getElementById('generateBarcodeBtn');
+    if (btn) btn.disabled = true;
+    fetch('/admin/products/generateSingleBarcode/' + id, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+        .then(function(res){ return res.json(); })
+        .then(function(json){
+            if (btn) btn.disabled = false;
+            if (json.success) {
+                var input = document.getElementById('barcode_input');
+                if (input) input.value = json.barcode;
+                var preview = document.getElementById('barcode_preview');
+                if (preview) {
+                    if (json.image) {
+                        preview.innerHTML = '<img src="data:image/png;base64,' + json.image + '" style="height:40px"><div style="font-size:12px">' + json.barcode + '</div>';
+                    } else {
+                        preview.innerHTML = '<div style="font-size:12px">' + json.barcode + '</div>';
+                    }
+                }
+            } else {
+                alert(json.message || 'Gagal membuat barcode');
+            }
+        })
+        .catch(function(){ if (btn) btn.disabled = false; alert('Request failed'); });
+}
+</script>
+@endpush
 @endpush
