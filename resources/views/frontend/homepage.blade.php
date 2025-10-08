@@ -762,7 +762,7 @@
                                 </div>
                                 <div>
                                     <h6 class="text-warning fw-bold mb-1">Telepon</h6>
-                                    <p class="mb-0 text-muted small">+62 123 456 789</p>
+                                    <p class="mb-0 text-muted small">{{ optional($setting)->telepon ?? '+62 123 456 789' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -774,7 +774,7 @@
                                 </div>
                                 <div>
                                     <h6 class="text-info fw-bold mb-1">Email</h6>
-                                    <p class="mb-0 text-muted small">info@viviashop.com</p>
+                                    <p class="mb-0 text-muted small">{{ optional($setting)->email ?? 'info@viviashop.com' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -786,7 +786,7 @@
                                 </div>
                                 <div>
                                     <h6 class="text-success fw-bold mb-1">WhatsApp</h6>
-                                    <p class="mb-0 text-muted small">+62 812 3456 7890</p>
+                                    <p class="mb-0 text-muted small">{{ optional($setting)->telepon ?? '+62 812 3456 7890' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -799,7 +799,7 @@
                                 <i class="fas fa-directions me-2"></i>
                                 Petunjuk Arah
                             </a>
-                            <a href="https://wa.me/6281234567890" target="_blank" 
+                            <a href="https://wa.me/62{{ optional($setting)->telepon->split('0')[1] ?? '81234567890' }}" target="_blank" 
                                class="btn btn-outline-success btn-lg rounded-pill px-4 py-3 fw-bold">
                                 <i class="fab fa-whatsapp me-2"></i>
                                 Chat WhatsApp
