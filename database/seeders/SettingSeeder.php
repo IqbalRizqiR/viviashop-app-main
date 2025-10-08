@@ -15,9 +15,11 @@ class SettingSeeder extends Seeder
     {
         Setting::create([
             'nama_toko' => "ViviaShop",
-            'alamat' => 'Jalan Mojolangu',
-            'telepon' => '0182190410',
+            'alamat' => 'Tebuireng IV No.38 Cukir',
+            'telepon' => '081411111769',
             'path_logo' => 'Jalan Mojolangu',
+            'email' => 'info@viviashop.com',
+            'maps_url' => 'https://maps.app.goo.gl/FQkhHuk1vnFZzcHg8?g_st=aw'
         ]);
     }
 }

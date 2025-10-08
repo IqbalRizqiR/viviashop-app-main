@@ -10,7 +10,7 @@
 
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Edit Produk</h3>
+                <h3 class="card-title">Edit Settings Toko</h3>
                 <a href="{{ route('admin.dashboard')}}" class="btn btn-success shadow-sm float-right"> <i class="fa fa-arrow-left"></i> Kembali</a>
               </div>
               <!-- /.card-header -->
@@ -29,6 +29,42 @@
                         <label for="alamat" class="col-sm-2 col-form-label">Alamat Toko</label>
                         <div class="col-sm-10">
                           <input type="text" class="form-control" name="alamat" value="{{ old('alamat', optional($setting)->alamat) }}" id="name">
+                        </div>
+                    </div>
+                    <div class="form-group row border-bottom pb-4">
+                        <label for="email" class="col-sm-2 col-form-label">Email Toko</label>
+                        <div class="col-sm-10">
+                          <input type="email" class="form-control" name="email" value="{{ old('email', optional($setting)->email) }}" id="email">
+                        </div>
+                    </div>
+                    <div class="form-group row border-bottom pb-4">
+                        <label for="instagram" class="col-sm-2 col-form-label">Instagram</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" placeholder="Optional" name="instagram" value="{{ old('instagram', optional($setting)->instagram) }}" id="instagram">
+                        </div>
+                    </div>
+                    <div class="form-group row border-bottom pb-4">
+                        <label for="facebook" class="col-sm-2 col-form-label">Facebook</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" placeholder="Optional" name="facebook" value="{{ old('facebook', optional($setting)->facebook) }}" id="facebook">
+                        </div>
+                    </div>
+                    <div class="form-group row border-bottom pb-4">
+                        <label for="twitter" class="col-sm-2 col-form-label">Twitter</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" placeholder="Optional" name="twitter" value="{{ old('twitter', optional($setting)->twitter) }}" id="twitter">
+                        </div>
+                    </div>
+                    <div class="form-group row border-bottom pb-4">
+                        <label for="youtube" class="col-sm-2 col-form-label">Youtube</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" placeholder="Optional" name="youtube" value="{{ old('youtube', optional($setting)->youtube) }}" id="youtube">
+                        </div>
+                    </div>
+                    <div class="form-group row border-bottom pb-4">
+                        <label for="maps_url" class="col-sm-2 col-form-label">Maps URL</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" name="maps_url" value="{{ old('maps_url', optional($setting)->maps_url) }}" id="maps_url">
                         </div>
                     </div>
                     <div class="form-group row border-bottom pb-4">

@@ -47,7 +47,7 @@
                         <div class="footer-item">
                             <h4 class="text-light mb-3">Contact</h4>
                             <p>Address: {{ optional($setting)->alamat ?? '' }}</p>
-                            <p>Email: Example@gmail.com</p>
+                            <p>Email: {{ optional($setting)->email ?? '' }}</p>
                             <p>Phone: {{ optional($setting)->telepon ?? '' }}</p>
                         </div>
                     </div>
