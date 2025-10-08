@@ -847,7 +847,7 @@
                 <div class="rounded-4 p-5 text-white text-center position-relative overflow-hidden" 
                      style="background: linear-gradient(135deg, var(--bs-primary), var(--bs-success));">
                     <div class="position-absolute top-0 start-0 w-100 h-100 opacity-25" 
-                         style="background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"40\" fill=\"none\" stroke=\"white\" stroke-width=\"1\" opacity=\"0.3\"/></svg>"></div>
+                         style="background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"40\" fill=\"none\" stroke=\"white\" stroke-width=\"1\" opacity=\"0.3\"/></svg></div>
                     <div class="row g-4 align-items-center position-relative">
                         <div class="col-md-8">
                             <div class="text-start text-md-start">
