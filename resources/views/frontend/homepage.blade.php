@@ -799,7 +799,12 @@
                                 <i class="fas fa-directions me-2"></i>
                                 Petunjuk Arah
                             </a>
-                            <a href="https://wa.me/62{{ optional($setting)->telepon->split('0')[1] ?? '81234567890' }}" target="_blank" 
+                            @php
+                                $rawPhone = optional($setting)->telepon ?? '081234567890';
+                                // ganti angka 0 di depan menjadi 62
+                                $waPhone = preg_replace('/^0/', '62', $rawPhone);
+                            @endphp
+                            <a href="https://wa.me/{{ $waPhone }}" target="_blank"
                                class="btn btn-outline-success btn-lg rounded-pill px-4 py-3 fw-bold">
                                 <i class="fab fa-whatsapp me-2"></i>
                                 Chat WhatsApp
