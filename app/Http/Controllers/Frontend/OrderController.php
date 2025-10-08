@@ -83,10 +83,35 @@ class OrderController extends Controller
     }
 	public function index()
 	{
-		$orders = Order::forUser(auth()->user())
-			->orderBy('created_at', 'DESC')
-			->with(['shipment'])
-			->get();
+		$query = Order::forUser(auth()->user())->with(['shipment']);
+
+		// Search/filter
+		$q = request('q');
+		if (!empty($q)) {
+			$query->where(function($qr) use ($q) {
+				if (is_numeric($q)) {
+					$qr->where('id', $q);
+				}
+				$qr->orWhere('code', 'like', "%{$q}%")
+				   ->orWhere('status', 'like', "%{$q}%")
+				   ->orWhere('payment_status', 'like', "%{$q}%")
+				   ->orWhere('payment_method', 'like', "%{$q}%")
+				   ->orWhereHas('shipment', function($s) use ($q) {
+						$s->where('track_number', 'like', "%{$q}%");
+				   });
+			});
+		}
+
+		// Sorting
+		$allowedSorts = ['id', 'grand_total', 'status', 'payment_method', 'order_date', 'created_at'];
+		$sort = request('sort', 'created_at');
+		$direction = request('direction', 'desc') === 'asc' ? 'asc' : 'desc';
+		$sortColumn = in_array($sort, $allowedSorts) ? $sort : 'created_at';
+
+		// Pagination
+		$perPage = 8;
+		$orders = $query->orderBy($sortColumn, $direction)
+			->paginate($perPage);
 		// dd($orders[0]->shipment);
 		$cart = Cart::content()->count();
         $setting = Setting::first();
@@ -371,27 +396,53 @@ class OrderController extends Controller
         return $response;
     }
 
-    public function checkout()
+	public function checkout(Request $request)
     {
 		$cart = Cart::content()->count();
         $setting = Setting::first();
 		view()->share('setting', $setting);
 		view()->share('countCart', $cart);
-        if (Cart::count() == 0) {
-			return redirect('carts');
-		}
-
+		$resumeOrder = null;
 		$items = Cart::content();
-
 		$unique_code = 0;
-
 		$totalWeight = $this->_getTotalWeight();
-
 		$provinces = [];
 		$cities = [];
 		$districts = [];
 
-		return view('frontend.orders.checkout', compact('items', 'unique_code', 'totalWeight','provinces','cities','districts'));
+		if ($request->has('order_id')) {
+			$orderId = $request->get('order_id');
+			$order = Order::where('id', $orderId)->where('user_id', auth()->id())->first();
+			if ($order) {
+				if ($order->payment_status != Order::PAID && !$order->isCompleted() && !$order->isCancelled()) {
+					$resumeOrder = $order;
+				}
+			}
+		}
+
+		if (Cart::count() == 0 && !$resumeOrder) {
+			return redirect('carts');
+		}
+
+		if ($resumeOrder) {
+			$items = collect();
+			foreach ($resumeOrder->orderItems as $oi) {
+				$payload = (object) [
+					'id' => $oi->product_id,
+					'name' => $oi->name,
+					'price' => $oi->base_price,
+					'qty' => $oi->qty,
+					'options' => json_decode($oi->attributes, true) ?? [],
+					'weight' => ($oi->weight ?? 0) * 1000,
+					'model' => null,
+				];
+				$items->push($payload);
+			}
+			$unique_code = 0;
+			$totalWeight = $resumeOrder->orderItems->sum(function($it){ return ($it->weight ?? 0) * 1000 * $it->qty; });
+		}
+
+		return view('frontend.orders.checkout', compact('items', 'unique_code', 'totalWeight','provinces','cities','districts', 'resumeOrder'));
 	}
 
 	public function doCheckout(Request $request)
@@ -422,9 +473,19 @@ class OrderController extends Controller
 			Log::info('Checkout validation passed');
 
 			// Add detailed cart validation
-			if (Cart::count() <= 0) {
-				Log::error('Checkout failed: Cart is empty');
-				return redirect('carts')->with('error', 'Your cart is empty');
+			if ($request->has('resume_order_id')) {
+				$resumeOrder = Order::where('id', $request->get('resume_order_id'))->where('user_id', auth()->id())->first();
+				if (!$resumeOrder) {
+					return redirect()->back()->with('error', 'Resume order not found');
+				}
+				if ($resumeOrder->isPaid() || $resumeOrder->isCompleted() || $resumeOrder->isCancelled()) {
+					return redirect()->route('showUsersOrder', $resumeOrder->id)->with('info', 'Order cannot be resumed');
+				}
+			} else {
+				if (Cart::count() <= 0) {
+					Log::error('Checkout failed: Cart is empty');
+					return redirect('carts')->with('error', 'Your cart is empty');
+				}
 			}
 
 			$cartItems = Cart::content();
@@ -449,37 +510,53 @@ class OrderController extends Controller
 			DB::beginTransaction();
 
 			try {
-				// Save order data
-				$order = $this->_saveOrder($params);
-
-				// Save order items
-				$this->_saveOrderItems($order);
-
-				// Save shipment information
-				$this->_saveShipment($order, $params);
-
-				// Process payment based on selected method
-				if ($params['payment_method'] == 'automatic') {
-					$paymentResponse = $this->_generatePaymentToken($order);
-
-					if (!$paymentResponse['success']) {
-						throw new \Exception('Failed to generate payment token: ' . $paymentResponse['message']);
+				if (isset($resumeOrder) && $resumeOrder) {
+					$order = $resumeOrder;
+					$order->customer_first_name = $params['name'] ?? $order->customer_first_name;
+					$order->customer_last_name = $params['name'] ?? $order->customer_last_name;
+					$order->customer_address1 = $params['address1'] ?? $order->customer_address1;
+					$order->customer_address2 = $params['address2'] ?? $order->customer_address2;
+					$order->customer_postcode = $params['postcode'] ?? $order->customer_postcode;
+					$order->customer_phone = $params['phone'] ?? $order->customer_phone;
+					$order->customer_email = $params['email'] ?? $order->customer_email;
+					$order->note = $params['note'] ?? $order->note;
+					$order->payment_method = $params['payment_method'] ?? $order->payment_method;
+					if (isset($params['shipping_service']) && $params['shipping_service']) {
+						$svc = $params['shipping_service'];
+						if (is_string($svc) && strpos($svc, '{') === 0) {
+							$svcData = json_decode($svc, true);
+							$order->shipping_service_name = $svcData['service'] ?? $order->shipping_service_name;
+							$order->shipping_cost = $svcData['cost'] ?? $order->shipping_cost;
+							$order->shipping_courier = $svcData['courier'] ?? $order->shipping_courier;
+						}
 					}
-
-					// Log successful token generation
-                    Log::info('Payment token generated for order', [
-                        'order_code' => $order->code,
-                        'payment_url' => $order->payment_url
-                    ]);
+					$order->save();
+					Shipment::where('order_id', $order->id)->delete();
+					$this->_saveShipment($order, $params);
+					if ($order->payment_method == 'automatic') {
+						$paymentResponse = $this->_generatePaymentToken($order);
+						if (!$paymentResponse['success']) {
+							throw new \Exception('Failed to generate payment token: ' . $paymentResponse['message']);
+						}
+					}
+				} else {
+					$order = $this->_saveOrder($params);
+					$this->_saveOrderItems($order);
+					$this->_saveShipment($order, $params);
+					if ($params['payment_method'] == 'automatic') {
+						$paymentResponse = $this->_generatePaymentToken($order);
+						if (!$paymentResponse['success']) {
+							throw new \Exception('Failed to generate payment token: ' . $paymentResponse['message']);
+						}
+					}
 				}
 
-				// Commit database transaction
 				DB::commit();
 
-				// Clear the cart after successful checkout
-				Cart::destroy();
+				if (!isset($resumeOrder)) {
+					Cart::destroy();
+				}
 
-				// Add success message
 				Session::flash('success', 'Thank you! Your order has been received!');
 
 				Log::info('Checkout successful, redirecting to order received page', [
@@ -488,7 +565,6 @@ class OrderController extends Controller
 					'redirect_url' => 'orders/received/' . $order->id
 				]);
 
-				// If request expects JSON (AJAX), return JSON payload so frontend can handle redirects
 				if ($request->ajax() || $request->wantsJson()) {
 					return response()->json([
 						'success' => true,
@@ -497,15 +573,13 @@ class OrderController extends Controller
 						'payment_url' => $order->payment_url ?? null,
 						'token' => isset($paymentResponse['token']) ? $paymentResponse['token'] : null,
 						'order_code' => isset($paymentResponse['order_code']) ? $paymentResponse['order_code'] : ($order->code ?? null),
-						'message' => 'Order created successfully'
+						'message' => 'Order processed successfully'
 					]);
 				}
 
-				// Fallback for normal form submit
 				return redirect('orders/received/' . $order->id);
 
 			} catch (\Exception $e) {
-				// Rollback transaction on error
 				DB::rollBack();
 
 				Log::error('Checkout Error: ' . $e->getMessage(), [
@@ -514,7 +588,6 @@ class OrderController extends Controller
 					'trace' => $e->getTraceAsString()
 				]);
 
-				// Redirect back with error message or return JSON for AJAX
 				if ($request->ajax() || $request->wantsJson()) {
 					return response()->json([
 						'success' => false,
@@ -914,6 +987,11 @@ view()->share('setting', $setting);
 					'start_time' => date('Y-m-d H:i:s T'),
 					'unit' => Payment::EXPIRY_UNIT,
 					'duration' => Payment::EXPIRY_DURATION,
+				],
+				'callbacks' => [
+					'finish' => url('payments/finish?order_id=' . $order->code),
+					'unfinish' => url('payments/unfinish?order_id=' . $order->code),
+					'error' => url('payments/error?order_id=' . $order->code),
 				],
 			];
 

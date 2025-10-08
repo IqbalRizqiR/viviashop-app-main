@@ -103,7 +103,7 @@
 						<div id="stock-info" class="mb-3">
 							@if ($product->type === 'simple')
 								@if ($product->productInventory)
-									<p>Stok: <span id="stock-qty">{{ $product->productInventory->qty }}</span></p>
+									<p>Stok: <span id="stock-qty">{{ $product->type == 'configurable' ? $product->total_stock : ($product->productInventory->qty ?? 0) }}</span></p>
 								@else
 									<p class="text-danger">Stok tidak tersedia</p>
 								@endif

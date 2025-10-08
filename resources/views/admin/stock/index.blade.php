@@ -74,7 +74,7 @@
                                                                 @if($product->productVariants->count() > 0)
                                                                     {{ $product->productVariants->sum('stock') }}
                                                                 @elseif($product->productInventory)
-                                                                    {{ $product->productInventory->qty }}
+                                                                    {{ $product->type == 'configurable' ? $product->total_stock : ($product->productInventory->qty ?? 0) }}
                                                                 @else
                                                                     0
                                                                 @endif

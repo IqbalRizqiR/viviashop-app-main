@@ -680,11 +680,12 @@
                                         </div>
                                         
                                         <!-- Stock Badge -->
-                                        @if ($row->products->productInventory && $row->products->productInventory->qty > 0)
-                                            <div class="product-stock-badge">
-                                                <i class="fas fa-check-circle me-1"></i>
-                                                {{ $row->products->productInventory->qty }} tersedia
-                                            </div>
+                                            @php $stock = $row->products->type == 'configurable' ? $row->products->total_stock : ($row->products->productInventory->qty ?? 0); @endphp
+                                            @if ($stock > 0)
+                                                <div class="product-stock-badge">
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                                    {{ $stock }} tersedia
+                                                </div>
                                         @endif
                                     </div>
                                     

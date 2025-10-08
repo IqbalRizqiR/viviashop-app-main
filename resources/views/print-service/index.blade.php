@@ -411,6 +411,20 @@
             productList.innerHTML = '';
             
             allProducts.forEach(product => {
+                // humanize print type for display (support arbitrary values)
+                const humanizePrintType = (pt) => {
+                    if (!pt) return '';
+                    if (pt.toLowerCase() === 'bw' || pt.toLowerCase() === 'b&w') return 'Black & White';
+                    // replace underscores/hyphens and capitalize words
+                    return pt.replace(/[_\-]+/g, ' ').toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                };
+
+                const printTypesLabel = [...new Set(product.variants.map(v => v.print_type))]
+                    .map(humanizePrintType)
+                    .join(', ');
+
+                const sizesLabel = [...new Set(product.variants.map(v => v.paper_size))].join(', ');
+
                 const productCard = `
                     <div class="col-md-6 col-lg-4 mb-3">
                         <div class="card h-100 product-card" data-product-id="${product.id}" onclick="selectProduct(${product.id})">
@@ -420,8 +434,8 @@
                                 </div>
                                 <h5 class="card-title">${product.name}</h5>
                                 <p class="card-text text-muted">
-                                    Available sizes: ${[...new Set(product.variants.map(v => v.paper_size))].join(', ')}<br>
-                                    Print types: ${[...new Set(product.variants.map(v => v.print_type))].join(', ')}
+                                    Available sizes: ${sizesLabel}<br>
+                                    Print types: ${printTypesLabel}
                                 </p>
                                 <div class="price-range">
                                     <small class="text-success">
@@ -476,33 +490,37 @@
             printTypeSelect.innerHTML = '<option value="">Select print type</option>';
             
             if (paperSize && productData) {
-                const availableTypes = productData.variants
-                    .filter(v => v.paper_size === paperSize)
-                    .map(v => ({
-                        value: v.print_type,
-                        label: v.print_type === 'bw' ? 'Black & White' : 'Color',
-                        price: v.price,
-                        stock: v.stock,
-                        min_threshold: v.min_stock_threshold
-                    }));
-                
-                availableTypes.forEach(type => {
+                // Build list of variant-specific options so arbitrary print_type values are preserved
+                const availableVariants = productData.variants
+                    .filter(v => v.paper_size === paperSize);
+
+                const humanizePrintType = (pt) => {
+                    if (!pt) return '';
+                    if (pt.toLowerCase() === 'bw' || pt.toLowerCase() === 'b&w') return 'Black & White';
+                    return pt.replace(/[_\-]+/g, ' ').toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                };
+
+                availableVariants.forEach(v => {
                     let stockStatus = '';
-                    if (type.stock <= 0) {
+                    if (v.stock <= 0) {
                         stockStatus = ' (Out of Stock)';
-                    } else if (type.stock <= type.min_threshold) {
-                        stockStatus = ` (Low Stock: ${type.stock})`;
+                    } else if (v.stock <= v.min_stock_threshold) {
+                        stockStatus = ` (Low Stock: ${v.stock})`;
                     } else {
-                        stockStatus = ` (Stock: ${type.stock})`;
+                        stockStatus = ` (Stock: ${v.stock})`;
                     }
-                    
+
                     const option = document.createElement('option');
-                    option.value = type.value;
-                    option.textContent = `${type.label} - Rp ${parseFloat(type.price).toLocaleString()}${stockStatus}`;
-                    option.disabled = type.stock <= 0;
+                    // use variant id as the option value so each variant appears uniquely
+                    option.value = v.id;
+                    option.setAttribute('data-print-type', v.print_type);
+                    option.textContent = `${humanizePrintType(v.print_type)} - Rp ${parseFloat(v.price).toLocaleString()}${stockStatus}`;
+                    option.disabled = v.stock <= 0;
                     printTypeSelect.appendChild(option);
                 });
-                
+
+                // calculatePrice expects the option value to be variant id now
+                printTypeSelect.removeEventListener('change', calculatePrice);
                 printTypeSelect.addEventListener('change', calculatePrice);
             }
         }
@@ -645,6 +663,7 @@
 
         async function calculatePrice() {
             const paperSize = document.getElementById('paper-size').value;
+            // print-type select now stores variant id as the value
             const printType = document.getElementById('print-type').value;
             const quantity = parseInt(document.getElementById('quantity').value) || 1;
             const totalPages = parseInt(document.getElementById('total-pages').value) || 0;
@@ -652,10 +671,8 @@
             if (!paperSize || !printType || !totalPages || !productData) return;
 
             try {
-                // Use the selected product from step 2, not the first product
-                const variant = productData.variants.find(v => 
-                    v.paper_size === paperSize && v.print_type === printType
-                );
+                // printType is a variant id now
+                const variant = productData.variants.find(v => v.id == printType);
                 
                 if (variant) {
                     selectedVariant = variant;

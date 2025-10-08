@@ -85,36 +85,43 @@
     <!-- Checkout Page Start -->
     <div class="container-fluid py-5">
         <div class="container py-5">
+            @php
+                $subtotal = isset($resumeOrder) && $resumeOrder ? ($resumeOrder->base_total_price ?? 0) : (int)Cart::subtotal(0,'','');
+            @endphp
             <h1 class="mb-4">Billing details</h1>
             <form action="{{ route('orders.checkout') }}" method="post" enctype="multipart/form-data" id="checkout-form" onsubmit="return handleFormSubmit(event)">
                 @csrf
+                @if(isset($resumeOrder) && $resumeOrder)
+                    <input type="hidden" name="resume_order_id" value="{{ $resumeOrder->id }}">
+                    <div class="alert alert-info">Resuming previous order #{{ $resumeOrder->code }}. You can complete payment or edit details before placing order.</div>
+                @endif
                 <div class="row g-5">
                     <div class="col-md-12 col-lg-6 col-xl-7">
                         <div class="row">
                             <div class="col-md-12 col-lg-6">
                                 <div class="form-item w-100">
                                     <label>Nama <span class="required">*</span></label>
-									<input type="text" class="form-control" name="name" value="{{ old('name', auth()->user()->name) }}">
+                                    <input type="text" class="form-control" name="name" value="{{ old('name', isset($resumeOrder) && $resumeOrder ? $resumeOrder->customer_first_name : auth()->user()->name) }}">
                                 </div>
                             </div>
                         </div>
                         <div class="form-item">
                             <label class="form-label my-3">Address <sup>*</sup></label>
-							<input type="text" class="form-control" name="address1" value="{{ old('address1', auth()->user()->address1) }}">
+                            <input type="text" class="form-control" name="address1" value="{{ old('address1', isset($resumeOrder) && $resumeOrder ? $resumeOrder->customer_address1 : auth()->user()->address1) }}">
                             <br>
-							<input type="text" class="form-control" name="address2" value="{{ old('address2', auth()->user()->address2) }}">
+                            <input type="text" class="form-control" name="address2" value="{{ old('address2', isset($resumeOrder) && $resumeOrder ? $resumeOrder->customer_address2 : auth()->user()->address2) }}">
                         </div>
                         <div class="form-item">
                             <label>Postcode / Zip <span class="required">*</span></label>
-							<input type="text" class="form-control" name="postcode" value="{{ old('postcode', auth()->user()->postcode) }}">
+                            <input type="text" class="form-control" name="postcode" value="{{ old('postcode', isset($resumeOrder) && $resumeOrder ? $resumeOrder->customer_postcode : auth()->user()->postcode) }}">
                         </div>
                         <div class="form-item">
                             <label>Phone  <span class="required">*</span></label>
-							<input type="text" class="form-control" name="phone" value="{{ old('phone', auth()->user()->phone) }}">
+                            <input type="text" class="form-control" name="phone" value="{{ old('phone', isset($resumeOrder) && $resumeOrder ? $resumeOrder->customer_phone : auth()->user()->phone) }}">
                         </div>
                         <div class="form-item">
                             <label>Email Address </label>
-                            <input type="text" class="form-control" name="email" value="{{ old('email', auth()->user()->email) }}">
+                            <input type="text" class="form-control" name="email" value="{{ old('email', isset($resumeOrder) && $resumeOrder ? $resumeOrder->customer_email : auth()->user()->email) }}">
                         </div>
                                                 <div class="form-item">
                             <label>Order Notes </label>
@@ -219,7 +226,7 @@
                                         </td>
                                         <td class="py-5">
                                             <div class="py-3 border-bottom border-top">
-                                                <p class="mb-0 text-dark">Rp. {{ Cart::subtotal(0, ",", ".") }}</p>
+                                                <p class="mb-0 text-dark">Rp. {{ number_format($subtotal,0,',','.') }}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -272,7 +279,7 @@
                                         <td class="py-5"></td>
                                         <td class="py-5">
                                             <div class="py-3 border-bottom border-top">
-                                                <p class="mb-0 text-dark total-amount">{{ number_format((int)Cart::subtotal(0,'','')) }}</p>
+                                                <p class="mb-0 text-dark total-amount">{{ number_format((int)$subtotal) }}</p>
                                             </div>
                                             <p>harap tunggu nominal berubah sesuai dengan total sebelum checkout</p>
                                             <!-- debug buttons removed for production UI -->
@@ -318,7 +325,7 @@
                             </div>
                         </div>
                         <div class="row g-4 text-center align-items-center justify-content-center pt-4">
-                            <input type="hidden" name="total_amount" class="total-amount-input" value="{{ (int)Cart::subtotal(0,'','') }}">
+                            <input type="hidden" name="total_amount" class="total-amount-input" value="{{ (int)$subtotal }}">
                             <button type="submit" id="place-order-btn" class="btn border-secondary py-3 px-4 text-uppercase w-100 text-primary">Place Order</button>
                             <div id="loading-indicator" style="display: none;" class="text-center">
                                 <div class="spinner-border text-primary" role="status">

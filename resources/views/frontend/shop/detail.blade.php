@@ -541,9 +541,9 @@
                                         <div class="fw-semibold text-dark">{{ $parentProduct->sku ?? 'N/A' }}</div>
                                     </div>
                                     <div class="col-6 text-end">
-                                        @if($parentProduct->productInventory && $parentProduct->productInventory->qty)
-                                            <span class="badge bg-success badge-stock">In Stock</span>
-                                            <small class="d-block text-muted mt-1" id="stock-info">Stok : {{ $parentProduct->productInventory->qty }}</small>
+                        @php $stockQty = $parentProduct->type == 'configurable' ? $parentProduct->total_stock : ($parentProduct->productInventory->qty ?? 0); @endphp
+                        @if ($stockQty)
+                            <i class="fa fa-box me-2"></i>Stok : {{ $stockQty }} unit tersedia
                                         @else
                                             <span class="badge bg-secondary badge-stock">Out of Stock</span>
                                         @endif

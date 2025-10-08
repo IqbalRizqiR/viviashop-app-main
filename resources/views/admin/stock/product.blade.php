@@ -215,7 +215,7 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        <strong>{{ $movement->quantity }}</strong>
+                                                                    <strong>{{ $movement->quantity }}</strong>
                                                     </td>
                                                     <td>{{ $movement->old_stock }}</td>
                                                     <td>

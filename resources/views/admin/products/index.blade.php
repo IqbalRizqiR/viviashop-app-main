@@ -50,11 +50,11 @@
                                 <td>{{ number_format($product->price) }}</td>
                                 <td>{{ number_format($product->harga_beli) }}</td>
                                 <td>{{ $product->statusLabel() }}</td>
-                                @if ($product->productInventory != null)
-                                  <td>{{ $product->productInventory->qty }}</td>
-                                @else
-                                  <td>No quantity</td>
-                                @endif
+                                                                @if ($product->type == 'configurable')
+                                                                    <td>{{ $product->total_stock }}</td>
+                                                                @else
+                                                                    <td>{{ $product->productInventory?->qty ?? 'No quantity' }}</td>
+                                                                @endif
                                 @if ($product->barcode != null)
                                     <td>{!! DNS1D::getBarcodeHTML($product->barcode, 'C128', 1.5, 20) !!}</td>
                                     <td>{{ $product->barcode }}</td>

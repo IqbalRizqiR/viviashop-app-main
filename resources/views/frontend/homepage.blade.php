@@ -352,7 +352,7 @@
                                                         <div class="mb-3">
                                                             <small class="text-success fw-bold">
                                                                 <i class="fas fa-check-circle me-1"></i>
-                                                                Stok: {{ $row->products->productInventory->qty }} tersedia
+                                                                Stok: {{ $row->products->type == 'configurable' ? $row->products->total_stock : ($row->products->productInventory->qty ?? 0) }} tersedia
                                                             </small>
                                                         </div>
                                                     @endif

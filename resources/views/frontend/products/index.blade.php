@@ -174,7 +174,7 @@
                                                         <span>{{ number_format($product->priceLabel()) }}</span>
                                                         <p>{!! $product->short_description !!}</p>
                                                         @if ($row->products->productInventory != null)
-                                                            <p>Stok : {{ $row->products->productInventory->qty }}</p>
+                                                            <p>Stok : {{ $row->products->type == 'configurable' ? $row->products->total_stock : ($row->products->productInventory->qty ?? 0) }}</p>
                                                         @endif
                                                     </div>
                                                     <div class="product-list-cart-wishlist">

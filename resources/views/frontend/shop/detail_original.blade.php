@@ -101,14 +101,14 @@
                                 <p class="mb-3">Category: {{ $productCategory->categories->name }}</p>
                             @endif
                             @if($parentProduct->productInventory)
-                                <p class="mb-3">Stock: {{ $parentProduct->productInventory->qty }}</p>
+                                <p class="mb-3">Stock: {{ $parentProduct->type == 'configurable' ? $parentProduct->total_stock : ($parentProduct->productInventory->qty ?? 0) }}</p>
                             @endif
                             <h5 class="fw-bold mb-3" id="product-price">Rp. {{ number_format($parentProduct->price) }}</h5>
                             <div class="d-flex mb-4">
                             </div>
                             <b class="mb-4">{{ $parentProduct->short_description }}</b>
                             @if ($parentProduct->productInventory != null)
-                                <p id="stock-info">Stok : {{ $parentProduct->productInventory->qty }}</p>
+                                <p id="stock-info">Stok : {{ $parentProduct->type == 'configurable' ? $parentProduct->total_stock : ($parentProduct->productInventory->qty ?? 0) }}</p>
                             @endif
                             
                             @if($parentProduct->type == 'configurable' && $parentProduct->activeVariants->count() > 0)
@@ -207,7 +207,7 @@
                                 <div class="tab-pane active" id="nav-about" role="tabpanel" aria-labelledby="nav-about-tab">
                                     <b>{{ $parentProduct->short_description }} </b>
                                     @if ($parentProduct->productInventory != null)
-                                        <p>Stok : {{ $parentProduct->productInventory->qty }}</p>
+                                        <p>Stok : {{ $parentProduct->type == 'configurable' ? $parentProduct->total_stock : ($parentProduct->productInventory->qty ?? 0) }}</p>
                                     @endif
                                     <p>{!! $parentProduct->description !!}</p>
                                     <div class="px-2">
@@ -407,7 +407,7 @@
                 selectionMessage.style.display = 'block';
                 
                 if (stockElement && @json($parentProduct->productInventory)) {
-                    stockElement.textContent = `Stok: ${@json($parentProduct->productInventory->qty)}`;
+                    stockElement.textContent = `Stok: ${@json($parentProduct->type == 'configurable' ? $parentProduct->total_stock : ($parentProduct->productInventory->qty ?? 0))}`;
                 }
             }
             

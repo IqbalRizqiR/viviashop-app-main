@@ -124,7 +124,7 @@
 								@endif
 							@else
 								@if ($product->productInventory != null)
-									<p>Stok : {{ $product->productInventory->qty }}</p>
+									<p>Stok : {{ $product->type == 'configurable' ? $product->total_stock : ($product->productInventory->qty ?? 0) }}</p>
 								@endif
 							@endif
 							

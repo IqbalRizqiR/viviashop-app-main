@@ -13,7 +13,16 @@ class SettingController extends Controller
      */
     public function index()
     {
-        $setting = Setting::where('id', 1)->first();
+        $setting = Setting::first();
+        if (! $setting) {
+            $setting = Setting::create([
+                'nama_toko' => 'ViviaShop',
+                'alamat' => '',
+                'telepon' => '',
+                'path_logo' => null,
+            ]);
+        }
+
         return view('admin.settings.index', compact('setting'));
     }
 
@@ -54,21 +63,29 @@ class SettingController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $setting = Setting::where('id', 1)->first();
-        $update = $setting->update([
+        $setting = Setting::first();
+
+        $data = [
             'nama_toko' => $request->nama_toko,
             'alamat' => $request->alamat,
             'telepon' => $request->telepon,
             'path_logo' => $request->path_logo,
-        ]);
+        ];
+
+        if (! $setting) {
+            $setting = Setting::create($data);
+            $update = (bool) $setting;
+        } else {
+            $update = $setting->update($data);
+        }
 
         if ($update) {
             Alert::success('setting berhasil di update!', 'Data setting berhasil di update');
-            return redirect()->route('setting.index');
         } else {
             Alert::success('setting gagal di update!', 'Data setting gagal di update');
-            return redirect()->route('setting.index');
         }
+
+    return redirect()->route('admin.setting.index');
 
     }
 
