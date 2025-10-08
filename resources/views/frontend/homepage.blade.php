@@ -794,7 +794,7 @@
                     
                     <div class="text-center mt-4">
                         <div class="d-flex flex-wrap gap-3 justify-content-center">
-                            <a href="https://maps.app.goo.gl/adKMKhPKJUWahDeF7" target="_blank" 
+                            <a href="{{ optional($setting)->maps_url ?? 'https://maps.app.goo.gl/FQkhHuk1vnFZzcHg8?g_st=aw' }}" target="_blank" 
                                class="btn btn-gradient btn-lg rounded-pill px-4 py-3 text-white fw-bold">
                                 <i class="fas fa-directions me-2"></i>
                                 Petunjuk Arah
