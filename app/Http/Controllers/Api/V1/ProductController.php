@@ -19,7 +19,7 @@ class ProductController extends BaseController
                   ->orWhere('type', 'configurable');
             })
             ->where('status', Product::ACTIVE)
-            ->with(['images', 'brand', 'categories', 'productInventory', 'productVariants.variantAttributes']);
+            ->with(['productproductImages', 'brand', 'categories', 'productInventory', 'productVariants.variantAttributes']);
 
         // Search
         if ($search = $request->input('search')) {
@@ -77,7 +77,7 @@ class ProductController extends BaseController
     {
         $product = Product::where('slug', $slug)
             ->with([
-                'images',
+                'productImages',
                 'brand',
                 'categories',
                 'productInventory',
@@ -106,7 +106,7 @@ class ProductController extends BaseController
                   ->orWhere('type', 'configurable');
             })
             ->where('status', Product::ACTIVE)
-            ->with(['images', 'brand', 'productInventory', 'productVariants.variantAttributes'])
+            ->with(['productImages', 'brand', 'productInventory', 'productVariants.variantAttributes'])
             ->limit($limit)
             ->get();
 
@@ -131,7 +131,7 @@ class ProductController extends BaseController
 
         $products = Product::whereHas('categories', fn($q) => $q->where('categories.id', $category->id))
             ->where('status', Product::ACTIVE)
-            ->with(['images', 'brand', 'productInventory', 'productVariants.variantAttributes'])
+            ->with(['productImages', 'brand', 'productInventory', 'productVariants.variantAttributes'])
             ->paginate(12);
 
         return $this->paginated($products->through(fn($p) => new ProductResource($p)));
