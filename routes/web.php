@@ -31,6 +31,15 @@ use Illuminate\Support\Facades\Auth;
 |
 */
 
+// TEMPORARY: Clear all caches - remove after production is fixed
+Route::get('/clear-cache-x7k9', function () {
+    \Artisan::call('route:clear');
+    \Artisan::call('config:clear');
+    \Artisan::call('cache:clear');
+    \Artisan::call('view:clear');
+    return 'All caches cleared! Routes: ' . \Artisan::output();
+});
+
 Auth::routes();
 
 Route::get('storage/{path}', function($path) {
