@@ -29,6 +29,15 @@ class AppServiceProvider extends ServiceProvider
     {
         // URL::forceScheme('https');
         Paginator::useBootstrap();
-        // view()->share('countCart', $cart);
+
+        // Prevent N+1 queries — throws in dev, logs in production
+        \Illuminate\Database\Eloquent\Model::preventLazyLoading(!$this->app->isProduction());
+
+        // In production, log lazy loading violations instead of crashing
+        if ($this->app->isProduction()) {
+            \Illuminate\Database\Eloquent\Model::handleLazyLoadingViolationUsing(function ($model, $relation) {
+                \Illuminate\Support\Facades\Log::warning("N+1 detected: {$model}::{$relation}");
+            });
+        }
     }
 }

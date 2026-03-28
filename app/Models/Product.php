@@ -102,6 +102,12 @@ class Product extends Model
 		return $this->hasMany(ProductImage::class);
 	}
 
+	// Alias used by API controllers with('images')
+	public function images()
+	{
+		return $this->hasMany(ProductImage::class);
+	}
+
 	public function scopeActive($query)
 	{
 		return $query->where('status', 1)
@@ -201,10 +207,18 @@ class Product extends Model
 		}
 
 		$options = [];
-		$variants = $this->activeVariants()->with('variantAttributes')->get();
+		// Use already-loaded relation if available to prevent N+1
+		$variants = $this->relationLoaded('productVariants')
+			? $this->productVariants->where('is_active', true)
+			: $this->activeVariants()->with('variantAttributes')->get();
 		
 		foreach ($variants as $variant) {
-			foreach ($variant->variantAttributes as $attribute) {
+			// Use loaded relation or load once
+			$attrs = $variant->relationLoaded('variantAttributes')
+				? $variant->variantAttributes
+				: $variant->variantAttributes;
+
+			foreach ($attrs as $attribute) {
 				if (!isset($options[$attribute->attribute_name])) {
 					$options[$attribute->attribute_name] = [];
 				}

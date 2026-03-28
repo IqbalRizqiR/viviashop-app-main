@@ -110,7 +110,7 @@ class OrderController extends Controller
 			'unpaid' => (clone $ordersQuery)->where('payment_status', Order::UNPAID)->count(),
 		];
 
-		$orders = $ordersQuery->get();
+		$orders = $ordersQuery->with(['orderItems', 'shipment'])->get();
 
 		return view('admin.orders.index', compact('orders','statuses','counts'));
     }
@@ -146,7 +146,7 @@ class OrderController extends Controller
 
     public function invoices($id)
 {
-    $order = Order::where('id', $id)->first();
+    $order = Order::with('orderItems.product')->where('id', $id)->first();
     
     // Hitung estimasi tinggi berdasarkan jumlah items
     $baseHeight = 200; // Base height untuk header, customer info, dll
@@ -200,6 +200,7 @@ class OrderController extends Controller
 			$canDestroy = DB::transaction(
 				function () use ($order) {
 					if (!$order->isCancelled()) {
+						$order->load('orderItems');
 						foreach ($order->orderItems as $item) {
 							ProductInventory::increaseStock($item->product_id, $item->qty);
 						}
@@ -256,8 +257,11 @@ class OrderController extends Controller
 			$totalPrice = 0;
 			$orderItems = [];
 
+			// Batch load all products to prevent N+1
+			$products = Product::whereIn('id', $validated['product_id'])->get()->keyBy('id');
+
 			for ($i = 0; $i < count($validated['product_id']); $i++) {
-				$product = Product::find($validated['product_id'][$i]);
+				$product = $products[$validated['product_id'][$i]] ?? null;
 				if (!$product) {
 					throw new \Exception('Product not found: ' . $validated['product_id'][$i]);
 				}
@@ -345,7 +349,7 @@ class OrderController extends Controller
 			];
 
 			if ($request->hasFile('attachments')) {
-				$orderData['attachments'] = $request->file('attachments')->store('assets/slides', 'public');
+				// $orderData['attachments'] = $request->file('attachments')->store('assets/slides', 'public');
 			}
 
 			$order = Order::create($orderData);

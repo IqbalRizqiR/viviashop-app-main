@@ -137,18 +137,4 @@ class ProductVariantSeeder extends Seeder
 
         $this->command->info('Created simple product: ' . $simpleProduct->name);
     }
-}Database\Seeders;
-
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-
-class ProductVariantSeeder extends Seeder
-{
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
-    {
-        //
-    }
 }

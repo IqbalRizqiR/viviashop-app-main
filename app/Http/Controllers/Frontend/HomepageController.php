@@ -39,7 +39,7 @@ class HomepageController extends Controller
             $query->where('type', 'simple')
                   ->whereNull('parent_id')
                   ->orWhere('type', 'configurable');
-        })->active()->limit(6)->get();
+        })->active()->with(['images', 'brand', 'productInventory', 'productVariants'])->limit(6)->get();
         $totalProduct = Product::where(function($query) {
             $query->where('type', 'simple')
                   ->whereNull('parent_id')
@@ -56,7 +56,7 @@ class HomepageController extends Controller
 
     public function detail($id)
     {
-        $product = Product::find($id);
+        $product = Product::with(['productInventory', 'productVariants.variantAttributes', 'images', 'brand'])->find($id);
         
         if (!$product) {
             abort(404);
@@ -66,11 +66,7 @@ class HomepageController extends Controller
             return redirect()->route('shop-detail', $product->parent_id);
         }
         
-        $parentProduct = Product::with(['productInventory', 'productVariants.variantAttributes'])->find($id);
-        
-        if (!$parentProduct) {
-            abort(404);
-        }
+        $parentProduct = $product;
         
         $productCategory = ProductCategory::where('product_id', $parentProduct->id)->with('categories')->first();
         

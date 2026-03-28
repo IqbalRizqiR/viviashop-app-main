@@ -53,7 +53,7 @@ class ProductController extends Controller
         $products = $this->_filterProductsByAttribute($products, $request);
         $products = $this->_sortProducts($products, $request);
         $selectedSort = $this->selectedSort;
-        $products = $products->paginate(10);
+        $products = $products->with(['images', 'brand', 'productInventory', 'productVariants'])->paginate(10);
         
         return view('frontend.products.index', compact('products','colors','sizes','minPrice','maxPrice','categories', 'sorts','selectedSort'));
     }
@@ -151,7 +151,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        $product->load(['productVariants.variantAttributes', 'productImages', 'categories']);
+        $product->load(['productVariants.variantAttributes', 'images', 'categories', 'brand', 'productInventory']);
 
         return view('frontend.products.show', compact('product'));
     }
@@ -162,7 +162,7 @@ class ProductController extends Controller
             return view('frontend.products.quick_view', compact('product'));
         }
 
-        $product->load(['productVariants.variantAttributes']);
+        $product->load(['productVariants.variantAttributes', 'images']);
         return view('frontend.products.quick_view', compact('product'));
 	}
 }

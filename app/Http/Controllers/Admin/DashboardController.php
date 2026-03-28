@@ -65,52 +65,42 @@ class DashboardController extends Controller
         $thisWeek = Carbon::now()->startOfWeek();
         $thisMonth = Carbon::now()->startOfMonth();
         $thisYear = Carbon::now()->startOfYear();
+        $lastMonthStart = Carbon::now()->subMonth()->startOfMonth();
+        $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
 
-        $revenueToday = Order::whereDate('created_at', $today)
-            ->where('payment_status', Order::PAID)
+        // Single query — conditional aggregation for all revenue periods
+        $revenue = Order::where('payment_status', Order::PAID)
+            ->selectRaw("SUM(CASE WHEN DATE(created_at) = ? THEN grand_total ELSE 0 END) as today", [$today->toDateString()])
+            ->selectRaw("SUM(CASE WHEN created_at >= ? THEN grand_total ELSE 0 END) as week", [$thisWeek])
+            ->selectRaw("SUM(CASE WHEN created_at >= ? THEN grand_total ELSE 0 END) as month", [$thisMonth])
+            ->selectRaw("SUM(CASE WHEN created_at >= ? THEN grand_total ELSE 0 END) as year", [$thisYear])
+            ->selectRaw("SUM(CASE WHEN created_at >= ? THEN base_total_price ELSE 0 END) as month_base", [$thisMonth])
+            ->first();
+
+        $pendingPayments = Order::whereIn('payment_status', [Order::WAITING, Order::UNPAID])
             ->sum('grand_total');
 
-        $revenueThisWeek = Order::where('created_at', '>=', $thisWeek)
-            ->where('payment_status', Order::PAID)
-            ->sum('grand_total');
+        $totalPurchases = OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->where('orders.payment_status', Order::PAID)
+            ->where('orders.created_at', '>=', $thisMonth)
+            ->selectRaw('SUM(order_items.qty * products.harga_beli) as total')
+            ->value('total') ?? 0;
 
-        $revenueThisMonth = Order::where('created_at', '>=', $thisMonth)
-            ->where('payment_status', Order::PAID)
-            ->sum('base_total_price');
+        $lastMonthRevenue = Order::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->where('payment_status', Order::PAID)->sum('grand_total');
 
-        $revenueThisYear = Order::where('created_at', '>=', $thisYear)
-            ->where('payment_status', Order::PAID)
-            ->sum('grand_total');
-
-        $pendingPayments = Order::where('payment_status', Order::WAITING)
-            ->orWhere('payment_status', Order::UNPAID)
-            ->sum('grand_total');
-
-        $orderIdTotalNeed = Order::where('created_at', '>=', $thisMonth)
-            ->where('payment_status', Order::PAID)->pluck('id')->toArray();
-        // dd($orderIdTotalNeed);
-        $totalPurchases = OrderItem::query()
-                ->whereIn('order_items.order_id', $orderIdTotalNeed)
-                ->join('products', 'order_items.product_id', '=', 'products.id')
-                ->selectRaw('SUM(order_items.qty * products.harga_beli) as total_value')
-                ->value('total_value');
-        $netProfit = $revenueThisMonth - $totalPurchases;
-
-        $lastMonthRevenue = Order::whereBetween('created_at', [
-            Carbon::now()->subMonth()->startOfMonth(),
-            Carbon::now()->subMonth()->endOfMonth()
-        ])->where('payment_status', Order::PAID)->sum('grand_total');
-
-        $revenueGrowth = $lastMonthRevenue > 0 ? 
-            (($revenueThisMonth - $lastMonthRevenue) / $lastMonthRevenue) * 100 : 0;
+        $monthRevenue = (float) ($revenue->month ?? 0);
+        $revenueGrowth = $lastMonthRevenue > 0
+            ? (($monthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100 : 0;
 
         return [
-            'today' => $revenueToday,
-            'week' => $revenueThisWeek,
-            'month' => $revenueThisMonth,
-            'year' => $revenueThisYear,
-            'pending_payments' => $pendingPayments,
-            'net_profit' => $netProfit,
+            'today' => (float) ($revenue->today ?? 0),
+            'week' => (float) ($revenue->week ?? 0),
+            'month' => $monthRevenue,
+            'year' => (float) ($revenue->year ?? 0),
+            'pending_payments' => (float) $pendingPayments,
+            'net_profit' => (float) (($revenue->month_base ?? 0) - $totalPurchases),
             'growth_percentage' => round($revenueGrowth, 2)
         ];
     }
@@ -121,29 +111,29 @@ class DashboardController extends Controller
         $thisWeek = Carbon::now()->startOfWeek();
         $thisMonth = Carbon::now()->startOfMonth();
 
-        $ordersToday = Order::whereDate('created_at', $today)->count();
-        $ordersThisWeek = Order::where('created_at', '>=', $thisWeek)->count();
-        $ordersThisMonth = Order::where('created_at', '>=', $thisMonth)->count();
+        // Single query — conditional count
+        $metrics = Order::selectRaw("COUNT(*) as total")
+            ->selectRaw("SUM(CASE WHEN DATE(created_at) = ? THEN 1 ELSE 0 END) as today", [$today->toDateString()])
+            ->selectRaw("SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as week", [$thisWeek])
+            ->selectRaw("SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as month", [$thisMonth])
+            ->selectRaw("SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as completed", [Order::COMPLETED])
+            ->first();
 
-        $totalOrders = Order::count();
-        $completedOrders = Order::where('status', Order::COMPLETED)->count();
+        $totalOrders = (int) ($metrics->total ?? 0);
+        $completedOrders = (int) ($metrics->completed ?? 0);
         $conversionRate = $totalOrders > 0 ? ($completedOrders / $totalOrders) * 100 : 0;
 
-        $averageOrderValue = Order::where('payment_status', Order::PAID)
-            ->avg('grand_total');
-
+        $averageOrderValue = Order::where('payment_status', Order::PAID)->avg('grand_total');
         $statusCounts = Order::select('status', DB::raw('count(*) as count'))
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
+            ->groupBy('status')->pluck('count', 'status')->toArray();
 
         return [
-            'today' => $ordersToday,
-            'week' => $ordersThisWeek,
-            'month' => $ordersThisMonth,
+            'today' => (int) ($metrics->today ?? 0),
+            'week' => (int) ($metrics->week ?? 0),
+            'month' => (int) ($metrics->month ?? 0),
             'total' => $totalOrders,
             'conversion_rate' => round($conversionRate, 2),
-            'average_value' => round($averageOrderValue, 2),
+            'average_value' => round($averageOrderValue ?? 0, 2),
             'status_counts' => $statusCounts
         ];
     }
@@ -207,27 +197,34 @@ class DashboardController extends Controller
 
     private function getChartData()
     {
+        $startDate = Carbon::now()->subDays(6)->startOfDay();
+
+        // 2 queries instead of 14
+        $revenueData = Order::where('created_at', '>=', $startDate)
+            ->where('payment_status', Order::PAID)
+            ->selectRaw('DATE(created_at) as date, SUM(grand_total) as total')
+            ->groupBy('date')->pluck('total', 'date');
+
+        $orderData = Order::where('created_at', '>=', $startDate)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
+            ->groupBy('date')->pluck('total', 'date');
+
         $last7Days = [];
-        $revenueData = [];
-        $orderData = [];
+        $revenue = [];
+        $orders = [];
 
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
+            $dateKey = $date->toDateString();
             $last7Days[] = $date->format('M d');
-            
-            $dailyRevenue = Order::whereDate('created_at', $date)
-                ->where('payment_status', Order::PAID)
-                ->sum('grand_total');
-            $revenueData[] = $dailyRevenue;
-
-            $dailyOrders = Order::whereDate('created_at', $date)->count();
-            $orderData[] = $dailyOrders;
+            $revenue[] = (float) ($revenueData[$dateKey] ?? 0);
+            $orders[] = (int) ($orderData[$dateKey] ?? 0);
         }
 
         return [
             'labels' => $last7Days,
-            'revenue' => $revenueData,
-            'orders' => $orderData
+            'revenue' => $revenue,
+            'orders' => $orders
         ];
     }
 
