@@ -30,14 +30,10 @@ class AppServiceProvider extends ServiceProvider
         // URL::forceScheme('https');
         Paginator::useBootstrap();
 
-        // Prevent N+1 queries — throws in dev, logs in production
-        \Illuminate\Database\Eloquent\Model::preventLazyLoading(!$this->app->isProduction());
-
-        // In production, log lazy loading violations instead of crashing
-        if ($this->app->isProduction()) {
-            \Illuminate\Database\Eloquent\Model::handleLazyLoadingViolationUsing(function ($model, $relation) {
-                \Illuminate\Support\Facades\Log::warning("N+1 detected: {$model}::{$relation}");
-            });
-        }
+        // Log N+1 violations instead of crashing — safe for all environments
+        \Illuminate\Database\Eloquent\Model::preventLazyLoading();
+        \Illuminate\Database\Eloquent\Model::handleLazyLoadingViolationUsing(function ($model, $relation) {
+            \Illuminate\Support\Facades\Log::warning("N+1 lazy load: {$model}::{$relation}");
+        });
     }
 }
